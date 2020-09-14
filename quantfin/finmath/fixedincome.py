@@ -64,3 +64,9 @@ class ZeroCurve(object):
         assert conv.upper() in DayCounts.dc_domain(), f'Day count convention {conv} is not available'
 
         assert interp in ZeroCurve.interp_methods, 'Interpolation method not available'
+
+
+class HazardRateTermStructure(object):
+
+    def __init__(self):
+        pass
