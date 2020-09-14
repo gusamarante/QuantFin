@@ -1,4 +1,4 @@
-from quantfin.assets import ZeroCurve
+from quantfin.finmath import ZeroCurve
 import pandas as pd
 
 
