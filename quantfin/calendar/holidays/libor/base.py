@@ -1,7 +1,7 @@
 from datetime import date
 from pandas.tseries.holiday import AbstractHolidayCalendar, Holiday, \
     GoodFriday, EasterMonday, nearest_workday, next_monday_or_tuesday
-from bwdate.holidays.utils import closest_previous_monday, \
+from quantfin.calendar.holidays.utils import closest_previous_monday, \
     closest_next_monday, Y_END, Y_INI
 
 

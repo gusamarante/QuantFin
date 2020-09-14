@@ -1,8 +1,8 @@
-from bwdate.holidays.utils import AbstractBase
+from quantfin.calendar.holidays.utils import AbstractBase
 from pandas.tseries.holiday import GoodFriday, EasterMonday, \
     USMartinLutherKingJr, USPresidentsDay, USLaborDay, USColumbusDay, \
     USThanksgivingDay
-from bwdate.holidays.utils import NewYearsDay, UKEarlyMayBank, UKSpringBank,\
+from quantfin.calendar.holidays.utils import NewYearsDay, UKEarlyMayBank, UKSpringBank,\
     USIndependenceDay, UKLateSummerBank, USVeteransDay, Christmas, BoxingDay
 
 

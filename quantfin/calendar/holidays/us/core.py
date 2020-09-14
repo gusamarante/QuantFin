@@ -1,7 +1,7 @@
-from bwdate.holidays.utils import AbstractBase
+from quantfin.calendar.holidays.utils import AbstractBase
 from pandas.tseries.holiday import USMartinLutherKingJr, USPresidentsDay, \
     GoodFriday, USMemorialDay, USLaborDay, USThanksgivingDay
-from bwdate.holidays.utils import NewYearsDay, USIndependenceDay, Christmas
+from quantfin.calendar.holidays.utils import NewYearsDay, USIndependenceDay, Christmas
 
 
 class USTradingCalendar(AbstractBase):
