@@ -1,8 +1,8 @@
 # TODO assert the format of 'data'
 # TODO single date using a pandas series
 # TODO Interpolations: flatforward
-# TODO Forward Curve
 # TODO Duration, Convexity, DV01
+# TODO Forward Curve, Carry
 # TODO Chart
 # TODO grab time series of a single maturity
 
