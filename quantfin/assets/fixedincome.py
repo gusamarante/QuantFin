@@ -54,7 +54,6 @@ class ZeroCurve(object):
         fwd = (((1+r2)**(mat2/self.y_base))/((1+r1)**(mat1/self.y_base)))**(self.y_base/(mat2 - mat1)) - 1
         return fwd
 
-
     @staticmethod
     def _basic_assertions(data, conv, interp):
 
