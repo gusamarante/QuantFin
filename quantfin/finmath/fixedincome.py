@@ -1,17 +1,19 @@
-# TODO assert the format of 'data'
-# TODO single date using a pandas series
-# TODO Interpolations: flatforward
-# TODO Duration, Convexity, DV01
-# TODO Forward Curve, Carry
-# TODO Chart
-# TODO grab time series of a single maturity
-
 from scipy.interpolate import interp1d
 from pandas import DataFrame, DatetimeIndex
 from quantfin.calendar import DayCounts
+from scipy.integrate import quad
+from numpy import exp
 
 
 class ZeroCurve(object):
+    # TODO assert the format of 'data'
+    # TODO single date using a pandas series
+    # TODO Interpolations: flatforward
+    # TODO Duration, Convexity, DV01
+    # TODO Forward Curve, Carry
+    # TODO Chart
+    # TODO grab time series of a single maturity
+
     interp_methods = ['linear', 'cubic']
 
     def __init__(self, data, conv, interp='linear'):
@@ -69,4 +71,26 @@ class ZeroCurve(object):
 class HazardRateTermStructure(object):
 
     def __init__(self):
-        pass
+        self.mathaz = {}
+        self._first_entry = True
+
+    def add_hazard(self, mat, prob):
+        # TODO assert mat and prob
+        # TODO add support of interable inputs
+
+        if self._first_entry:
+            self.mathaz[0] = prob
+            self.mathaz[mat] = prob
+            self._first_entry = False
+        else:
+            self.mathaz[mat] = prob
+
+    def fwd_hazard(self, t):
+        fun = interp1d(list(self.mathaz.keys()), list(self.mathaz.values()), kind='next')
+        return fun(t)
+
+    def survival_prob(self, t1, t2):
+        # TODO assert t1, t2 are in the domain
+        integral = quad(self.fwd_hazard, t1, t2)
+        Q = exp(-integral[0])
+        return Q

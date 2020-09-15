@@ -1,3 +1,3 @@
-__all__ = ['ZeroCurve']
+__all__ = ['ZeroCurve', 'HazardRateTermStructure']
 
-from .fixedincome import ZeroCurve
+from .fixedincome import ZeroCurve, HazardRateTermStructure

@@ -1,11 +1,8 @@
-from quantfin.finmath import ZeroCurve
+from quantfin.finmath import HazardRateTermStructure
 import pandas as pd
 
+hr = HazardRateTermStructure()
+hr.add_hazard(360, 0.000010)
+hr.add_hazard(720, 0.000015)
 
-# Mac at home
-# df = pd.read_excel(r'/Users/gustavoamarante/Dropbox/Aulas/QuantFin/Tracker Building/CDS Sample Data.xlsx',
-#                    sheet_name='CurveValues', index_col='Dates', na_values=['#N/A N/A'])
-
-# Macbook
-df = pd.read_excel(r'/Users/gusamarante/Dropbox/Aulas/QuantFin/Tracker Building/CDS Sample Data.xlsx',
-                   sheet_name='CurveValues', index_col='Dates', na_values=['#N/A N/A'])
+print(hr.survival_prob(0, 360))
