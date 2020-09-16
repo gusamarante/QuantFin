@@ -1,5 +1,6 @@
 from scipy.interpolate import interp1d
-from pandas import DataFrame, DatetimeIndex
+from pandas import DataFrame, DatetimeIndex, to_datetime, date_range
+from pandas.tseries.offsets import MonthEnd
 from quantfin.calendar import DayCounts
 from scipy.integrate import quad
 from numpy import exp
@@ -92,5 +93,36 @@ class HazardRateTermStructure(object):
     def survival_prob(self, t1, t2):
         # TODO assert t1, t2 are in the domain
         integral = quad(self.fwd_hazard, t1, t2)
-        Q = exp(-integral[0])
-        return Q
+        q = exp(-integral[0])
+        return q
+
+
+class CDS(object):
+    # TODO Premium leg cash flow
+    # TODO Accrued Premium
+    # TODO Protection leg cash flow
+    # TODO RPV01
+
+    def __init__(self, contract_spread, effective_date, maturity, notional=100, conv='ACT/360'):
+
+        self.contract_spread = contract_spread
+        self.effective_date = to_datetime(effective_date)
+        self.maturity = to_datetime(maturity)  # TODO maturity could be a datetime or a timedelta like '5Y'
+        self.notional = notional
+        self.conv = conv
+        self.premium_cf = self._premium_leg_cf()
+
+    def _premium_leg_cf(self):
+        start = self.effective_date.replace(day=1)
+        end = self.maturity + MonthEnd(0)
+        premium_dates = date_range(start, end, freq='QS-DEC')
+        premium_dates = premium_dates.shift(19, freq='D')
+
+        cond1 = premium_dates >= self.effective_date
+        cond2 = premium_dates <= self.maturity
+        premium_dates = premium_dates[cond1 & cond2]
+
+        df = DataFrame(index=premium_dates)
+
+        # pd.date_range('2020-09-16', '2025-09-16', freq='Q').shift(20, freq='D')
+        return premium_dates
