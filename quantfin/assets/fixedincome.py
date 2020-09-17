@@ -1,9 +1,9 @@
 from scipy.interpolate import interp1d
-from pandas import DataFrame, DatetimeIndex, to_datetime, date_range
+from pandas import DataFrame, DatetimeIndex, to_datetime, date_range, DateOffset
 from pandas.tseries.offsets import MonthEnd
 from quantfin.calendar import DayCounts
 from scipy.integrate import quad
-from numpy import exp
+from numpy import exp, nan, round_
 
 
 class ZeroCurve(object):
@@ -98,7 +98,6 @@ class HazardRateTermStructure(object):
 
 
 class CDS(object):
-    # TODO Premium leg cash flow
     # TODO Accrued Premium
     # TODO Protection leg cash flow
     # TODO RPV01
@@ -109,7 +108,7 @@ class CDS(object):
         self.effective_date = to_datetime(effective_date)
         self.maturity = to_datetime(maturity)  # TODO maturity could be a datetime or a timedelta like '5Y'
         self.notional = notional
-        self.conv = conv
+        self.dc = DayCounts(conv, calendar='us_trading')
         self.premium_cf = self._premium_leg_cf()
 
     def _premium_leg_cf(self):
@@ -118,11 +117,21 @@ class CDS(object):
         premium_dates = date_range(start, end, freq='QS-DEC')
         premium_dates = premium_dates.shift(19, freq='D')
 
-        cond1 = premium_dates >= self.effective_date
+        cond1 = premium_dates > self.effective_date
         cond2 = premium_dates <= self.maturity
         premium_dates = premium_dates[cond1 & cond2]
 
-        df = DataFrame(index=premium_dates)
+        df = DataFrame(index=premium_dates,
+                       columns=['CashFlow'])
 
-        # pd.date_range('2020-09-16', '2025-09-16', freq='Q').shift(20, freq='D')
-        return premium_dates
+        df.loc[premium_dates[0] - DateOffset(months=3)] = 0
+        df = df.sort_index()
+
+        df.index = self.dc.following(df.index)
+        time_fractions = self.dc.tf(df.index[:-1], df.index[1:])
+        cash_flows = round_(time_fractions * self.notional * (self.contract_spread/10000), 2)
+
+        df = DataFrame(index=self.dc.following(premium_dates),
+                       data={'Premium Cash Flow': cash_flows})
+
+        return df
