@@ -1,12 +1,11 @@
 from numpy import exp, sqrt, zeros, maximum
+import matplotlib.pyplot as plt
 
 
 class BinomalTree(object):
     """
     Class that computes the Cox, Ross & Rubinstein (CRR) binomial tree model.
     """
-
-    # TODO add chart functions
 
     def __init__(self, stock, strike, years2mat, vol, risk_free=0, div_yield=0,
                  n=1, call=True, option_type='european'):
@@ -24,7 +23,6 @@ class BinomalTree(object):
         """
 
         assert option_type in ['european', 'binary', 'american'], f"Option type '{option_type}' not implemented"
-        assert type(n) is int, "'n' must be an integer"
 
         # Save inputs as attributes
         self.stock = stock
@@ -33,7 +31,7 @@ class BinomalTree(object):
         self.vol = vol
         self.risk_free = risk_free
         self.div_yield = div_yield
-        self.n = n
+        self.n = int(n)
         self.call = call
         self.option_type = option_type
 
@@ -95,3 +93,32 @@ class BinomalTree(object):
             payoff = maximum((stock - strike) * callput, 0)
 
         return payoff
+
+    def chart_stock(self, labels=False):
+
+        fig = plt.figure()
+
+        # Plot labels
+        if labels:
+            for j in range(self.n + 1):
+                for i in range(j + 1):
+                    plt.text(j*self.dt, self.tree_stock[i, j], '    ' + str(round(self.tree_stock[i, j], 2)),
+                             verticalalignment='center', horizontalalignment='left')
+
+        # Plot edges
+        for j in range(self.n):
+            for i in range(j + 1):
+                plt.plot([j * self.dt, (j + 1) * self.dt], [self.tree_stock[i, j], self.tree_stock[i, j + 1]],
+                         marker='o', color='black')
+                plt.plot([j * self.dt, (j + 1) * self.dt], [self.tree_stock[i, j], self.tree_stock[i + 1, j + 1]],
+                         marker='o', color='black')
+
+        ax = plt.gca()
+        ax.spines['right'].set_color('none')
+        ax.spines['top'].set_color('none')
+        ax.set_xlabel('Years')
+        ax.set_ylabel('Price')
+
+        plt.tight_layout()
+
+        return ax.get_figure()
