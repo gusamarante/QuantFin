@@ -6,6 +6,8 @@ class BinomalTree(object):
     Class that computes the Cox, Ross & Rubinstein (CRR) binomial tree model.
     """
 
+    # TODO add chart functions
+
     def __init__(self, stock, strike, years2mat, vol, risk_free=0, div_yield=0,
                  n=1, call=True, option_type='european'):
         """
