@@ -37,8 +37,9 @@ class Diffusion(object):
 
         shocks = np.random.normal(0, 1, (n, k)) * np.sqrt(T / n)
         brownian_motion = shocks.cumsum(axis=0)
-        brownian_motion = np.vstack([np.zeros((1, k)), brownian_motion])
+        brownian_motion = np.vstack([np.zeros((1, k)), brownian_motion])  # Adds the 'zero' starting point
 
+        # Organize the result in a pandas DataFrame
         index_array = list(np.arange(0, self.T + self.delta_t, self.delta_t))
         column_array = ['Brownian Motion ' + str(i+1) for i in range(k)]
         brownian_motion = pd.DataFrame(data=brownian_motion,
