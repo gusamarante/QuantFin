@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+# TODO Add confidence intervals for each process
 # TODO Mean-reverting random walk (Ornstein-Uhlenbeck)
 # TODO Mean-reverting Square root process
 # TODO General diffusion process class that takes mu(x,t), sigma(x,t) and y=f(x,t)
@@ -23,14 +24,50 @@ class Diffusion(object):
         self.k = k  # Number of simulated trajectories
         self.initial_price = initial_price
         self.delta_t = T / n  # Time step
+        self.time_array = np.arange(0, T + self.delta_t, self.delta_t)
         self.brownian_motion = self._get_brownian_motion(random_seed)
 
         if process_type == 'bm':
+
             self.simulated_trajectories = self.brownian_motion
+
+            self.theoretical_mean = pd.Series(name='Theoretical Mean',
+                                              index=self.time_array,
+                                              data=0)
+
+            self.theoretical_std = pd.Series(name='Theoretical Std',
+                                             index=self.time_array,
+                                             data=np.sqrt(self.time_array))
+
         elif process_type == 'rwwd':
+
             self.simulated_trajectories = self._get_random_walk_with_drift(drift, diffusion)
+
+            self.theoretical_mean = pd.Series(name='Theoretical Mean',
+                                              index=self.time_array,
+                                              data=self.initial_price + drift * self.time_array)
+
+            self.theoretical_std = pd.Series(name='Theoretical Std',
+                                             index=self.time_array,
+                                             data=diffusion * np.sqrt(self.time_array))
+
         elif process_type == 'gbm':
+
             self.simulated_trajectories = self._get_geometric_brownian_motion(drift, diffusion)
+
+            self.theoretical_mean = pd.Series(name='Theoretical Mean',
+                                              index=self.time_array,
+                                              data=self.initial_price * np.exp(drift * self.time_array))
+
+            # Reminder: the distribution of the gbm is log-normal, and although we can
+            # compute the std for the lognormal distribution, the confidence interval must
+            # be built based on assymetric valeus, in order to get something accurate and
+            # inside the domain of the process.
+            variance = (self.initial_price ** 2) * np.exp(2 * drift * self.time_array) * (np.exp(self.time_array *
+                                                                                                 (diffusion ** 2)) - 1)
+            self.theoretical_std = pd.Series(name='Theoretical Std',
+                                             index=self.time_array,
+                                             data=np.sqrt(variance))
 
     def _get_brownian_motion(self, random_seed):
         """
@@ -46,10 +83,9 @@ class Diffusion(object):
         brownian_motion = np.vstack([np.zeros((1, self.k)), brownian_motion])  # Adds the 'zero' starting point
 
         # Organize the result in a pandas DataFrame
-        index_array = list(np.arange(0, self.T + self.delta_t, self.delta_t))
         column_array = ['Brownian Motion ' + str(i+1) for i in range(self.k)]
         brownian_motion = pd.DataFrame(data=brownian_motion,
-                                       index=index_array,
+                                       index=list(self.time_array),
                                        columns=column_array)
         return brownian_motion
 
@@ -57,14 +93,13 @@ class Diffusion(object):
         cond = (drift is not None) and (diffusion is not None)
         assert cond, "'drift' and 'diffusion' must not be None in a random walk with drift"
 
-        time_index = np.arange(0, self.T + self.delta_t, self.delta_t)
-        rwwd = self.initial_price + time_index * drift  # initial price + trend
+        rwwd = self.initial_price + self.time_array * drift  # initial price + trend
         rwwd = np.reshape(rwwd, (self.n + 1, 1))  # reshape array for broadcasting
         rwwd = rwwd + diffusion * self.brownian_motion.values  # add the random part
 
         column_array = ['Random Walk ' + str(i + 1) for i in range(self.k)]
         rwwd = pd.DataFrame(data=rwwd,
-                            index=list(time_index),
+                            index=list(self.time_array),
                             columns=column_array)
 
         return rwwd
@@ -73,15 +108,14 @@ class Diffusion(object):
         cond = (drift is not None) and (diffusion is not None)
         assert cond, "'drift' and 'diffusion' must not be None in a geometric brownian motion"
 
-        time_index = np.arange(0, self.T + self.delta_t, self.delta_t)
-        gbm = (drift - (diffusion**2)/2) * time_index  # exponent
+        gbm = (drift - (diffusion**2)/2) * self.time_array  # exponent
         gbm = np.reshape(gbm, (self.n + 1, 1))  # Reshape array for broadcasting
         gbm = gbm + diffusion * self.brownian_motion.values
         gbm = self.initial_price * np.exp(gbm)
 
         column_array = ['Geometric ' + str(i + 1) for i in range(self.k)]
         gbm = pd.DataFrame(data=gbm,
-                           index=list(time_index),
+                           index=list(self.time_array),
                            columns=column_array)
 
         return gbm
