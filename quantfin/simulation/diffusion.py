@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from scipy.stats import norm, lognorm
 
 # TODO Add confidence intervals for each process
 # TODO Mean-reverting random walk (Ornstein-Uhlenbeck)
@@ -15,7 +16,7 @@ class Diffusion(object):
                               'gbm']  # Geometric BM/Log-normal random walk (dS = mu * S * dt + sigma * S * dW)
 
     def __init__(self, T=1, n=100, k=1, initial_price=0, process_type='bm', drift=None, diffusion=None,
-                 random_seed=None):
+                 random_seed=None, conf=0.95):
         # TODO Documentation
         assert process_type in self.supported_process_type, "Process not yet implemented"
 
@@ -26,7 +27,9 @@ class Diffusion(object):
         self.delta_t = T / n  # Time step
         self.time_array = np.arange(0, T + self.delta_t, self.delta_t)
         self.brownian_motion = self._get_brownian_motion(random_seed)
+        self.conf = conf
 
+        # TODO Maybe transform this into separate methods for each process
         if process_type == 'bm':
 
             self.simulated_trajectories = self.brownian_motion
@@ -39,6 +42,9 @@ class Diffusion(object):
                                              index=self.time_array,
                                              data=np.sqrt(self.time_array))
 
+            self.ci_lower = self.theoretical_mean - self.theoretical_std * norm.ppf((1 + conf) / 2)
+            self.ci_upper = self.theoretical_mean + self.theoretical_std * norm.ppf((1 + conf) / 2)
+
         elif process_type == 'rwwd':
 
             self.simulated_trajectories = self._get_random_walk_with_drift(drift, diffusion)
@@ -50,6 +56,9 @@ class Diffusion(object):
             self.theoretical_std = pd.Series(name='Theoretical Std',
                                              index=self.time_array,
                                              data=diffusion * np.sqrt(self.time_array))
+
+            self.ci_lower = self.theoretical_mean - self.theoretical_std * norm.ppf((1 + conf) / 2)
+            self.ci_upper = self.theoretical_mean + self.theoretical_std * norm.ppf((1 + conf) / 2)
 
         elif process_type == 'gbm':
 
@@ -68,6 +77,19 @@ class Diffusion(object):
             self.theoretical_std = pd.Series(name='Theoretical Std',
                                              index=self.time_array,
                                              data=np.sqrt(variance))
+
+            lower_ci = [lognorm.ppf((1-conf)/2, diffusion * srdt,
+                                    loc=(drift - 0.5 * diffusion ** 2) * srdt ** 2,
+                                    scale=media)
+                        for srdt, media in zip(np.sqrt(self.time_array), self.theoretical_mean)]
+
+            upper_ci = [lognorm.ppf((1 + conf) / 2, diffusion * srdt,
+                                    loc=(drift - 0.5 * diffusion ** 2) * srdt ** 2,
+                                    scale=media)
+                        for srdt, media in zip(np.sqrt(self.time_array), self.theoretical_mean)]
+
+            self.ci_lower = pd.Series(index=self.time_array, data=lower_ci, name='Lower CI').fillna(initial_price)
+            self.ci_upper = pd.Series(index=self.time_array, data=upper_ci, name='Upper CI').fillna(initial_price)
 
     def _get_brownian_motion(self, random_seed):
         """
