@@ -2,9 +2,6 @@ import numpy as np
 import pandas as pd
 from scipy.stats import norm, lognorm
 
-# TODO Add confidence intervals for each process
-# TODO Mean-reverting random walk (Ornstein-Uhlenbeck)
-# TODO Mean-reverting Square root process
 # TODO General diffusion process class that takes mu(x,t), sigma(x,t) and y=f(x,t)
 # TODO correlated brownian motions (product rule for Ito,
 #      https://en.wikipedia.org/wiki/Itô%27s_lemma#Product_rule_for_Itô_processes)
@@ -13,9 +10,10 @@ from scipy.stats import norm, lognorm
 class Diffusion(object):
     supported_process_type = ['bm',  # Simple Brownian Motion (dW)
                               'rwwd',  # Random Walk with drift (dX = mu * dt + sigma * dW)
-                              'gbm']  # Geometric BM/Log-normal random walk (dS = mu * S * dt + sigma * S * dW)
+                              'gbm',  # Geometric BM/Log-normal random walk (dS = mu * S * dt + sigma * S * dW)
+                              'ou']  # Ornstein-Uhlenbeck (dx = theta * (mu - x) * dt + sigma * dW)
 
-    def __init__(self, T=1, n=100, k=1, initial_price=0, process_type='bm', drift=None, diffusion=None,
+    def __init__(self, T=1, n=100, k=1, initial_price=0, process_type='bm', drift=None, diffusion=None, mean=None,
                  random_seed=None, conf=0.95):
         # TODO Documentation
         assert process_type in self.supported_process_type, "Process not yet implemented"
@@ -91,6 +89,20 @@ class Diffusion(object):
             self.ci_lower = pd.Series(index=self.time_array, data=lower_ci, name='Lower CI').fillna(initial_price)
             self.ci_upper = pd.Series(index=self.time_array, data=upper_ci, name='Upper CI').fillna(initial_price)
 
+        elif process_type == 'ou':
+            self.simulated_trajectories = self._get_ornstein_uhlenbeck(drift, diffusion, mean)
+
+            self.theoretical_mean = pd.Series(name='Theoretical Mean',
+                                              index=self.time_array,
+                                              data=mean + (initial_price - mean)*np.exp(-drift*self.time_array))
+
+            self.theoretical_std = pd.Series(name='Theoretical Std',
+                                             index=self.time_array,
+                                             data=diffusion * np.sqrt((1-np.exp(-2*drift*self.time_array))/(2*drift)))
+
+            self.ci_lower = self.theoretical_mean - self.theoretical_std * norm.ppf((1 + conf) / 2)
+            self.ci_upper = self.theoretical_mean + self.theoretical_std * norm.ppf((1 + conf) / 2)
+
     def _get_brownian_motion(self, random_seed):
         """
         This simulates a brownian motion using a normal distribution, where
@@ -141,3 +153,24 @@ class Diffusion(object):
                            columns=column_array)
 
         return gbm
+
+    def _get_ornstein_uhlenbeck(self, drift, diffusion, mean):
+        cond = (drift is not None) and (diffusion is not None)
+        assert cond, "'drift', 'diffusion' and 'mean' must not be None in a Ornstein-Uhlenbeck process"
+
+        ou_mean = mean + (self.initial_price - mean) * np.exp(-drift*self.time_array)
+        ou_mean = np.reshape(ou_mean, (self.n + 1, 1))  # reshape array for broadcasting
+        # ou_diff = diffusion*np.sqrt((1-np.exp(-2*drift*self.time_array))/(2*drift))
+        dWt = self.brownian_motion.diff(1).fillna(0).values
+        integrand = np.reshape(np.exp(drift * self.time_array), (self.n + 1, 1)) * dWt
+        integral = integrand.cumsum(axis=0)
+        ou_diff = np.reshape(np.exp(-drift*self.time_array), (self.n + 1, 1)) * diffusion * integral
+        ou = ou_mean + ou_diff
+
+        column_array = ['Ornstein-Uhlenbeck ' + str(i + 1) for i in range(self.k)]
+
+        ou = pd.DataFrame(data=ou,
+                          index=list(self.time_array),
+                          columns=column_array)
+
+        return ou
