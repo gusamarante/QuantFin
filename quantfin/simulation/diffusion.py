@@ -8,6 +8,8 @@ from scipy.stats import norm, lognorm
 
 
 class Diffusion(object):
+    # TODO Example Notebook
+
     supported_process_type = ['bm',  # Simple Brownian Motion (dW)
                               'rwwd',  # Random Walk with drift (dX = mu * dt + sigma * dW)
                               'gbm',  # Geometric BM/Log-normal random walk (dS = mu * S * dt + sigma * S * dW)

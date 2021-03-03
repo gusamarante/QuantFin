@@ -10,6 +10,7 @@ class Markowitz(object):
     # TODO Chart Functionality
     # TODO Borrowing Rate
     # TODO Documentation
+    # TODO Example Notebook
 
     def __init__(self, mu, sigma, corr, rf, risk_aversion=None, short_sell=True):
         # TODO Assert data types
@@ -36,6 +37,52 @@ class Markowitz(object):
         # Get the investor's portfolio and build the complete set of weights
         self.weight_p, self.complete_weights, self.mu_c, self.sigma_c, self.certain_equivalent \
             = self._investor_allocation()
+
+    def plot(self):
+        # TODO Make elements optional
+        # TODO Add save_path for the figure
+
+        # assets
+        plt.scatter(self.sigma, self.mu, label='Assets')
+
+        # risk-free
+        plt.scatter(0, self.rf, label='Risk-Free')
+
+        # Optimal risky portfolio
+        plt.scatter(self.sigma_p, self.mu_p, label='Optimal Risk')
+
+        # Minimal Variance Portfolio
+        plt.scatter(self.sigma_mv, self.mu_mv, label='Min Variance')
+
+        # Minimal variance frontier
+        if not self.n_assets == 1:
+            mu_mv, sigma_mv = self._min_var_frontier()
+            plt.plot(sigma_mv, mu_mv, marker=None, color='black', zorder=-1, label='Min Variance Frontier')
+
+        # Capital allocation line
+        max_sigma = self.sigma.max() + 0.05
+        x_values = [0, max_sigma]
+        y_values = [self.rf, self.rf + self.sharpe_p * max_sigma]
+        plt.plot(x_values, y_values, marker=None, color='green', zorder=-1, label='Capital Allocation Line')
+
+        # Investor's portfolio
+        plt.scatter(self.sigma_c, self.mu_c, label="Investor's Portfolio", color='purple')
+
+        # Indiference Curve
+        max_sigma = self.sigma_p + 0.1
+        x_values = np.arange(0, max_sigma, max_sigma / 100)
+        y_values = self.certain_equivalent + 0.5 * self.risk_aversion * (x_values ** 2)
+        plt.plot(x_values, y_values, marker=None, color='purple', zorder=-1, label='Indiference Curve')
+
+        # legend
+        plt.legend(loc='best')
+
+        # adjustments
+        plt.xlim((0, self.sigma.max() + 0.1))
+        plt.xlabel('Risk')
+        plt.ylabel('Return')
+        plt.tight_layout()
+        plt.show()
 
     def _n_assets(self):
         """
@@ -67,7 +114,7 @@ class Markowitz(object):
 
             # define the objective function (notice the sign change on the return value)
             def sharpe(x):
-                return -self._sharpe(x, self.mu.values, self.cov.values, self.rf)
+                return -self._sharpe(x, self.mu.values, self.cov.values, self.rf, self.n_assets)
 
             # budget constraint
             constraints = [{'type': 'eq',
@@ -184,10 +231,10 @@ class Markowitz(object):
         return mu_range, sigma_range
 
     @staticmethod
-    def _sharpe(w, mu, cov, rf):
+    def _sharpe(w, mu, cov, rf, n):
         er = np.sum(w*mu)
 
-        w = np.reshape(w, (2, 1))
+        w = np.reshape(w, (n, 1))
         risk = np.sqrt(w.T @ cov @ w)[0][0]
 
         sharpe = (er - rf) / risk

@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 
 
 class BinomalTree(object):
+    # TODO Example Notebook
     """
     Class that computes the Cox, Ross & Rubinstein (CRR) binomial tree model.
     """
