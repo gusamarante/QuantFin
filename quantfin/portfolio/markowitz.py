@@ -1,6 +1,8 @@
+from scipy.optimize import minimize, Bounds
+import matplotlib.pyplot as plt
+from numpy.linalg import inv
 import pandas as pd
 import numpy as np
-from scipy.optimize import minimize, Bounds
 
 
 class Markowitz(object):
@@ -34,6 +36,9 @@ class Markowitz(object):
         # Get the investor's portfolio and build the complete set of weights
         self.weight_p, self.complete_weights, self.mu_c, self.sigma_c, self.certain_equivalent \
             = self._investor_allocation()
+
+        if self.n_assets > 1:
+            self._min_var_frontier()
 
     def _n_assets(self):
         """
@@ -161,6 +166,25 @@ class Markowitz(object):
         ce = self._utility(mu_c, sigma_c, self.risk_aversion)
 
         return weight_p, complete_weights, mu_c, sigma_c, ce
+
+    def _min_var_frontier(self, n_steps=100):
+        E = self.mu.values
+        inv_cov = inv(self.cov)
+
+        A = E @ inv_cov @ E
+        B = np.ones(self.n_assets) @ inv_cov @ E
+        C = np.ones(self.n_assets) @ inv_cov @ np.ones(self.n_assets)
+
+        def min_risk(mu):
+            return np.sqrt((C * (mu ** 2) - 2 * B * mu + A)/(A * C - B ** 2))
+
+        min_mu = min(self.mu.min(), self.rf) - 0.01  # TODO how to systematize this?
+        max_mu = max(self.mu.max(), self.rf) + 0.05  # TODO how to systematize this?
+
+        mu_range = np.arange(min_mu, max_mu, (max_mu - min_mu) / n_steps)
+        sigma_range = np.array(list(map(min_risk, mu_range)))
+
+        return mu_range, sigma_range
 
     @staticmethod
     def _sharpe(w, mu, cov, rf):
