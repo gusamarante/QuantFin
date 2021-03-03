@@ -23,7 +23,7 @@ mu = pd.Series(data={'A': 0.10,
                      'B': 0.15},
                name='mu')
 
-sigma = pd.Series(data={'A': 0.2,
+sigma = pd.Series(data={'A': 0.20,
                         'B': 0.30},
                   name='sigma')
 

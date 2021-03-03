@@ -37,9 +37,6 @@ class Markowitz(object):
         self.weight_p, self.complete_weights, self.mu_c, self.sigma_c, self.certain_equivalent \
             = self._investor_allocation()
 
-        if self.n_assets > 1:
-            self._min_var_frontier()
-
     def _n_assets(self):
         """
         Makes sure that all inputs have the correct shape and returns the number of assets
