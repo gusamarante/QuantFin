@@ -16,7 +16,7 @@ corr = pd.DataFrame(columns=['A'],
 
 mkw = Markowitz(mu, sigma, corr,
                 rf=0.02,
-                risk_aversion=1.2)
+                risk_aversion=2.5)
 
 # ===== 2 Risky Assets =====
 mu = pd.Series(data={'A': 0.10,
@@ -36,6 +36,4 @@ corr = pd.DataFrame(columns=['A', 'B'],
 
 mkw = Markowitz(mu, sigma, corr,
                 rf=0.02,
-                risk_aversion=1.2)
-
-
+                risk_aversion=2.5)
