@@ -18,6 +18,7 @@ class Diffusion(object):
     def __init__(self, T=1, n=100, k=1, initial_price=0, process_type='bm', drift=None, diffusion=None, mean=None,
                  random_seed=None, conf=0.95):
         # TODO Documentation
+
         assert process_type in self.supported_process_type, "Process not yet implemented"
 
         self.n = n  # Number of subintervals of the simulation
