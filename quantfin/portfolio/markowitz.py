@@ -117,8 +117,8 @@ class Markowitz(object):
                 return -self._sharpe(x, self.mu.values, self.cov.values, self.rf, self.n_assets)
 
             # budget constraint
-            constraints = [{'type': 'eq',
-                           'fun': lambda w: w.sum() - 1}]
+            constraints = ({'type': 'eq',
+                           'fun': lambda w: w.sum() - 1})
 
             # Create bounds for the weights if short-selling is restricted
             if self.short_selling:
@@ -156,8 +156,8 @@ class Markowitz(object):
             return np.sqrt(x @ self.cov @ x)
 
         # budget constraint
-        constraints = [{'type': 'eq',
-                        'fun': lambda w: w.sum() - 1}]
+        constraints = ({'type': 'eq',
+                        'fun': lambda w: w.sum() - 1})
 
         # Create bounds for the weights if short-selling is restricted
         if self.short_selling:
