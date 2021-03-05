@@ -1,3 +1,3 @@
-from quantfin.simulation.diffusion import Diffusion
+from quantfin.simulation.diffusion import Diffusion, BrownianMotion
 
-__all__ = ['Diffusion']
+__all__ = ['Diffusion', 'BrownianMotion']

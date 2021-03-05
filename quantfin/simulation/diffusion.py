@@ -8,7 +8,6 @@ from scipy.stats import norm, lognorm
 
 
 class Diffusion(object):
-    # TODO Example Notebook
 
     supported_process_type = ['bm',  # Simple Brownian Motion (dW)
                               'rwwd',  # Random Walk with drift (dX = mu * dt + sigma * dW)
@@ -177,3 +176,30 @@ class Diffusion(object):
                           columns=column_array)
 
         return ou
+
+
+class BrownianMotion(object):
+    # TODO notebook example
+
+    def __init__(self, T, n, k=1, random_seed=None):
+        # TODO Documentation
+
+        self.T = T
+        self.n = n
+
+        if random_seed is not None:
+            np.random.seed(random_seed)
+
+        time_index = np.arange(n * T + 1) / n
+
+        # Scaled Random Walk
+        omega = np.random.uniform(size=(T * n, k))  # "flip the coins"
+        X = (omega >= 0.5) * 1 + (omega < 0.5) * (-1)  # get the increments
+        M = X.cumsum(axis=0)  # Sum the increments (integration)
+        M = (1 / np.sqrt(n)) * M  # Scale the process
+        M = np.vstack([np.zeros((1, k)), M])  # add a zero as a starting point
+
+        column_names = [f'Brownian Motion {i+1}' for i in range(k)]
+        self.simulated_trajectories = pd.DataFrame(index=time_index,
+                                                   data=M,
+                                                   columns=column_names)
