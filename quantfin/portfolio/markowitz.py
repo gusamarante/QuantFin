@@ -6,15 +6,47 @@ import numpy as np
 
 
 class Markowitz(object):
-    # TODO Minumum Variance Frontier
     # TODO Chart Functionality
     # TODO Borrowing Rate
     # TODO Documentation
-    # TODO Example Notebook
+    # TODO Example Notebook (include shortselling)
 
     def __init__(self, mu, sigma, corr, rf, risk_aversion=None, short_sell=True):
-        # TODO Assert data types
-        # TODO Assert data indexes match
+        """
+        Receives informations about the set of assets available for allocation and computes the following
+        measures as atributes:
+            - cov: Covariance matrix of the assets
+            - mu_p: expected return of the optimal risky portfolio (tangency portfolio)
+            - sigma_p: risk of the optimal risky portfolio (tangency portfolio)
+            - risky_weights: pandas series of the weights of each risky asset on the optimal risk portfolio
+            - sharpe_p: expected sharpe ratio of the optimal risky portfolio.
+            - mu_mv: expected return of the minimal variance portfolio
+            - sigma_mv: risk of the minimal variance portfolio
+            - mv_weights: pandas series of the weights of each risky asset on the minimal variance portfolio
+            - sharpe_mv: expected sharpe ratio of the minimal variance portfolio.
+            - weight_p: weight of the risk porfolio on the investor's portfolio. The remaining 1-weight_p is
+                        allocated on the risk-free asset
+            - complete_weights: weights of the risky and risk-free assets on the investor's portfolio.
+            - mu_c: expected return of the investor's portfolio
+            - sigma_c: risk of the investor's portfolio
+            - certain_equivalent: the hypothetical risk-free return that would make the investor indiferent
+                                  to its risky portfolioo of choice (portfolio C)
+
+        Computations involving the investor's preference use the following utility function:
+            U = mu_c - 0.5 * risk_aversion * (sigma_c**2)
+
+        The class also has support for plotting the classical risk-return plane.
+
+        :param mu: pandas series of expected returns where the index contains the names of the assets.
+        :param sigma: pandas series of risk where the index contains the names of the assets
+                      (index must be the same as 'mu')
+        :param corr: pandas DataFrame of correlations (index and columns must contain the same index)
+        :param rf: float, risk-free rate
+        :param risk_aversion: coefficient of risk aversion of the investor's utility function.
+        :param short_sell: If True, short-selling is allowed. If False, weights on risky-assets are
+                           constrained to be between 0 and 1
+        """
+        # TODO Assert data indexes match and organize the indexes
 
         # Save inputs as attributes
         self.mu = mu
