@@ -6,9 +6,6 @@ import numpy as np
 
 
 class Markowitz(object):
-    # TODO Chart Functionality
-    # TODO Borrowing Rate
-    # TODO Documentation
     # TODO Example Notebook (include shortselling)
 
     def __init__(self, mu, sigma, corr, rf, risk_aversion=None, short_sell=True):
@@ -70,10 +67,11 @@ class Markowitz(object):
         self.weight_p, self.complete_weights, self.mu_c, self.sigma_c, self.certain_equivalent \
             = self._investor_allocation()
 
-    def plot(self):
+    def plot(self, figsize=None):
         # TODO Make elements optional
         # TODO Add save_path for the figure
 
+        plt.figure(figsize=figsize)
         # assets
         plt.scatter(self.sigma, self.mu, label='Assets')
 
@@ -142,7 +140,6 @@ class Markowitz(object):
                                 name='Risky Weights')
 
         else:  # multiple risky assets (optimization)
-            # TODO Optimization
 
             # define the objective function (notice the sign change on the return value)
             def sharpe(x):
@@ -244,6 +241,7 @@ class Markowitz(object):
         return weight_p, complete_weights, mu_c, sigma_c, ce
 
     def _min_var_frontier(self, n_steps=100):
+
         E = self.mu.values
         inv_cov = inv(self.cov)
 
