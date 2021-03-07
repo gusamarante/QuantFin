@@ -1,3 +1,3 @@
-from quantfin.portfolio.markowitz import Markowitz
+from quantfin.portfolio.asset_allocation import Markowitz
 
 __all__ = ['Markowitz']
