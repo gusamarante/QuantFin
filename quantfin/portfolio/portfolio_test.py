@@ -21,7 +21,7 @@ mkw = Markowitz(mu, sigma, corr,
 # ===== 3 Risky Assets =====
 mu = pd.Series(data={'A': 0.10,
                      'B': 0.15,
-                     'C': 0.10},
+                     'C': 0.09},
                name='mu')
 
 sigma = pd.Series(data={'A': 0.20,
@@ -39,7 +39,10 @@ corr = pd.DataFrame(columns=['A', 'B', 'C'],
 
 mkw = Markowitz(mu, sigma, corr,
                 rf=0.05,
-                risk_aversion=4)
+                risk_aversion=4,
+                short_sell=True)
 
-mkw.plot()
+print(mkw.risky_weights)
+
+mkw.plot(figsize=(9, 6))
 

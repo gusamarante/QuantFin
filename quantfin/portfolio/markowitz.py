@@ -1,12 +1,12 @@
 from scipy.optimize import minimize, Bounds
 import matplotlib.pyplot as plt
 from numpy.linalg import inv
+from tqdm import tqdm
 import pandas as pd
 import numpy as np
 
 
 class Markowitz(object):
-    # TODO Example Notebook (include shortselling)
 
     def __init__(self, mu, sigma, corr, rf, risk_aversion=None, short_sell=True):
         """
@@ -242,21 +242,64 @@ class Markowitz(object):
 
     def _min_var_frontier(self, n_steps=100):
 
-        E = self.mu.values
-        inv_cov = inv(self.cov)
+        if self.short_selling:
+            E = self.mu.values
+            inv_cov = inv(self.cov)
 
-        A = E @ inv_cov @ E
-        B = np.ones(self.n_assets) @ inv_cov @ E
-        C = np.ones(self.n_assets) @ inv_cov @ np.ones(self.n_assets)
+            A = E @ inv_cov @ E
+            B = np.ones(self.n_assets) @ inv_cov @ E
+            C = np.ones(self.n_assets) @ inv_cov @ np.ones(self.n_assets)
 
-        def min_risk(mu):
-            return np.sqrt((C * (mu ** 2) - 2 * B * mu + A)/(A * C - B ** 2))
+            def min_risk(mu):
+                return np.sqrt((C * (mu ** 2) - 2 * B * mu + A)/(A * C - B ** 2))
 
-        min_mu = min(self.mu.min(), self.rf) - 0.01  # TODO how to systematize this?
-        max_mu = max(self.mu.max(), self.rf) + 0.05  # TODO how to systematize this?
+            min_mu = min(self.mu.min(), self.rf) - 0.01
+            max_mu = max(self.mu.max(), self.rf) + 0.05
 
-        mu_range = np.arange(min_mu, max_mu, (max_mu - min_mu) / n_steps)
-        sigma_range = np.array(list(map(min_risk, mu_range)))
+            mu_range = np.arange(min_mu, max_mu, (max_mu - min_mu) / n_steps)
+            sigma_range = np.array(list(map(min_risk, mu_range)))
+
+        else:
+
+            sigma_range = []
+
+            # Objective function
+            def risk(x):
+                return np.sqrt(x @ self.cov @ x)
+
+            # initial guess
+            w0 = np.zeros(self.n_assets)
+            w0[0] = 1
+
+            # Values for mu to perform the minimization
+            mu_range = np.linspace(self.mu.min(), self.mu.max(), n_steps)
+
+            for mu_step in tqdm(mu_range, 'Finding Mininmal variance frontier'):
+
+                # budget and return constraints
+                constraints = ({'type': 'eq',
+                                'fun': lambda w: w.sum() - 1},
+                               {'type': 'eq',
+                                'fun': lambda w: sum(w * self.mu) - mu_step})
+
+                bounds = Bounds(np.zeros(self.n_assets), np.ones(self.n_assets))
+
+                # Run optimization
+                res = minimize(risk, w0,
+                               method='SLSQP',
+                               constraints=constraints,
+                               bounds=bounds,
+                               options={'ftol': 1e-9, 'disp': False})
+
+                if not res.success:
+                    raise RuntimeError("Convergence Failed")
+
+                # Compute optimal portfolio parameters
+                sigma_step = np.sqrt(res.x @ self.cov @ res.x)
+
+                sigma_range.append(sigma_step)
+
+            sigma_range = np.array(sigma_range)
 
         return mu_range, sigma_range
 
