@@ -43,7 +43,9 @@ class Markowitz(object):
         :param short_sell: If True, short-selling is allowed. If False, weights on risky-assets are
                            constrained to be between 0 and 1
         """
-        # TODO Assert data indexes match and organize the indexes
+
+        # Asseert data indexes and organize
+        self._assert_indexes(mu, sigma, corr)
 
         # Save inputs as attributes
         self.mu = mu
@@ -67,9 +69,7 @@ class Markowitz(object):
         self.weight_p, self.complete_weights, self.mu_c, self.sigma_c, self.certain_equivalent \
             = self._investor_allocation()
 
-    def plot(self, figsize=None):
-        # TODO Make elements optional
-        # TODO Add save_path for the figure
+    def plot(self, figsize=None, save_path=None):
 
         plt.figure(figsize=figsize)
         # assets
@@ -112,6 +112,11 @@ class Markowitz(object):
         plt.xlabel('Risk')
         plt.ylabel('Return')
         plt.tight_layout()
+
+        # Save as picture
+        if save_path is not None:
+            plt.savefig(save_path)
+
         plt.show()
 
     def _n_assets(self):
@@ -316,3 +321,12 @@ class Markowitz(object):
     @staticmethod
     def _utility(mu, sigma, risk_aversion):
         return mu - 0.5 * risk_aversion * (sigma ** 2)
+
+    @staticmethod
+    def _assert_indexes(mu, sigma, corr):
+        cond1 = sorted(mu.index) == sorted(sigma.index)
+        cond2 = sorted(mu.index) == sorted(corr.index)
+
+        cond = cond1 and cond2
+
+        assert cond, "elements in the input indexes do not match"

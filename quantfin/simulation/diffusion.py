@@ -2,21 +2,79 @@ import numpy as np
 import pandas as pd
 from scipy.stats import norm, lognorm
 
-# TODO General diffusion process class that takes mu(x,t), sigma(x,t) and y=f(x,t)
 # TODO correlated brownian motions (product rule for Ito,
 #      https://en.wikipedia.org/wiki/Itô%27s_lemma#Product_rule_for_Itô_processes)
 
 
-class Diffusion(object):
+class BrownianMotion(object):
 
-    supported_process_type = ['bm',  # Simple Brownian Motion (dW)
-                              'rwwd',  # Random Walk with drift (dX = mu * dt + sigma * dW)
-                              'gbm',  # Geometric BM/Log-normal random walk (dS = mu * S * dt + sigma * S * dW)
-                              'ou']  # Ornstein-Uhlenbeck (dx = theta * (mu - x) * dt + sigma * dW)
+    def __init__(self, T, n, k=1, random_seed=None):
+        """
+        Simulates the scaled random walk that leads to the brownian motion
+        :param T: number of years in the simulation
+        :param n: number of steps in the simulated trajectories
+        :param k: number of trajectories to simulate
+        :param random_seed: random seed for numpy RNG
+        """
+
+        self.T = T
+        self.n = n
+
+        if random_seed is not None:
+            np.random.seed(random_seed)
+
+        time_index = np.arange(n * T + 1) / n
+
+        # Scaled Random Walk
+        omega = np.random.uniform(size=(T * n, k))  # "flip the coins"
+        X = (omega >= 0.5) * 1 + (omega < 0.5) * (-1)  # get the increments
+        M = X.cumsum(axis=0)  # Sum the increments (integration)
+        M = (1 / np.sqrt(n)) * M  # Scale the process
+        M = np.vstack([np.zeros((1, k)), M])  # add a zero as a starting point
+
+        column_names = [f'Brownian Motion {i+1}' for i in range(k)]
+        self.simulated_trajectories = pd.DataFrame(index=time_index,
+                                                   data=M,
+                                                   columns=column_names)
+
+
+class Diffusion(object):
+    # TODO General diffusion process class that takes mu(x,t), sigma(x,t) and y=f(x,t)
+
+    supported_process_type = ['bm', 'rwwd', 'gbm', 'ou']
 
     def __init__(self, T=1, n=100, k=1, initial_price=0, process_type='bm', drift=None, diffusion=None, mean=None,
                  random_seed=None, conf=0.95):
-        # TODO Documentation
+        """
+        Simulates diffusion processes.
+        :param T: Number of years to simulate
+        :param n: Number of steps in the series
+        :param k: Number of trajectories to simulate
+        :param initial_price: Starting point of the trajectories
+        :param process_type: supported methods are described below and listed in 'supported_process_type'
+        :param drift: Coeficient. Use varies depending on the 'process_type'.
+        :param diffusion: Coeficient. Use varies depending on the 'process_type'.
+        :param mean: Coeficient. Use varies depending on the 'process_type'.
+        :param random_seed: random seed for the numpy RNG.
+        :param conf: confidence for the confidence intervals.
+
+        - process_type='bm': simple brownian motion. In this case, the terms 'drift', 'diffusion' and
+                             'mean' are not used.
+                                dW
+
+        - process_type='rwwd': Random walk with drift. In this case the 'mean' term is not used and the
+                               terms 'drift' and 'diffusion' are used as follows:
+                                  dS = drift * dt + diffusion * dW
+
+        - process_type='gbm': Geometric brownian motion / Log-normal random walk / Price process. In this
+                              case the 'mean' term is not used and the terms 'drift' and 'diffusion' are
+                              used as follows:
+                                 dS = drift * S * dt + diffusion * S * dW
+
+        - process_type='ou': Ornstein-Uhlenbeck / Mean-reverting process. The terms 'drift', 'diffusion' and
+                             'mean' are used as follows:
+                                dS = drift * (mean - x) * dt + diffusion * dW
+        """
 
         assert process_type in self.supported_process_type, "Process not yet implemented"
 
@@ -29,7 +87,6 @@ class Diffusion(object):
         self.brownian_motion = self._get_brownian_motion(random_seed)
         self.conf = conf
 
-        # TODO Maybe transform this into separate methods for each process
         if process_type == 'bm':
 
             self.simulated_trajectories = self.brownian_motion
@@ -178,28 +235,4 @@ class Diffusion(object):
         return ou
 
 
-class BrownianMotion(object):
-    # TODO notebook example
 
-    def __init__(self, T, n, k=1, random_seed=None):
-        # TODO Documentation
-
-        self.T = T
-        self.n = n
-
-        if random_seed is not None:
-            np.random.seed(random_seed)
-
-        time_index = np.arange(n * T + 1) / n
-
-        # Scaled Random Walk
-        omega = np.random.uniform(size=(T * n, k))  # "flip the coins"
-        X = (omega >= 0.5) * 1 + (omega < 0.5) * (-1)  # get the increments
-        M = X.cumsum(axis=0)  # Sum the increments (integration)
-        M = (1 / np.sqrt(n)) * M  # Scale the process
-        M = np.vstack([np.zeros((1, k)), M])  # add a zero as a starting point
-
-        column_names = [f'Brownian Motion {i+1}' for i in range(k)]
-        self.simulated_trajectories = pd.DataFrame(index=time_index,
-                                                   data=M,
-                                                   columns=column_names)
