@@ -235,4 +235,54 @@ class Diffusion(object):
         return ou
 
 
+class MultivariateGBM(object):
 
+    def __init__(self, T, n, mu, sigma, initial_price=None, random_seed=None):
+        # TODO Documentation
+        # TODO mu is not drift
+        # TODO sigma is not covariance
+        # TODO Example Notebook
+
+        dt = T / n
+        mu = np.array(mu)
+        sigma = np.array(sigma)
+
+        self.time_array = np.linspace(0, T, n+1)
+
+        if random_seed is not None:
+            np.random.seed(random_seed)
+
+        n_assets = self._get_n_assets(mu, sigma, initial_price)
+
+        Z = np.random.normal(size=(n, n_assets))
+        A = np.linalg.cholesky(sigma)
+
+        factor = np.exp((mu - 0.5 * np.diag(sigma)) * dt + np.sqrt(dt) * (A @ Z.T).T).cumprod(axis=0)
+
+        if initial_price is None:
+            price = 100 * np.vstack([np.ones((1, n_assets)), factor])
+        else:
+            price = np.vstack([np.array(initial_price), np.array(initial_price) * factor])
+
+        self.simulated_trajectories = pd.DataFrame(data=price,
+                                                   index=self.time_array,
+                                                   columns=[f'MGBM {i + 1}' for i in range(n_assets)])
+
+    @staticmethod
+    def _get_n_assets(mu, sigma, initial_price):
+        shape_drift = mu.shape[0]
+        shape_sigma1, shape_sigma2 = sigma.shape
+
+        cond1 = shape_drift == shape_sigma1
+        cond2 = shape_drift == shape_sigma2
+        cond3 = shape_sigma1 == shape_sigma2
+
+        if initial_price is not None:
+            cond4 = np.array(initial_price).shape[0] == shape_drift
+        else:
+            cond4 = True
+
+        if not (cond1 and cond2 and cond3 and cond4):
+            raise ValueError("mismatch in input shapes")
+
+        return shape_sigma1
