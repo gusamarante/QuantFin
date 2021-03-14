@@ -60,6 +60,7 @@ class BinomalTree(object):
         delta = zeros((self.n + 1, self.n + 1))
         option = zeros((self.n + 1, self.n + 1))
 
+        # TODO is this needed?
         callput = 1 if self.call else -1
 
         for j in range(self.n + 1, 0, -1):
