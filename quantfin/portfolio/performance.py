@@ -1,7 +1,6 @@
 """
 Classes to evaluate portfolio performance
 - Performance Table
-    - Calmar Rotio
     - Sortino
     - Expected Shortfall (Historical)
     - Value at Risk (Historical)
@@ -29,6 +28,7 @@ class Perfomance(object):
         self.sharpe = self.returns_ann / self.std
         self.skewness = self.returns_ts.skew()
         self.kurtosis = self.returns_ts.kurtosis()  # Excess Kurtosis (k=0 is normal)
+        self.sortino = self._get_sortino()
         self.drawdowns = self._get_drawdowns()
         self.max_dd = self.drawdowns.groupby(level=0).min()['dd']
 
@@ -126,3 +126,12 @@ class Perfomance(object):
             df_std.loc[col] = aux.std() * np.sqrt(252)  # TODO adjustment factor goes here
 
         return df_std
+
+    def _get_sortino(self):
+
+        df_sor = pd.Series(name='Sortino')
+        for col in self.total_return.columns:
+            aux = self.returns_ts[col][self.returns_ts[col] < 0].dropna()
+            df_sor.loc[col] = self.returns_ann[col] / (np.sqrt(252) * aux.std())  # TODO adjustment factor goes here
+
+        return df_sor
