@@ -1,12 +1,10 @@
 """
 Classes to evaluate portfolio performance
 - Performance Table
-    - Sortino
     - Expected Shortfall (Historical)
     - Value at Risk (Historical)
 - Charts
     - Total Return Indexes
-    - Underwater Chart
     - Histogram with Stats
     - Rolling Sharpe
 """
@@ -15,11 +13,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-class Perfomance(object):
-    # TODO Notebook example
+class Performance(object):
 
     def __init__(self, total_return):
-        # TODO Documentation
+        """
+        Computes performance measures for each columns in 'total_return'
+        :param total_return: pandas DataFrame with total return inndexes.
+        """
 
         self.total_return = total_return
         self.returns_ts = total_return.pct_change(1)
@@ -31,6 +31,7 @@ class Perfomance(object):
         self.sortino = self._get_sortino()
         self.drawdowns = self._get_drawdowns()
         self.max_dd = self.drawdowns.groupby(level=0).min()['dd']
+        self.table = self._get_perf_table()
 
     def plot_drawdowns(self, name, n=5):
         # TODO Make it neater
@@ -43,6 +44,21 @@ class Perfomance(object):
             end = self.drawdowns.loc[name].loc[dd, 'end']
             plt.plot(self.total_return[name].loc[start: end], color='red')
 
+        plt.show()
+
+    def plot_underwater(self, name=None):
+        # TODO Make it neater
+
+        tr = self.total_return
+        exp_max = tr.expanding().max()
+        uw = tr/exp_max-1
+
+        if name is not None:
+            uw = uw[name]
+
+        plt.figure()
+        plt.plot(uw)
+        plt.legend()
         plt.show()
 
     def _get_drawdowns(self):
@@ -135,3 +151,17 @@ class Perfomance(object):
             df_sor.loc[col] = self.returns_ann[col] / (np.sqrt(252) * aux.std())  # TODO adjustment factor goes here
 
         return df_sor
+
+    def _get_perf_table(self):
+
+        df = pd.DataFrame(columns=self.total_return.columns)
+
+        df.loc['Return'] = self.returns_ann
+        df.loc['Volatility'] = self.std
+        df.loc['Sharpe'] = self.sharpe
+        df.loc['Skewness'] = self.skewness
+        df.loc['Kurtosis'] = self.kurtosis
+        df.loc['Sortino'] = self.sortino
+        df.loc['Max Drawdown'] = self.max_dd
+
+        return df
