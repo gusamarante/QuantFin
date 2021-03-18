@@ -1,11 +1,14 @@
-from numpy import exp, sqrt, zeros, maximum
+from numpy import exp, sqrt, zeros, maximum, log
 import matplotlib.pyplot as plt
+from scipy.stats import norm
 
 
 class BinomalTree(object):
     """
     Class that computes the Cox, Ross & Rubinstein (CRR) binomial tree model.
     """
+
+    implemented_types = ['european', 'binary', 'american']
 
     def __init__(self, stock, strike, years2mat, vol, risk_free=0, div_yield=0,
                  n=1, call=True, option_type='european'):
@@ -22,7 +25,7 @@ class BinomalTree(object):
         :param option_type: str, 'european', 'american' (allows for early exercise) or 'binary' (also called "digital")
         """
 
-        assert option_type in ['european', 'binary', 'american'], f"Option type '{option_type}' not implemented"
+        assert option_type in self.implemented_types, f"Option type '{option_type}' not implemented"
 
         # Save inputs as attributes
         self.stock = stock
@@ -126,6 +129,31 @@ class BinomalTree(object):
 
 
 class BlackScholes(object):
-    # TODO implement pricing
     # TODO implement greeks
-    pass
+    # TODO Documentation
+
+    implemented_types = ['european', 'binary']  # TODO american
+
+    def __init__(self, stock_price, strike_price, maturity, risk_free, vol, div_yield=0, call=True,
+                 option_type='european'):
+        self.stock_price = stock_price
+        self.strike_price = strike_price
+        self.maturity = maturity
+        self.risk_free = risk_free
+        self.vol = vol
+        self.div_yield = div_yield
+        self.call = call
+        self.option_type = option_type
+        self.d1 = (log(stock_price/strike_price) + (risk_free - div_yield + 0.5*(vol**2))) / (vol * sqrt(maturity))
+        self.d2 = self.d1 - vol * sqrt(maturity)
+
+        if option_type == 'european':
+            callput = 1 if self.call else -1
+            nd1 = norm.ppf(callput * self.d1)
+            nd2 = norm.ppf(callput * self.d2)
+            self.price = callput * (stock_price * exp(-div_yield * maturity) * nd1 - strike_price * exp(-risk_free * maturity) * nd2)
+
+        elif option_type == 'binary':
+            nd2 = norm.ppf(self.d2)
+            callput = nd2 if self.call else 1 - nd2
+            self.price = exp(-risk_free * maturity) * callput

@@ -1,3 +1,3 @@
-from quantfin.options.pricing import BinomalTree
+from quantfin.options.pricing import BinomalTree, BlackScholes
 
-__all__ = ['BinomalTree']
+__all__ = ['BinomalTree', 'BlackScholes']
