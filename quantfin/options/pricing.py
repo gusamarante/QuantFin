@@ -123,3 +123,9 @@ class BinomalTree(object):
         plt.tight_layout()
 
         return ax.get_figure()
+
+
+class BlackScholes(object):
+    # TODO implement pricing
+    # TODO implement greeks
+    pass
