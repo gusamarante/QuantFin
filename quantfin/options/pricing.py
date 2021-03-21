@@ -131,6 +131,7 @@ class BinomalTree(object):
 class BlackScholes(object):
     # TODO implement greeks
     # TODO Documentation
+    # TODO Notebook examples
 
     implemented_types = ['european', 'binary']  # TODO american
 
@@ -144,16 +145,16 @@ class BlackScholes(object):
         self.div_yield = div_yield
         self.call = call
         self.option_type = option_type
-        self.d1 = (log(stock_price/strike_price) + (risk_free - div_yield + 0.5*(vol**2))) / (vol * sqrt(maturity))
+        self.d1 = (log(stock_price/strike_price) + maturity * (risk_free - div_yield + 0.5*(vol**2))) / (vol * sqrt(maturity))
         self.d2 = self.d1 - vol * sqrt(maturity)
 
         if option_type == 'european':
             callput = 1 if self.call else -1
-            nd1 = norm.ppf(callput * self.d1)
-            nd2 = norm.ppf(callput * self.d2)
+            nd1 = norm.cdf(callput * self.d1)
+            nd2 = norm.cdf(callput * self.d2)
             self.price = callput * (stock_price * exp(-div_yield * maturity) * nd1 - strike_price * exp(-risk_free * maturity) * nd2)
 
         elif option_type == 'binary':
-            nd2 = norm.ppf(self.d2)
+            nd2 = norm.cdf(self.d2)
             callput = nd2 if self.call else 1 - nd2
             self.price = exp(-risk_free * maturity) * callput
