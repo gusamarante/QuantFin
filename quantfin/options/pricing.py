@@ -63,9 +63,6 @@ class BinomalTree(object):
         delta = zeros((self.n + 1, self.n + 1))
         option = zeros((self.n + 1, self.n + 1))
 
-        # TODO is this needed?
-        callput = 1 if self.call else -1
-
         for j in range(self.n + 1, 0, -1):
             for i in range(j):
                 if j == self.n + 1:  # Terminal Payoff
@@ -100,7 +97,7 @@ class BinomalTree(object):
 
     def chart_stock(self, labels=False):
 
-        fig = plt.figure()
+        plt.figure()
 
         # Plot labels
         if labels:
@@ -129,9 +126,9 @@ class BinomalTree(object):
 
 
 class BlackScholes(object):
-    # TODO implement greeks
     # TODO Documentation
     # TODO Notebook examples
+    # TODO instance from price (implied vol)
 
     implemented_types = ['european', 'binary']  # TODO american
 
@@ -145,16 +142,91 @@ class BlackScholes(object):
         self.div_yield = div_yield
         self.call = call
         self.option_type = option_type
-        self.d1 = (log(stock_price/strike_price) + maturity * (risk_free - div_yield + 0.5*(vol**2))) / (vol * sqrt(maturity))
+        self.d1 = (log(stock_price / strike_price) + maturity * (risk_free - div_yield + 0.5 * (vol ** 2))) / (
+                vol * sqrt(maturity))
         self.d2 = self.d1 - vol * sqrt(maturity)
 
+        nd1 = norm.cdf(self.d1)
+        nd2 = norm.cdf(self.d2)
+        nmd1 = norm.cdf(-self.d1)
+        nmd2 = norm.cdf(-self.d2)
+        nd1p = norm.pdf(self.d1)
+        nd2p = norm.pdf(self.d2)
+
         if option_type == 'european':
-            callput = 1 if self.call else -1
-            nd1 = norm.cdf(callput * self.d1)
-            nd2 = norm.cdf(callput * self.d2)
-            self.price = callput * (stock_price * exp(-div_yield * maturity) * nd1 - strike_price * exp(-risk_free * maturity) * nd2)
+
+            # price
+            if call:
+                self.price = (stock_price * exp(-div_yield * maturity) * nd1 - strike_price * exp(
+                    - risk_free * maturity) * nd2)
+            else:
+                self.price = - (stock_price * exp(-div_yield * maturity) * nmd1 + strike_price * exp(
+                    - risk_free * maturity) * nmd2)
+
+            # delta
+            if call:
+                self.delta = exp(-div_yield * maturity) * nd1
+            else:
+                self.delta = exp(-div_yield * maturity) * (nd1 - 1)
+
+            # gamma (same for european calls and puts)
+            self.gamma = (exp(-div_yield * maturity) * nd1p) / (vol * stock_price * sqrt(maturity))
+
+            # theta
+            if call:
+                self.theta = - (vol * stock_price * exp(-div_yield * maturity) * nd1p) / (
+                        2 * sqrt(maturity)) + div_yield * stock_price * nd1 * exp(
+                    -div_yield * maturity) - risk_free * strike_price * exp(-risk_free * maturity) * nd2
+            else:
+                self.theta = - (vol * stock_price * exp(-div_yield * maturity) * nd1p) / (
+                        2 * sqrt(maturity)) - div_yield * stock_price * nmd1 * exp(
+                    -div_yield * maturity) + risk_free * strike_price * exp(-risk_free * maturity) * nmd2
+
+            # vega (same for european calls and puts)
+            self.vega = stock_price * sqrt(maturity) * exp(-div_yield * maturity) * nd1p
+
+            # rho
+            if call:
+                self.rho = strike_price * maturity * exp(-risk_free * maturity) * nd2
+            else:
+                self.rho = - strike_price * maturity * exp(-risk_free * maturity) * nmd2
 
         elif option_type == 'binary':
-            nd2 = norm.cdf(self.d2)
-            callput = nd2 if self.call else 1 - nd2
-            self.price = exp(-risk_free * maturity) * callput
+
+            # price
+            if call:
+                self.price = exp(-risk_free * maturity) * nd2
+            else:
+                self.price = exp(-risk_free * maturity) * (1 - nd2)
+
+            # delta
+            if call:
+                self.delta = (exp(-risk_free * maturity) * nd2p) / (vol * stock_price * sqrt(maturity))
+            else:
+                self.delta = - (exp(-risk_free * maturity) * nd2p) / (vol * stock_price * sqrt(maturity))
+
+            # gamma
+            if call:
+                self.gamma = - (exp(-risk_free * maturity) * self.d1 * nd2p) / (
+                            (vol * stock_price * sqrt(maturity)) ** 2)
+            else:
+                self.gamma = (exp(-risk_free * maturity) * self.d1 * nd2p) / ((vol * stock_price * sqrt(maturity)) ** 2)
+
+            # theta
+            if call:
+                self.theta = risk_free * exp(-risk_free * maturity) * nd2 + exp(-risk_free * maturity) * nd2p * (
+                            self.d1 / (2 * maturity) - (risk_free - div_yield) / (vol * sqrt(maturity)))
+            else:
+                self.theta = risk_free * exp(-risk_free * maturity) * (1 - nd2) - exp(-risk_free * maturity) * nd2p * (
+                            self.d1 / (2 * maturity) - (risk_free - div_yield) / (vol * sqrt(maturity)))
+
+            # vega (same for european calls and puts)
+            self.vega = stock_price * sqrt(maturity) * exp(-div_yield * maturity) * nd1p
+
+            # rho
+            if call:
+                self.rho = -maturity * exp(-risk_free * maturity) * nd2 + (sqrt(maturity) / vol) * exp(
+                    -risk_free * maturity) * nd2p
+            else:
+                self.rho = -maturity * exp(-risk_free * maturity) * (1 - nd2) - (sqrt(maturity) / vol) * exp(
+                    -risk_free * maturity) * nd2p
