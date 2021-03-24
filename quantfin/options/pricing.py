@@ -1,4 +1,4 @@
-from numpy import exp, sqrt, zeros, maximum, log
+from numpy import exp, sqrt, zeros, maximum, log, abs
 import matplotlib.pyplot as plt
 from scipy.stats import norm
 
@@ -128,7 +128,6 @@ class BinomalTree(object):
 class BlackScholes(object):
     # TODO Documentation
     # TODO Notebook examples
-    # TODO instance from price (implied vol)
 
     implemented_types = ['european', 'binary']  # TODO american
 
@@ -230,3 +229,27 @@ class BlackScholes(object):
             else:
                 self.rho = -maturity * exp(-risk_free * maturity) * (1 - nd2) - (sqrt(maturity) / vol) * exp(
                     -risk_free * maturity) * nd2p
+
+    @classmethod
+    def from_price(cls, stock_price, strike_price, maturity, risk_free, option_price, div_yield=0, call=True,
+                   option_type='european', error=10e-8):
+        """
+        This is an alternative method to instanciate the BlackScholes class from observed prices of option.
+
+        Notice that the input for volatility of swaped for the price of the option. The newton-rhapson method is
+        applied to find the implied volatility of the option.
+        """
+
+        vol = 0.2  # initial guess
+        dv = error + 1
+
+        while abs(dv) > error:
+            bs = BlackScholes(stock_price, strike_price, maturity, risk_free, vol, div_yield, call, option_type)
+            imp_price = bs.price
+            vega = bs.vega
+            price_error = imp_price - option_price
+            dv = price_error / vega
+            vol = vol - dv
+
+        bs = BlackScholes(stock_price, strike_price, maturity, risk_free, vol, div_yield, call, option_type)
+        return bs
