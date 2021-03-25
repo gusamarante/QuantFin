@@ -127,7 +127,6 @@ class BinomalTree(object):
 
 class BlackScholes(object):
     # TODO Documentation
-    # TODO Notebook examples
 
     implemented_types = ['european', 'binary']  # TODO american
 
@@ -234,10 +233,11 @@ class BlackScholes(object):
     def from_price(cls, stock_price, strike_price, maturity, risk_free, option_price, div_yield=0, call=True,
                    option_type='european', error=10e-8):
         """
-        This is an alternative method to instanciate the BlackScholes class from observed prices of option.
+        This is an alternative constructor for the BlackScholes class to find the implied volatility, given
+        the observed price of the option. from observed prices of option.
 
-        Notice that the input for volatility of swaped for the price of the option. The newton-rhapson method is
-        applied to find the implied volatility of the option.
+        Notice that the input for volatility of swaped for the price of the option. The newton-rhapson method
+        is applied to find the implied volatility of the option.
         """
 
         vol = 0.2  # initial guess
