@@ -5,7 +5,24 @@ import pandas as pd
 show_charts = False
 save_path = '/Users/gustavoamarante/Dropbox/Aulas/QuantFin/figures/'
 
-# Simulation of the scaled random walk for different values of n
+# CHART - Simulation of the random walks
+
+bm = BrownianMotion(T=100, n=1, k=50, random_seed=123)
+
+bm.simulated_trajectories.plot(figsize=(5 * 1.61, 5), legend=None)
+plt.axhline(0, color='black', linewidth=1)
+plt.xlabel('Time')
+plt.ylabel('$W_{t}^{(n)}$', rotation=0)
+plt.tight_layout()
+plt.savefig(save_path + 'random walks.pdf')
+
+if True:
+    plt.show()
+
+plt.close()
+
+
+# CHART - Simulation of the scaled random walk for different values of n
 df = pd.DataFrame()
 
 bm = BrownianMotion(T=2, n=10, k=1, random_seed=123)
