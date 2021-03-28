@@ -1,4 +1,4 @@
 from quantfin.simulation.diffusion import Diffusion, BrownianMotion, MultivariateGBM
-from quantfin.simulation.statistical import random_correl
+from quantfin.simulation.statistical import random_correlation, random_covariance, cov2corr
 
-__all__ = ['Diffusion', 'BrownianMotion', 'MultivariateGBM', 'random_correl']
+__all__ = ['Diffusion', 'BrownianMotion', 'MultivariateGBM', 'random_correlation', 'random_covariance', 'cov2corr']
