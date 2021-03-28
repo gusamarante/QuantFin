@@ -1,4 +1,5 @@
 import numpy as np
+from quantfin.statistics import cov2corr
 
 
 def random_covariance(n_col, n_factors, random_seed=None):
@@ -18,13 +19,4 @@ def random_correlation(n_col, n_factors, random_seed=None):
     # TODO Notebook example
     cov = random_covariance(n_col, n_factors, random_seed)
     corr = cov2corr(cov)
-    return corr
-
-
-def cov2corr(cov):
-    # TODO Documentation
-    std = np.sqrt(np.diag(cov))
-    corr = cov / np.outer(std, std)
-    corr[corr < -1] = -1  # correct for numerical error
-    corr[corr > 1] = 1
     return corr
