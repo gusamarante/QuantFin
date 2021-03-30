@@ -2,9 +2,6 @@ import numpy as np
 import pandas as pd
 from scipy.stats import norm, lognorm
 
-# TODO correlated brownian motions (product rule for Ito,
-#      https://en.wikipedia.org/wiki/Itô%27s_lemma#Product_rule_for_Itô_processes)
-
 
 class BrownianMotion(object):
 
@@ -39,7 +36,6 @@ class BrownianMotion(object):
 
 
 class Diffusion(object):
-    # TODO General diffusion process class that takes mu(x,t), sigma(x,t) and y=f(x,t)
 
     supported_process_type = ['bm', 'rwwd', 'gbm', 'ou']
 
@@ -238,10 +234,7 @@ class Diffusion(object):
 class MultivariateGBM(object):
 
     def __init__(self, T, n, mu, sigma, initial_price=None, random_seed=None):
-        # TODO Documentation
-        # TODO mu is not drift
-        # TODO sigma is not covariance
-        # TODO Example Notebook
+        # TODO Documentation (mu is not drift, sigma is not covariance)
 
         dt = T / n
         mu = np.array(mu)

@@ -4,7 +4,6 @@ from quantfin.statistics import cov2corr
 
 def random_covariance(n_col, n_factors, random_seed=None):
     # TODO Documentation
-    # TODO Notebook example
     if random_seed is not None:
         np.random.seed(random_seed)
 
@@ -16,7 +15,6 @@ def random_covariance(n_col, n_factors, random_seed=None):
 
 def random_correlation(n_col, n_factors, random_seed=None):
     # TODO Documentation
-    # TODO Notebook example
     cov = random_covariance(n_col, n_factors, random_seed)
     corr = cov2corr(cov)
     return corr
