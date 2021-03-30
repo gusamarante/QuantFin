@@ -14,7 +14,9 @@ def denoise_corr_mp(corr_matrix, T, N, bandwidth=0.1):
     :param T: int. Sample size of the timeseries dimensions.
     :param N: int. Sample size of the cross-section dimensions.
     :param bandwidth: smoothing parameter for the KernelDensity estimation
-    :return: denoised correlation matrix
+    :return: 'corr' is the denoised correlation matrix, 'nFacts' is the number of non-random
+             factors in the original correlation matrix and 'var' is the estimate of sigma**2,
+             which can be interpreted as the % of noise in the original correlationm matrix.
     """
 
     # get eigenvalues and eigenvectors
@@ -37,7 +39,7 @@ def denoise_corr_mp(corr_matrix, T, N, bandwidth=0.1):
     cov = np.dot(eVec, eVal_).dot(eVec.T)
     corr = cov2corr(cov)
 
-    return corr
+    return corr, nFacts, var
 
 
 def _marchenko_pastur_pdf(var, q, pts):
