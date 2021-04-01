@@ -46,6 +46,7 @@ def denoise_corr_mp(corr_matrix, T, N, bandwidth=0.1, ts_alpha=None):
         cov = np.dot(eVec, eVal_).dot(eVec.T)
         corr = cov2corr(cov)
     else:
+        # targeted shrinkage
         eValL, eVecL = eVal[:nFacts][:nFacts], eVec[:, :nFacts]
         eValR, eVecR = eVal[nFacts:][nFacts:], eVec[:, nFacts:]
         corrL = np.dot(eVecL, eValL).dot(eVecL.T)
