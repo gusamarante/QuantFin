@@ -104,3 +104,20 @@ def _find_max_eigval(eVal, q, bWidth):
 
     eMax = var * (1 + (1. / q) ** .5) ** 2
     return eMax, var
+
+
+# ===== detoning correlation matrix =====
+def detone(corr, n=1):
+    # TODO Documentaion
+    # TODO Notebook example
+    eVal, eVec = np.linalg.eigh(corr)
+    indices = eVal.argsort()[::-1]
+    eVal, eVec = eVal[indices], eVec[:, indices]
+    eVal = np.diagflat(eVal)
+
+    # eliminate the first n eigenvectors
+    eVal = eVal[n:, n:]
+    eVec = eVec[:, n:]
+    corr_aux = np.dot(eVec, eVal).dot(eVec.T)
+    corr_d = corr_aux @ np.linalg.inv(np.diag(np.diag(corr_aux)))
+    return corr_d
