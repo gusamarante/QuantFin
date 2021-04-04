@@ -53,4 +53,7 @@ for link in tqdm(download_links, 'Looping every link'):
         # concatenate
         df = pd.concat([df, df_aux], axis=0, ignore_index=True)
 
-df.to_clipboard()
+# TODO this should go to a SQL database
+writer = pd.ExcelWriter('/Users/gustavoamarante/Dropbox/Personal Portfolio/raw_titulos_publicos.xlsx')
+df.to_excel(writer)
+writer.save()
