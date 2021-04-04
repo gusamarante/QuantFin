@@ -1,5 +1,6 @@
 """
 This routine scrapes prices for the brazilian government bonds.
+This routine works for all bonds. Not only the ones available for 'tesouro direto'.
 """
 
 import pandas as pd
