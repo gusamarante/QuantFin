@@ -10,7 +10,7 @@ all_trackers = pd.DataFrame()
 
 # TODO 'Tesouro IPCA+ com Juros Semestrais', 'Tesouro IPCA+',
 #      'Tesouro Prefixado com Juros Semestrais', 'Tesouro Prefixado',
-#      'Tesouro IGPM+ com Juros Semestrais', 'Tesouro Selic'
+#      'Tesouro IGPM+ com Juros Semestrais'
 
 # ===== Tesouro Selic =====
 df = df_raw[df_raw['bond_type'] == 'Tesouro Selic']
