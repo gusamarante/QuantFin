@@ -1,8 +1,10 @@
 import pandas as pd
 from tqdm import tqdm
+from quantfin.data import grab_connection
 
-df_raw = pd.read_excel('/Users/gustavoamarante/Dropbox/Personal Portfolio/tesouro_direto.xlsx',
-                       index_col=0)
+query = 'select * from raw_tesouro_direto'
+conn = grab_connection()
+df_raw = pd.read_sql(query, con=conn)
 
 all_trackers = pd.DataFrame()
 
@@ -11,16 +13,17 @@ all_trackers = pd.DataFrame()
 #      'Tesouro IGPM+ com Juros Semestrais', 'Tesouro Selic'
 
 # ===== Tesouro Selic =====
-df = df_raw[df_raw['Tipo Titulo'] == 'Tesouro Selic']
-df_buy = df.pivot('Data Base', 'Data Vencimento', 'PU Compra Manha')
-df_sell = df.pivot('Data Base', 'Data Vencimento', 'PU Venda Manha')
+df = df_raw[df_raw['bond_type'] == 'Tesouro Selic']
+df_buy = df.pivot('reference_date', 'maturity', 'preco_compra')
+df_sell = df.pivot('reference_date', 'maturity', 'preco_venda')
 
 # ----- curto -----
 df_tracker = pd.DataFrame(columns=['Current', 'Ammount', 'Price', 'Notional'])
 df_tracker.loc[df_buy.index[0], 'Current'] = df_buy.iloc[0].dropna().index.min()
 df_tracker.loc[df_buy.index[0], 'Ammount'] = 1
 df_tracker.loc[df_buy.index[0], 'Price'] = df_buy.iloc[0][df_buy.iloc[0].dropna().index.min()]
-df_tracker.loc[df_buy.index[0], 'Notional'] = df_tracker.loc[df_buy.index[0], 'Price'] * df_tracker.loc[df_buy.index[0], 'Ammount']
+df_tracker.loc[df_buy.index[0], 'Notional'] = df_tracker.loc[df_buy.index[0], 'Price'] * df_tracker.loc[
+    df_buy.index[0], 'Ammount']
 
 date_loop = zip(df_buy.index[1:], df_buy.index[:-1])
 
@@ -47,7 +50,8 @@ df_tracker = pd.DataFrame(columns=['Current', 'Ammount', 'Price', 'Notional'])
 df_tracker.loc[df_buy.index[0], 'Current'] = df_buy.iloc[0].dropna().index.max()
 df_tracker.loc[df_buy.index[0], 'Ammount'] = 1
 df_tracker.loc[df_buy.index[0], 'Price'] = df_buy.iloc[0][df_buy.iloc[0].dropna().index.max()]
-df_tracker.loc[df_buy.index[0], 'Notional'] = df_tracker.loc[df_buy.index[0], 'Price'] * df_tracker.loc[df_buy.index[0], 'Ammount']
+df_tracker.loc[df_buy.index[0], 'Notional'] = df_tracker.loc[df_buy.index[0], 'Price'] * df_tracker.loc[
+    df_buy.index[0], 'Ammount']
 
 date_loop = zip(df_buy.index[1:], df_buy.index[:-1])
 
@@ -69,8 +73,7 @@ for date, datem1 in tqdm(date_loop, 'Tesouro Selic - Longa'):
 aux = (100 * df_tracker['Notional'] / df_tracker['Notional'].iloc[0]).rename('Tesouro Selic Longo')
 all_trackers = pd.concat([all_trackers, aux], axis=1)
 
-# ===== Save to Excel =====
-# TODO this should go to a SQL database
-writer = pd.ExcelWriter('/Users/gustavoamarante/Dropbox/Personal Portfolio/trackers_tesouro_direto.xlsx')
-all_trackers.to_excel(writer)
-writer.save()
+# ===== Save to SQL ======
+all_trackers = all_trackers.reset_index().melt('index')
+all_trackers = all_trackers.rename({'index': 'reference_date'}, axis=1)
+all_trackers.to_sql('trackers', con=conn, if_exists='append', index=False)
