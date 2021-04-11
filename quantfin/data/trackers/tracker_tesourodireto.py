@@ -73,7 +73,7 @@ for date, datem1 in tqdm(date_loop, 'Tesouro Selic - Longa'):
 aux = (100 * df_tracker['Notional'] / df_tracker['Notional'].iloc[0]).rename('Tesouro Selic Longo')
 all_trackers = pd.concat([all_trackers, aux], axis=1)
 
-# ===== Save to SQL ======
+# --- Save to SQL ---
 all_trackers = all_trackers.reset_index().melt('index')
 all_trackers = all_trackers.rename({'index': 'reference_date'}, axis=1)
 all_trackers.to_sql('trackers', con=conn, if_exists='append', index=False)
