@@ -218,8 +218,11 @@ class BlackScholes(object):
                 self.theta = risk_free * exp(-risk_free * maturity) * (1 - nd2) - exp(-risk_free * maturity) * nd2p * (
                             self.d1 / (2 * maturity) - (risk_free - div_yield) / (vol * sqrt(maturity)))
 
-            # vega (same for european calls and puts)
-            self.vega = stock_price * sqrt(maturity) * exp(-div_yield * maturity) * nd1p
+            # vega
+            if call:
+                self.vega = - exp(-risk_free * maturity) * nd2p * (sqrt(maturity) + self.d2 / vol)
+            else:
+                self.vega = exp(-risk_free * maturity) * nd2p * (sqrt(maturity) + self.d2 / vol)
 
             # rho
             if call:
