@@ -13,7 +13,7 @@ save_path = '/Users/gustavoamarante/Dropbox/Aulas/QuantFin/figures/'
 k_test = 51
 h = 0.02  # step size in the mesh
 
-# generate the data
+# ===== GENERATE DATA =====
 X, y = make_moons(noise=0.3,
                   random_state=444,
                   n_samples=200)
@@ -34,7 +34,7 @@ if show_charts:
 
 plt.close()
 
-# Decision region for K=1
+# ===== DECISION REGION FOR K=1 ======
 clf = KNeighborsClassifier(n_neighbors=1)
 clf.fit(X, y)
 
@@ -64,7 +64,7 @@ if show_charts:
 plt.close()
 
 
-# estimate for several values of K (Cross-validation)
+# ===== CROSS VALIDATION FOR K =====
 train_scores, valid_scores = validation_curve(estimator=KNeighborsClassifier(), X=X, y=y, cv=2,
                                               param_name='n_neighbors', param_range=range(1, k_test),
                                               verbose=1)
@@ -92,7 +92,7 @@ if show_charts:
 plt.close()
 
 
-# Decision region for K=optimal
+# ===== DECISION REGION FOR K=OPTIMAL ======
 clf = KNeighborsClassifier(n_neighbors=K)
 clf.fit(X, y)
 
@@ -123,7 +123,7 @@ if show_charts:
 plt.close()
 
 
-# Decision region for K=50
+# ===== DECISION REGION FOR K=50 ======
 clf = KNeighborsClassifier(n_neighbors=50)
 clf.fit(X, y)
 
