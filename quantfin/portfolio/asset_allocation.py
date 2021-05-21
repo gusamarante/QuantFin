@@ -5,6 +5,8 @@ from tqdm import tqdm
 import pandas as pd
 import numpy as np
 
+# TODO Make the 'risk_aversion' parameter optional
+
 
 class Markowitz(object):
 
