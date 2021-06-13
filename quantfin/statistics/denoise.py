@@ -3,7 +3,6 @@ import pandas as pd
 from scipy.optimize import minimize
 from quantfin.statistics import cov2corr
 from sklearn.neighbors import KernelDensity
-from sklearn.covariance import shrunk_covariance
 
 
 # ===== Marchenko-Pastur Denoising =====
