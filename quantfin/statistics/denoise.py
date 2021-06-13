@@ -3,6 +3,7 @@ import pandas as pd
 from scipy.optimize import minimize
 from quantfin.statistics import cov2corr
 from sklearn.neighbors import KernelDensity
+from sklearn.covariance import shrunk_covariance
 
 
 # ===== Marchenko-Pastur Denoising =====
@@ -128,3 +129,35 @@ def detone(corr, n=1):
     corr_aux = np.dot(eVec, eVal).dot(eVec.T)
     corr_d = corr_aux @ np.linalg.inv(np.diag(np.diag(corr_aux)))
     return corr_d
+
+
+# ===== Shrinking the Correlation Matrix =====
+def shrunk_correlation(corr, alpha=0.1):
+    """
+    Applies shirinkage to the correlation matrix.
+    :param corr: numpy array. Empirical correlation matrix
+    :param alpha: float. A number between 0 and 1 that represents the shrinkage intensity.
+    :return: numpy array. Shrunk correlation matrix.
+    """
+
+    assert 0 <= alpha <= 1, "'alpha' must be between 0 and 1"
+
+    shrunk_corr = (1 - alpha) * corr + alpha * np.eye(corr.shape[0])
+    return shrunk_corr
+
+
+def shrunk_covariance(cov, alpha=0.1):
+    """
+    Applies shirinkage to the covariance matrix without changing the variance of each factor. This
+    method differs from sklearn's method as this preserves the main diagonal of the covariance matrix,
+    making this a more suitable method for financial data.
+    :param cov: numpy array. Empirical Covariance matrix
+    :param alpha: float. A number between 0 and 1 that represents the shrinkage intensity.
+    :return: numpy array. Shrunk Covariance matrix.
+    """
+    # TODO Example
+    vols = np.diag(cov)
+    corr = cov2corr(cov)
+    shrunk_corr = shrunk_correlation(corr, alpha)
+    shrunk_cov = np.diag(vols) @ shrunk_corr @ np.diag(vols)
+    return shrunk_cov
