@@ -3,6 +3,8 @@ This routine grabs the prices of the brazilian bonds that are available on the "
 the data on the sqlite file.
 """
 
+# TODO https://www.tesourodireto.com.br/titulos/historico-de-precos-e-taxas.htm
+
 import pandas as pd
 from quantfin.data import grab_connection
 
