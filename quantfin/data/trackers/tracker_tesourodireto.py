@@ -12,7 +12,9 @@ all_trackers = pd.DataFrame()
 #      'Tesouro Prefixado com Juros Semestrais', 'Tesouro Prefixado',
 #      'Tesouro IGPM+ com Juros Semestrais'
 
+# =========================
 # ===== Tesouro Selic =====
+# =========================
 df = df_raw[df_raw['bond_type'] == 'Tesouro Selic']
 df_buy = df.pivot('reference_date', 'maturity', 'preco_compra')
 df_sell = df.pivot('reference_date', 'maturity', 'preco_venda')
