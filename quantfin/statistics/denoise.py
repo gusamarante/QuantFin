@@ -108,7 +108,14 @@ def _find_max_eigval(eVal, q, bWidth):
 
 # ===== detoning correlation matrix =====
 def detone(corr, n=1):
-    # TODO Documentaion
+    """
+    Removes the first `n` components of the correlation matrix. The detoned correlation matrix
+    is singular. This is not a problem for clustering applications as most approaches do not
+    require invertibility.
+    :param corr: numpy array. Correlation matrix.
+    :param n: int. number of the first n components to be removed from the correlation matrix.
+    :return: numpy array
+    """
     # TODO Notebook example
     eVal, eVec = np.linalg.eigh(corr)
     indices = eVal.argsort()[::-1]
