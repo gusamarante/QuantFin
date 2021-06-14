@@ -7,6 +7,7 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
+from quantfin.data import grab_connection
 
 url = r'https://sisweb.tesouro.gov.br/apex/f?p=2031:2:0::::'
 
@@ -46,6 +47,7 @@ for link in tqdm(download_links, 'Looping every link'):
             df_aux['Dia'] = pd.to_datetime(df_aux['Dia'], dayfirst=True)
         except ValueError:
             print(f'Deu ruim na {bond_name} que vence em {maturity}')
+            continue
 
         df_aux['bond_name'] = bond_name
         df_aux['maturity'] = maturity
@@ -53,7 +55,18 @@ for link in tqdm(download_links, 'Looping every link'):
         # concatenate
         df = pd.concat([df, df_aux], axis=0, ignore_index=True)
 
-# TODO this should go to a SQL database
-writer = pd.ExcelWriter('/Users/gustavoamarante/Dropbox/Personal Portfolio/raw_titulos_publicos.xlsx')
-df.to_excel(writer)
-writer.save()
+# rename variables
+rename_dict = {'bond_name': 'bond_type',
+               'maturity': 'maturity',
+               'Dia': 'reference_date',
+               'Taxa Compra Manhã': 'taxa_compra',
+               'Taxa Venda Manhã': 'taxa_venda',
+               'PU Compra Manhã': 'preco_compra',
+               'PU Venda Manhã': 'preco_venda',
+               'PU Base Manhã': 'preco_base'}
+
+df = df.rename(rename_dict, axis=1)
+
+# Save to database
+conn = grab_connection()
+df.to_sql('raw_tesouro_nacional', con=conn, if_exists='replace', index=False)
