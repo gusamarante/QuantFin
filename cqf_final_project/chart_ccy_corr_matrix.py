@@ -2,24 +2,28 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-ccy_g10 = ['AUD', 'CAD', 'CHF', 'EUR', 'GBP', 'JPY', 'NOK', 'NZD', 'SEK']
-ccy_em = ['BRL', 'CLP', 'CZK', 'HUF', 'IDR', 'ILS', 'INR', 'KRW', 'MXN', 'PHP',
-          'PLN', 'RUB', 'SGD', 'TRY', 'TWD', 'ZAR']
-ccy_all = ccy_em + ccy_g10
+# Read Bloomberg Tickers for renaming
+df_tickers = pd.read_excel(r'/Users/gusamarante/Dropbox/CQF/Final Project/Data - BBG Data Values.xlsx',
+                           index_col=0, sheet_name='Tickers')
 
-df = pd.read_excel(r'/Users/gustavoamarante/Dropbox/CQF/Final Project/Data - Spot Rates.xlsx',
-                   index_col=0)
+tr_dict = df_tickers['Total Return Index (UBS)'].to_dict()
+tr_dict = {v: k for k, v in tr_dict.items()}
 
-df = df[ccy_all]
+df_class = df_tickers['Classification']
+df_class = df_class.replace({'DM': 'green',
+                             'EM': 'orange'})
 
-df = df.pct_change(1)
-df = df[df.index >= '2017-01-01']
-corr = df.pct_change(1).corr()
+# Read Total Return Index
+df_tr = pd.read_excel(r'/Users/gusamarante/Dropbox/CQF/Final Project/Data - BBG Data Values.xlsx',
+                      index_col=0, sheet_name='Total Return')
+df_tr = df_tr.rename(tr_dict, axis=1)
+
+# Comnpute returns
+df = df_tr.pct_change(1)
+corr = df.corr()
 
 # Chart
 print(corr)
-sns.clustermap(data=corr, method='average', metric='euclidean', row_cluster=False, col_cluster=True)
+sns.clustermap(data=corr, method='average', metric='euclidean', figsize=(7, 7), cmap='vlag', row_colors=df_class,
+               col_colors=df_class, linewidths=1)
 plt.show()
-
-
-a = 1
