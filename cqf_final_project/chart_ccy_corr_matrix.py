@@ -3,7 +3,8 @@ import seaborn as sns
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-file_path = r'/Users/gustavoamarante/Dropbox/CQF/Final Project/Data - BBG Data Values.xlsx'
+# file_path = r'/Users/gustavoamarante/Dropbox/CQF/Final Project/Data - BBG Data Values.xlsx'  # Mac
+file_path = r'/Users/gusamarante/Dropbox/CQF/Final Project/Data - BBG Data Values.xlsx'  # Macbook
 
 # Read Bloomberg Tickers for renaming
 df_tickers = pd.read_excel(file_path, index_col=0, sheet_name='Tickers')
