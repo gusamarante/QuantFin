@@ -116,8 +116,6 @@ class HRP(object):
                        figsize=figsize, linewidths=linewidth,
                        col_linkage=self.link, row_linkage=self.link)
 
-        plt.tight_layout()
-
         if not (save_path is None):
             plt.savefig(save_path,
                         pad_inches=1,
