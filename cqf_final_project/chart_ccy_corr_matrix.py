@@ -21,6 +21,8 @@ df_tr = df_tr.rename(tr_dict, axis=1)
 
 # Comnpute returns
 df = df_tr.pct_change(1)
+df = df['2009-01-01' <= df.index]
+df = df[df.index <= '2020-01-31']
 corr = df.corr()
 
 # Chart
