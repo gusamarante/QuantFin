@@ -3,8 +3,8 @@ from matplotlib import rcParams
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
-# file_path = r'/Users/gustavoamarante/Dropbox/CQF/Final Project/'  # Mac
-file_path = r'/Users/gusamarante/Dropbox/CQF/Final Project/'  # Macbook
+file_path = r'/Users/gustavoamarante/Dropbox/CQF/Final Project/'  # Mac
+# file_path = r'/Users/gusamarante/Dropbox/CQF/Final Project/'  # Macbook
 
 # Read Bloomberg Tickers for renaming
 df_tickers = pd.read_excel(file_path + r'Data - BBG Data Values.xlsx',
