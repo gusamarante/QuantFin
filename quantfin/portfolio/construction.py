@@ -117,9 +117,7 @@ class HRP(object):
                        col_linkage=self.link, row_linkage=self.link)
 
         if not (save_path is None):
-            plt.savefig(save_path,
-                        pad_inches=1,
-                        dpi=400)
+            plt.savefig(save_path)
 
         if show_chart:
             plt.show()
@@ -143,9 +141,7 @@ class HRP(object):
         plt.tight_layout()
 
         if not (save_path is None):
-            plt.savefig(save_path,
-                        pad_inches=1,
-                        dpi=400)
+            plt.savefig(save_path)
 
         if show_chart:
             plt.show()

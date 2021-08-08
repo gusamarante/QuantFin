@@ -6,7 +6,7 @@ from sklearn.neighbors import KernelDensity
 
 
 # ===== Marchenko-Pastur Denoising =====
-def denoise_corr_mp(corr_matrix, T, N, bandwidth=0.1, ts_alpha=None):
+def marchenko_pastur(corr_matrix, T, N, bandwidth=0.1, ts_alpha=None):
     """
     Uses the Marchenko-Pastur theorem to remove noisy eigenvalues from a correlation matrix.
     This code is adapted from Lopez de Prado (2020)
@@ -15,7 +15,7 @@ def denoise_corr_mp(corr_matrix, T, N, bandwidth=0.1, ts_alpha=None):
     :param N: int. Sample size of the cross-section dimensions.
     :param bandwidth: smoothing parameter for the KernelDensity estimation
     :param ts_alpha: float. Number between 0 and 1 indicating the ammount of targeted shrinkage
-                     on the random eigenvectors. ts_alpha=1 means no shrinkage and ts_alpha=0
+                     on the random eigenvectors. ts_alpha=0 means no shrinkage and ts_alpha=1
                      means total shrinkage.
     :return: 'corr' is the denoised correlation matrix, 'nFacts' is the number of non-random
              factors in the original correlation matrix and 'var' is the estimate of sigma**2,
@@ -23,7 +23,8 @@ def denoise_corr_mp(corr_matrix, T, N, bandwidth=0.1, ts_alpha=None):
     """
 
     # assertions
-    assert 0 <= ts_alpha <= 1, "targeted shrinkage parameter must be between zero and 1."
+    if ts_alpha is not None:
+        assert 0 <= ts_alpha <= 1, "targeted shrinkage parameter must be between zero and 1."
 
     # get eigenvalues and eigenvectors
     eVal, eVec = np.linalg.eigh(corr_matrix)
@@ -47,11 +48,11 @@ def denoise_corr_mp(corr_matrix, T, N, bandwidth=0.1, ts_alpha=None):
         corr = cov2corr(cov)
     else:
         # targeted shrinkage
-        eValL, eVecL = eVal[:nFacts][:nFacts], eVec[:, :nFacts]
-        eValR, eVecR = eVal[nFacts:][nFacts:], eVec[:, nFacts:]
+        eValL, eVecL = eVal[:nFacts, :nFacts], eVec[:, :nFacts]
+        eValR, eVecR = eVal[nFacts:, nFacts:], eVec[:, nFacts:]
         corrL = np.dot(eVecL, eValL).dot(eVecL.T)
         corrR = np.dot(eVecR, eValR).dot(eVecR.T)
-        corr = corrL + ts_alpha * corrR + (1-ts_alpha)*np.diag(np.diag(corrR))
+        corr = corrL + (1 - ts_alpha) * corrR + ts_alpha * np.diag(np.diag(corrR))
 
     return corr, nFacts, var
 
@@ -155,7 +156,7 @@ def shrunk_covariance(cov, alpha=0.1):
     :return: numpy array. Shrunk Covariance matrix.
     """
     # TODO Example
-    vols = np.diag(cov)
+    vols = np.sqrt(np.diag(cov))
     corr = cov2corr(cov)
     shrunk_corr = shrunk_correlation(corr, alpha)
     shrunk_cov = np.diag(vols) @ shrunk_corr @ np.diag(vols)
