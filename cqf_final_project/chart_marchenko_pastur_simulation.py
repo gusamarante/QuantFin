@@ -1,5 +1,5 @@
 from quantfin.simulation import random_covariance
-from quantfin.statistics import marchenko_pastur
+from quantfin.statistics import marchenko_pastur, targeted_shirinkage
 from quantfin.portfolio import HRP
 from matplotlib import rcParams
 import matplotlib.pyplot as plt
@@ -28,7 +28,7 @@ hrp.plot_corr_matrix(cmap='mako', figsize=(10, 10), show_chart=True,
 # ===== compute different correlations matrices =====
 corr = data.corr().values  # empirical correlation
 corr_denoised, _, _ = marchenko_pastur(corr_matrix=corr, T=data.shape[0], N=data.shape[1])  # denoised correlation
-corr_ts, _, _ = marchenko_pastur(corr_matrix=corr, T=data.shape[0], N=data.shape[1], ts_alpha=1)  # target-shrinkage
+corr_ts, _, _ = targeted_shirinkage(corr_matrix=corr, T=data.shape[0], N=data.shape[1], ts_alpha=1)  # target-shrinkage
 
 # ===== sorted eigenvalues of each method =====
 eig_empirical = np.sort(np.linalg.eig(corr)[0])[::-1]

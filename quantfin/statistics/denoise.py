@@ -6,10 +6,46 @@ from sklearn.neighbors import KernelDensity
 
 
 # ===== Marchenko-Pastur Denoising =====
-def marchenko_pastur(corr_matrix, T, N, bandwidth=0.1, ts_alpha=None):
+def marchenko_pastur(corr_matrix, T, N, bandwidth=0.1):
     """
     Uses the Marchenko-Pastur theorem to remove noisy eigenvalues from a correlation matrix.
-    This code is adapted from Lopez de Prado (2020)
+    This code is adapted from Lopez de Prado (2020).
+    :param corr_matrix: numpy.array. Correlation matrix from data.
+    :param T: int. Sample size of the timeseries dimensions.
+    :param N: int. Sample size of the cross-section dimensions.
+    :param bandwidth: smoothing parameter for the KernelDensity estimation
+    :return: 'corr' is the denoised correlation matrix, 'nFacts' is the number of non-random
+             factors in the original correlation matrix and 'var' is the estimate of sigma**2,
+             which can be interpreted as the % of noise in the original correlationm matrix.
+    """
+
+    # get eigenvalues and eigenvectors
+    eVal, eVec = np.linalg.eigh(corr_matrix)
+    indices = eVal.argsort()[::-1]
+    eVal, eVec = eVal[indices], eVec[:, indices]
+    eVal = np.diagflat(eVal)
+
+    # find sigma that minimizes the error to the Marchenko-Pastur distribution
+    q = T / N
+    eMax, var = _find_max_eigval(np.diag(eVal), q, bWidth=bandwidth)
+
+    # number of factors (signals)
+    nFacts = eVal.shape[0] - np.diag(eVal)[::-1].searchsorted(eMax)
+
+    eVal_ = np.diag(eVal).copy()
+    eVal_[nFacts:] = eVal_[nFacts:].sum() / float(eVal_.shape[0] - nFacts)
+    eVal_ = np.diag(eVal_)
+    cov = np.dot(eVec, eVal_).dot(eVec.T)
+    corr = cov2corr(cov)
+
+    return corr, nFacts, var
+
+
+def targeted_shirinkage(corr_matrix, T, N, bandwidth=0.1, ts_alpha=None):
+    """
+    Uses the Marchenko-Pastur theorem to find noisy eigenvalues from a correlation matrix and
+    performs shrinkage only on the noisy part of the correlation matrix. This code is adapted
+    from Lopez de Prado (2020).
     :param corr_matrix: numpy.array. Correlation matrix from data.
     :param T: int. Sample size of the timeseries dimensions.
     :param N: int. Sample size of the cross-section dimensions.
@@ -39,20 +75,12 @@ def marchenko_pastur(corr_matrix, T, N, bandwidth=0.1, ts_alpha=None):
     # number of factors (signals)
     nFacts = eVal.shape[0] - np.diag(eVal)[::-1].searchsorted(eMax)
 
-    # de-noise the correlation matrix
-    if ts_alpha is None:
-        eVal_ = np.diag(eVal).copy()
-        eVal_[nFacts:] = eVal_[nFacts:].sum() / float(eVal_.shape[0] - nFacts)
-        eVal_ = np.diag(eVal_)
-        cov = np.dot(eVec, eVal_).dot(eVec.T)
-        corr = cov2corr(cov)
-    else:
-        # targeted shrinkage
-        eValL, eVecL = eVal[:nFacts, :nFacts], eVec[:, :nFacts]
-        eValR, eVecR = eVal[nFacts:, nFacts:], eVec[:, nFacts:]
-        corrL = np.dot(eVecL, eValL).dot(eVecL.T)
-        corrR = np.dot(eVecR, eValR).dot(eVecR.T)
-        corr = corrL + (1 - ts_alpha) * corrR + ts_alpha * np.diag(np.diag(corrR))
+    # targeted shrinkage
+    eValL, eVecL = eVal[:nFacts, :nFacts], eVec[:, :nFacts]
+    eValR, eVecR = eVal[nFacts:, nFacts:], eVec[:, nFacts:]
+    corrL = np.dot(eVecL, eValL).dot(eVecL.T)
+    corrR = np.dot(eVecR, eValR).dot(eVecR.T)
+    corr = corrL + (1 - ts_alpha) * corrR + ts_alpha * np.diag(np.diag(corrR))
 
     return corr, nFacts, var
 
