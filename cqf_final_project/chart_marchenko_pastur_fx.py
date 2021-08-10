@@ -1,5 +1,4 @@
 from quantfin.statistics import marchenko_pastur, targeted_shirinkage
-from quantfin.portfolio import HRP
 from matplotlib import rcParams
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -36,7 +35,6 @@ df_eig = pd.DataFrame(data={'Empirical Eigenvalues': eig_empirical,
                       index=[i + 1 for i in range(data.shape[1])])
 
 # ===== chart =====
-# time series Chart
 MyFont = {'fontname': 'Century Gothic'}
 rcParams['font.family'] = 'sans-serif'
 rcParams['font.sans-serif'] = ['Century Gothic']
