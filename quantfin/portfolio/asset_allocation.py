@@ -332,3 +332,9 @@ class Markowitz(object):
         cond = cond1 and cond2
 
         assert cond, "elements in the input indexes do not match"
+
+
+class BlackLitterman(object):
+
+    def __init__(self):
+        pass
