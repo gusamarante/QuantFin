@@ -357,11 +357,10 @@ class BlackLitterman(object):
                               be interpreted as the target of the shrinkage estimate)
         :param mu_shrink: float between 0 and 1, shirinkage intensity. If 1 (default),
                           best guess of mu is the model returns. If 0, bet guess of mu
-                          is 'mu_historical'.  #TODO assert domain of 0 to 1
-        :param overall_confidence: float, AAAAAAAAss
-        :param relative_uncertainty:
+                          is 'mu_historical'.  # TODO assert domain of 0 to 1
+        :param overall_confidence: float, the higher the number, the more weight the views have in te posterior
+        :param relative_uncertainty: pandas.DataFrame, the higher the value the less certain that view is.  # TODO allow for pandas series
         """
-        # TODO Documentation:
 
         # TODO assert input types (DataFrames)
         # TODO assert input shapes and names
