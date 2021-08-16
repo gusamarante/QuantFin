@@ -8,6 +8,7 @@ import numpy as np
 
 class Markowitz(object):
     # TODO Make the 'risk_aversion' parameter optional
+    # TODO change inputs to covariance
 
     def __init__(self, mu, sigma, corr, rf, risk_aversion=None, short_sell=True):
         """
@@ -87,7 +88,7 @@ class Markowitz(object):
 
         # Minimal variance frontier
         if not self.n_assets == 1:
-            mu_mv, sigma_mv = self._min_var_frontier()
+            mu_mv, sigma_mv = self.min_var_frontier()
             plt.plot(sigma_mv, mu_mv, marker=None, color='black', zorder=-1, label='Min Variance Frontier')
 
         # Capital allocation line
@@ -246,7 +247,7 @@ class Markowitz(object):
 
         return weight_p, complete_weights, mu_c, sigma_c, ce
 
-    def _min_var_frontier(self, n_steps=100):
+    def min_var_frontier(self, n_steps=100):
 
         if self.short_selling:
             E = self.mu.values
