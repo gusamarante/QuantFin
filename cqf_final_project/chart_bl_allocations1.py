@@ -6,16 +6,16 @@ import pandas as pd
 file_path = r'/Users/gustavoamarante/Dropbox/CQF/Final Project'  # Mac
 # file_path = r'/Users/gusamarante/Dropbox/CQF/Final Project'  # Macbook
 
-asset_list = ['Asset A', 'Asset B', 'Asset C', 'Asset D']
-view_list = ['View 1', 'View 2']
+asset_list = ['Asset A', 'Asset B', 'Asset C']
+view_list = ['View 1']
+risk_free = 0.0075
 
 # Covariance of returns
-corr = np.array([[1, 0.3, 0.1, 0.2],
-                 [0.3, 1, 0.5, 0.2],
-                 [0.1, 0.5, 1, -0.1],
-                 [0.2, 0.2, -0.1, 1]])
+corr = np.array([[1, 0.5, 0.0],
+                 [0.5, 1, 0.0],
+                 [0.0, 0.0, 1]])
 
-vol = np.array([0.1, 0.12, 0.15, 0.18])
+vol = np.array([0.1, 0.12, 0.15])
 sigma = np.diag(vol) @ corr @ np.diag(vol)
 
 corr = pd.DataFrame(data=corr, columns=asset_list, index=asset_list)
@@ -25,21 +25,20 @@ sigma = pd.DataFrame(data=sigma, columns=asset_list, index=asset_list)
 # Views
 tau = 1/500
 
-views_p = np.array([[1, 0, 0, 0],
-                    [0, 0, 0, 1]])
+views_p = np.array([[1, 0, 0]])
 views_p = pd.DataFrame(data=views_p, columns=asset_list, index=view_list)
 
-views_v = np.array([0.2, 0.15])
+views_v = np.array([0.1])
 views_v = pd.DataFrame(data=views_v, index=view_list, columns=['View Values'])
 
-u = np.array([1, 1])
+u = np.array([1])
 u = pd.DataFrame(data=u, index=view_list, columns=['Relative Uncertainty'])
 
 # best guess for mu
-w_equilibrium = np.array([0.25, 0.25, 0.25, 0.25])
+w_equilibrium = np.array([1/3, 1/3, 1/3])
 w_equilibrium = pd.DataFrame(data=w_equilibrium, index=asset_list, columns=['Equilibrium Weights'])
 
-mu_historical = np.array([0, 0, 0, 0])
+mu_historical = np.array([0, 0, 0])
 mu_historical = pd.DataFrame(data=mu_historical, index=asset_list, columns=['Historical Returns'])
 
 bl = BlackLitterman(sigma=sigma,
@@ -53,23 +52,27 @@ bl = BlackLitterman(sigma=sigma,
                     relative_uncertainty=u,
                     mu_historical=mu_historical)
 
-mkw_original = Markowitz(bl.mu_best_guess['Best Guess of mu'], vol, corr, 0.01, risk_aversion=1.2)
-original_frontier_mu, original_frontier_sigma = mkw_original.min_var_frontier()
+mkw_original = Markowitz(bl.mu_best_guess['Best Guess of mu'], vol, corr, risk_free, risk_aversion=1.2)
+print('original weights')
+print(mkw_original.risky_weights)
+original_frontier_mu, original_frontier_sigma = mkw_original.min_var_frontier(n_steps=300)
 
 vol2 = pd.Series(data=np.diag(bl.sigma_bl.values)**0.5, index=asset_list, name='Vol')
-mkw_bl = Markowitz(bl.mu_bl['Expected Returns'], vol2, corr, 0.01, risk_aversion=1.2)
-bl_frontier_mu, bl_frontier_sigma = mkw_bl.min_var_frontier()
+mkw_bl = Markowitz(bl.mu_bl['Expected Returns'], vol2, corr, risk_free, risk_aversion=1.2)
+print('BL weights')
+print(mkw_bl.risky_weights)
+bl_frontier_mu, bl_frontier_sigma = mkw_bl.min_var_frontier(n_steps=300)
 
 # ===== Chart =====
-plt.figure(figsize=(10, 6))
+plt.figure(figsize=(8, 6))
 # assets
 plt.scatter(vol, bl.mu_best_guess['Best Guess of mu'], label='Original Assets', color='red', marker='o',
-            edgecolor='black')
+            edgecolor='black', s=65)
 plt.scatter(vol2, bl.mu_bl['Expected Returns'], label='Black-Litterman Views', color='green', marker='p',
             edgecolor='black')
 
 # risk-free
-plt.scatter(0, 0.01, label='Risk-Free')
+plt.scatter(0, risk_free, label='Risk-Free')
 
 # Optimal risky portfolio
 plt.scatter(mkw_original.sigma_p, mkw_original.mu_p, label='Original Optimal', color='firebrick',
@@ -89,9 +92,9 @@ plt.plot(bl_frontier_sigma, bl_frontier_mu, marker=None, color='green',
 # Capital allocation line
 max_sigma = vol.max() + 0.05
 x_values = [0, max_sigma]
-y_values = [0.01, 0.01 + mkw_original.sharpe_p * max_sigma]
+y_values = [risk_free, risk_free + mkw_original.sharpe_p * max_sigma]
 plt.plot(x_values, y_values, marker=None, color='red', label='Original Capital Allocation Line', linestyle='--')
-y_values = [0.01, 0.01 + mkw_bl.sharpe_p * max_sigma]
+y_values = [risk_free, risk_free + mkw_bl.sharpe_p * max_sigma]
 plt.plot(x_values, y_values, marker=None, color='green', label='Black-Litterman Capital Allocation Line', linestyle='--')
 
 # # Investor's portfolio
@@ -114,7 +117,7 @@ plt.ylabel('Return')
 plt.tight_layout()
 
 # Save as picture
-plt.savefig(file_path + f'/figures/BL Min variance frontier comparison.pdf', pad_inches=0)
+plt.savefig(file_path + f'/figures/BL Min variance frontier comparison1.pdf', pad_inches=0)
 
 plt.show()
 
