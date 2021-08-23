@@ -3,6 +3,8 @@ import pandas as pd
 from time import time
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+from matplotlib import rcParams
+import matplotlib.dates as mdates
 from quantfin.statistics import marchenko_pastur, detone, cov2corr
 from quantfin.portfolio import Markowitz, BlackLitterman, HRP, Performance
 
@@ -240,10 +242,31 @@ print(perf.sharpe)
 writer = pd.ExcelWriter(file_path + r'output - ETFization.xlsx')
 df_etf.to_excel(writer, 'ETFs')
 perf.table.to_excel(writer, 'Perf')
+weights_iv.to_excel(writer, 'Weights IV')
+weights_hrp.to_excel(writer, 'Weights HRP')
+weights_dhrp.to_excel(writer, 'Weights DHRP')
+weights_mpbl.to_excel(writer, 'Weights MPBL')
 writer.save()
 
-
-
 # Chart
-df_etf.plot(figsize=(11, 6))
+MyFont = {'fontname': 'Century Gothic'}
+rcParams['font.family'] = 'sans-serif'
+rcParams['font.sans-serif'] = ['Century Gothic']
+
+plt.figure(figsize=(11, 6))
+plt.plot(df_etf, linewidth=2)
+plt.tick_params(axis='y', which='both', right=False, left=False, labelleft=True)
+plt.tick_params(axis='x', which='both', top=False, bottom=False, labelbottom=True)
+plt.xticks(rotation=45)
+plt.legend(df_etf.columns, loc='upper right', ncol=1, frameon=True)
+ax = plt.gca()
+ax.yaxis.grid(color='grey', linestyle='-', linewidth=0.5, alpha=0.5)
+ax.xaxis.grid(color='grey', linestyle='-', linewidth=0.5, alpha=0.5)
+ax.set_xlim((df_etf.index[0], df_etf.index[-1]))
+locators = mdates.YearLocator()
+ax.xaxis.set_major_locator(locators)
+ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+plt.tight_layout()
+plt.savefig(file_path + r'figures/ETF Strategies.pdf', pad_inches=0)
 plt.show()
+

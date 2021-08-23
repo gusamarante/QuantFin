@@ -84,6 +84,7 @@ df_mom = df_tr.pct_change(21 * 3)
 
 # date for the static portfolio
 last_date = df_libor.index[-1]
+print(last_date)
 
 # 3-month volatility
 vols = pd.Series(data=np.sqrt(df_cov.loc[last_date].values.diagonal()),
@@ -167,11 +168,25 @@ toc = time()
 print(round(toc - tic, 1), 'seconds')
 
 # ===== CHART =====
+# chart weights
 df_plot = df_weights.sort_index(ascending=False)
-ax = df_plot.plot(kind='barh', figsize=(6, 10), width=0.8)
+df_plot.plot(kind='barh', figsize=(6, 10), width=0.8)
 plt.grid(axis='x')
 plt.axvline(0, color='black', linewidth=1)
 plt.tight_layout()
 plt.savefig(file_path + r'figures/Static Weights.pdf', pad_inches=0)
 plt.show()
+
+# Chart signals
+df_plot = pd.concat([df_carry.loc[last_date].rename('Carry'),
+                     df_value.loc[last_date].rename('Value'),
+                     df_mom.loc[last_date].rename('Momentum')], axis=1)
+df_plot = df_plot.sort_index(ascending=False)
+df_plot.plot(kind='barh', figsize=(6, 10), width=0.8)
+plt.grid(axis='x')
+plt.axvline(0, color='black', linewidth=1)
+plt.tight_layout()
+plt.savefig(file_path + r'figures/Static Signals.pdf', pad_inches=0)
+plt.show()
+
 
