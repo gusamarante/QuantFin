@@ -7,6 +7,7 @@ from sklearn.neighbors import KernelDensity
 
 # ===== Marchenko-Pastur Denoising =====
 def marchenko_pastur(corr_matrix, T, N, bandwidth=0.1):
+    # TODO allow input to be covariance
     """
     Uses the Marchenko-Pastur theorem to remove noisy eigenvalues from a correlation matrix.
     This code is adapted from Lopez de Prado (2020).
@@ -142,10 +143,11 @@ def detone(corr, n=1):
     is singular. This is not a problem for clustering applications as most approaches do not
     require invertibility.
     :param corr: numpy array. Correlation matrix.
-    :param n: int. number of the first n components to be removed from the correlation matrix.
+    :param n: int. number of the first 'n' components to be removed from the correlation matrix.
     :return: numpy array
     """
     # TODO Notebook example
+    # TODO Allow covariance input
     eVal, eVec = np.linalg.eigh(corr)
     indices = eVal.argsort()[::-1]
     eVal, eVec = eVal[indices], eVec[:, indices]
@@ -156,6 +158,10 @@ def detone(corr, n=1):
     eVec = eVec[:, n:]
     corr_aux = np.dot(eVec, eVal).dot(eVec.T)
     corr_d = corr_aux @ np.linalg.inv(np.diag(np.diag(corr_aux)))
+
+    if isinstance(corr, pd.DataFrame):
+        corr_d = pd.DataFrame(data=corr_d, index=corr.index, columns=corr.columns)
+
     return corr_d
 
 

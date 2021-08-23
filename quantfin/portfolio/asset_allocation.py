@@ -177,7 +177,7 @@ class Markowitz(object):
                 raise RuntimeError("Convergence Failed")
 
             # Compute optimal portfolio parameters
-            mu_p = np.sum(res.x * self.mu)
+            mu_p = np.sum(res.x * self.mu.values.flatten())
             sigma_p = np.sqrt(res.x @ self.cov @ res.x)
             sharpe_p = -sharpe(res.x)
             weights = pd.Series(index=self.mu.index,
@@ -216,7 +216,7 @@ class Markowitz(object):
             raise RuntimeError("Convergence Failed")
 
         # Compute optimal portfolio parameters
-        mu_mv = np.sum(res.x * self.mu)
+        mu_mv = np.sum(res.x * self.mu.values.flatten())
         sigma_mv = np.sqrt(res.x @ self.cov @ res.x)
         sharpe_mv = (mu_mv - self.rf) / sigma_mv
         weights = pd.Series(index=self.mu.index,
@@ -466,6 +466,10 @@ class BlackLitterman(object):
         Sigma = self.sigma.values
 
         omega = (1/c) * u @ P @ Sigma @ P.T @ u
+
+        if np.linalg.det(omega) < np.finfo(float).eps:
+            n, m = omega.shape
+            omega = omega + 1e-16 * np.eye(n, m)
 
         omega = pd.DataFrame(data=omega,
                              index=self.view_names,

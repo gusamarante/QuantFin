@@ -10,46 +10,35 @@ file_path = r'/Users/gustavoamarante/Dropbox/CQF/Final Project/'  # Mac
 df_tickers = pd.read_excel(file_path + r'Data - BBG Data Values.xlsx',
                            index_col=0, sheet_name='Tickers')
 
-ppp_dict = df_tickers['PPP'].to_dict()
-ppp_dict = {v: k for k, v in ppp_dict.items()}
+tr_dict = df_tickers['Total Return Index (UBS)'].to_dict()
+tr_dict = {v: k for k, v in tr_dict.items()}
 
-spot_dict = df_tickers['Spot'].to_dict()
-spot_dict = {v: k for k, v in spot_dict.items()}
+# Read Total Return Index
+df_tr = pd.read_excel(file_path + r'Data - BBG Data Values.xlsx',
+                      index_col=0, sheet_name='Total Return')
+df_tr = df_tr.rename(tr_dict, axis=1)
 
-# Read PPP
-df_ppp = pd.read_excel(file_path + r'Data - BBG Data Values.xlsx',
-                       index_col=0, sheet_name='PPP')
-df_ppp = df_ppp.rename(ppp_dict, axis=1)
-
-# Read spot price
-df_spot = pd.read_excel(file_path + r'Data - BBG Data Values.xlsx',
-                        index_col=0, sheet_name='Spot')
-df_spot = df_spot.rename(spot_dict, axis=1)
-
-# compute the value
-df_value = 1 - df_ppp / df_spot
-df_value = df_value.dropna(axis=1, how='all')
+# Compute Momentum
+df_mom = df_tr.pct_change(3*21).dropna(how='all')
 
 # Chart
 MyFont = {'fontname': 'Century Gothic'}
 rcParams['font.family'] = 'sans-serif'
 rcParams['font.sans-serif'] = ['Century Gothic']
 
-df_value = df_value.dropna(how='all')
-
 plt.figure(figsize=(11, 6))
-plt.plot(df_value, linewidth=2)
+plt.plot(df_mom, linewidth=2)
 plt.tick_params(axis='y', which='both', right=False, left=False, labelleft=True)
 plt.tick_params(axis='x', which='both', top=False, bottom=False, labelbottom=True)
 plt.xticks(rotation=45)
-plt.legend(df_value.columns, loc='lower right', ncol=3, frameon=True)
+plt.legend(df_mom.columns, loc='lower left', ncol=4, frameon=True)
 ax = plt.gca()
 ax.yaxis.grid(color='grey', linestyle='-', linewidth=0.5, alpha=0.5)
 ax.xaxis.grid(color='grey', linestyle='-', linewidth=0.5, alpha=0.5)
-ax.set_xlim((df_value.index[0], df_value.index[-1]))
+ax.set_xlim((df_mom.index[0], df_mom.index[-1]))
 locators = mdates.YearLocator()
 ax.xaxis.set_major_locator(locators)
 ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 plt.tight_layout()
-plt.savefig(file_path + r'figures/Value.pdf', pad_inches=0)
+plt.savefig(file_path + r'figures/Momentum.pdf', pad_inches=0)
 plt.show()

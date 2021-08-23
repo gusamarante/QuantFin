@@ -7,6 +7,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 import scipy.cluster.hierarchy as sch
+from quantfin.statistics import cov2corr
 
 
 class HRP(object):
@@ -14,7 +15,7 @@ class HRP(object):
     Implements Hierarchical Risk Parity
     """
 
-    def __init__(self, data, method='single', metric='euclidean'):
+    def __init__(self, cov, corr=None, method='single', metric='euclidean'):
         """
         Combines the assets in `data` using HRP
         returns an object with the following attributes:
@@ -31,11 +32,18 @@ class HRP(object):
         :param method: any method available in scipy.cluster.hierarchy.linkage
         :param metric: any metric available in scipy.cluster.hierarchy.linkage
         """
+        # TODO include detoning as an optional input
 
-        assert isinstance(data, pd.DataFrame), "input 'data' must be a pandas DataFrame"
+        assert isinstance(cov, pd.DataFrame), "input 'cov' must be a pandas DataFrame"
 
-        self.cov = data.cov()
-        self.corr = data.corr()
+        self.cov = cov
+
+        if corr is None:
+            self.corr = cov2corr(cov)
+        else:
+            assert isinstance(corr, pd.DataFrame), "input 'corr' must be a pandas DataFrame"
+            self.corr = corr
+
         self.method = method
         self.metric = metric
 
@@ -48,7 +56,7 @@ class HRP(object):
 
     @staticmethod
     def _tree_clustering(corr, method, metric):
-        dist = np.sqrt(((1 - corr)/2))
+        dist = np.sqrt((1 - corr)/2)
         link = sch.linkage(dist, method, metric)
         return link
 
