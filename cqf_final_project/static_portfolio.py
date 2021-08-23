@@ -8,7 +8,6 @@ from quantfin.portfolio import Markowitz, BlackLitterman, HRP
 # User defined parameters
 ew_com = 21 * 3
 
-
 # fixed parameters
 file_path = r'/Users/gustavoamarante/Dropbox/CQF/Final Project/'  # Mac
 # file_path = r'/Users/gusamarante/Dropbox/CQF/Final Project/'  # Macbook
@@ -56,7 +55,7 @@ df_ppp = df_ppp.rename(ppp_dict, axis=1)
 # Read Libor
 df_libor = pd.read_excel(file_path + r'Data - LIBOR.xlsx',
                          index_col=0, sheet_name='LIBOR', na_values=['#N/A'])
-df_libor = df_libor.fillna(method='ffill')
+df_libor = df_libor.fillna(method='ffill') / 100
 
 
 # ========================
