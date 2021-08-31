@@ -258,3 +258,7 @@ class ERC(object):
 
     def _dist_to_target(self, w):
         return np.abs(self._risk_contribution(w) - np.ones(self.n_assets)/self.n_assets).sum()
+
+
+class PrincipalPortfolios(object):
+    pass
