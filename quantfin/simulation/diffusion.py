@@ -234,7 +234,7 @@ class Diffusion(object):
 class MultivariateGBM(object):
 
     def __init__(self, T, n, mu, sigma, initial_price=None, random_seed=None):
-        # TODO Documentation (mu is not drift, sigma is not covariance)
+        # TODO Documentation (mu is not drift, sigma is not covariance, they are of the log)
 
         dt = T / n
         mu = np.array(mu)

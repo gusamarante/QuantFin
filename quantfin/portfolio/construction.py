@@ -261,4 +261,12 @@ class ERC(object):
 
 
 class PrincipalPortfolios(object):
-    pass
+
+    def __init__(self, returns, signals):
+        """
+        [DESCRIPTION HERE]
+        :param returns:
+        :param signals: Should already have the appropriate lag.
+        """
+
+        a = 1
