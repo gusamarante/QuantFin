@@ -1,9 +1,8 @@
 from quantfin.portfolio import PrincipalPortfolios
 import pandas as pd
-import matplotlib.pyplot as plt
 
-file_path = r'C:\Users\gamarante\Dropbox\CQF\Final Project\Data - BBG Data Values.xlsx'  # BW
-# file_path = r'/Users/gustavoamarante/Dropbox/CQF/Final Project/'  # Mac
+# file_path = r'C:\Users\gamarante\Dropbox\CQF\Final Project\Data - BBG Data Values.xlsx'  # BW
+file_path = r'/Users/gustavoamarante/Dropbox/CQF/Final Project/Data - BBG Data Values.xlsx'  # Mac
 # file_path = r'/Users/gusamarante/Dropbox/CQF/Final Project/'  # Macbook
 
 # ===== Read Bloomberg Tickers for renaming =====

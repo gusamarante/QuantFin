@@ -263,10 +263,30 @@ class ERC(object):
 class PrincipalPortfolios(object):
 
     def __init__(self, returns, signals):
+        # TODO allow for covariance input
         """
         [DESCRIPTION HERE]
         :param returns:
         :param signals: Should already have the appropriate lag.
         """
 
-        a = 1
+        self.returns, self.signals = self._trim_dataframes(returns, signals)
+        self.pred_matrix = self._get_prediction_matrix()
+
+    def _get_prediction_matrix(self):
+        size = self.returns.shape[0]
+        dev_mat = np.eye(size) - np.ones((size, size)) * (1 / size)
+        pi = (1 / size) * (self.returns.values.T @ dev_mat @ self.signals.values)
+        return pi
+
+    @staticmethod
+    def _trim_dataframes(returns, signals):
+        start_returns = returns.index[0]
+        start_signals = signals.index[0]
+
+        if start_returns >= start_signals:
+            signals = signals.reindex(returns.index)
+        else:
+            returns = returns.reindex(signals.index)
+
+        return returns, signals
