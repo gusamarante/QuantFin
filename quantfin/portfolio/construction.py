@@ -4,6 +4,8 @@ Classes for porfolio construction
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from numpy.linalg import inv
+from scipy.linalg import sqrtm
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 import scipy.cluster.hierarchy as sch
@@ -263,7 +265,8 @@ class ERC(object):
 class PrincipalPortfolios(object):
 
     def __init__(self, returns, signals):
-        # TODO allow for covariance input
+        # TODO allow for covariance input, instead of being calculated
+        # TODO covariance shirinkage using Eigenvalue reconstruction
         """
         [DESCRIPTION HERE]
         :param returns:
@@ -272,12 +275,29 @@ class PrincipalPortfolios(object):
 
         self.returns, self.signals = self._trim_dataframes(returns, signals)
         self.pred_matrix = self._get_prediction_matrix()
+        self.pi_s, self.pi_a = self._get_symmetry_separation(self.pred_matrix)
+        self.optimal_selection = self._get_optimal_selection()  # paper calls this L
+        self.optimal_weights = signals.iloc[-1].values.dot(self.optimal_selection)  # paper calls this S'L
+
+        # TODO expected return tr(L@Pi)
 
     def _get_prediction_matrix(self):
+        # TODO to estimate PI should I take the deviations from the mean?
         size = self.returns.shape[0]
         dev_mat = np.eye(size) - np.ones((size, size)) * (1 / size)
         pi = (1 / size) * (self.returns.values.T @ dev_mat @ self.signals.values)
         return pi
+
+    def _get_optimal_selection(self):
+        pi = self.pred_matrix
+        L = sqrtm(inv(pi.T @ pi)) @ pi.T
+        return L
+
+    @staticmethod
+    def _get_symmetry_separation(mat):
+        mat_s = 0.5 * (mat + mat.T)
+        mat_a = 0.5 * (mat - mat.T)
+        return mat_s, mat_a
 
     @staticmethod
     def _trim_dataframes(returns, signals):
