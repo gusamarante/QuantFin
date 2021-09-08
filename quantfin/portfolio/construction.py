@@ -275,10 +275,12 @@ class PrincipalPortfolios(object):
 
         self.returns, self.signals = self._trim_dataframes(returns, signals)
         self.pred_matrix = self._get_prediction_matrix()
-        self.pi_s, self.pi_a = self._get_symmetry_separation(self.pred_matrix)
         self.optimal_selection = self._get_optimal_selection()  # paper calls this L
         self.optimal_weights = signals.iloc[-1].values.dot(self.optimal_selection)  # paper calls this S'L
+        self.svd_right, self.svd_values, self.svd_right = self._get_svd()
+        # TODO Parei aqui - Compute factor weights - pg 18
 
+        self.pi_s, self.pi_a = self._get_symmetry_separation(self.pred_matrix)
         # TODO expected return tr(L@Pi)
 
     def _get_prediction_matrix(self):
@@ -292,6 +294,11 @@ class PrincipalPortfolios(object):
         pi = self.pred_matrix
         L = sqrtm(inv(pi.T @ pi)) @ pi.T
         return L
+
+    def _get_svd(self):
+        pi = self.pred_matrix
+        u, sing_values, vt = np.linalg.svd(pi)
+        return u, sing_values, vt.T
 
     @staticmethod
     def _get_symmetry_separation(mat):

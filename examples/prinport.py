@@ -28,4 +28,4 @@ df_mom = df_mom.dropna()
 
 # ===== Run Principal Portfolios =====
 pp = PrincipalPortfolios(df_ret, df_mom)
-print(pp.optimal_selection)
+print(((1 + pp.svd_values)**12 - 1)*100)
