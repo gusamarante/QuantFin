@@ -276,6 +276,7 @@ class PrincipalPortfolios(object):
         self.returns, self.signals = self._trim_dataframes(returns, signals)
         self.pred_matrix = self._get_prediction_matrix()
         self.optimal_selection = self._get_optimal_selection()  # paper calls this L
+        # TODO organize the optimal weights in a data frame
         self.optimal_weights = signals.iloc[-1].values.dot(self.optimal_selection)  # paper calls this S'L
         self.svd_right, self.svd_values, self.svd_right = self._get_svd()
         # TODO Parei aqui - Compute factor weights - pg 18
@@ -291,6 +292,9 @@ class PrincipalPortfolios(object):
         return pi
 
     def _get_optimal_selection(self):
+        """
+        Computes the selection matrix of the optimal portfolio from proposition 3 of the paper.
+        """
         pi = self.pred_matrix
         L = sqrtm(inv(pi.T @ pi)) @ pi.T
         return L
