@@ -273,16 +273,39 @@ class PrincipalPortfolios(object):
         :param signals: Should already have the appropriate lag.
         """
 
+        self.asset_names = list(returns.columns)
+        self.asset_number = len(self.asset_names)
         self.returns, self.signals = self._trim_dataframes(returns, signals)
         self.pred_matrix = self._get_prediction_matrix()
-        self.optimal_selection = self._get_optimal_selection()  # paper calls this L
-        # TODO organize the optimal weights in a data frame
-        self.optimal_weights = signals.iloc[-1].values.dot(self.optimal_selection)  # paper calls this S'L
-        self.svd_right, self.svd_values, self.svd_right = self._get_svd()
-        # TODO Parei aqui - Compute factor weights - pg 18
+        self.svd_left, self.svd_values, self.svd_right = self._get_svd()
+        self.optimal_selection = self.svd_right @ self.svd_left.T  # paper calls this L, proposition 3, pg 13
+        self.optimal_weights = self._get_optimal_weights()
+
+        # TODO Parei aqui - Compute factor weights - pg 16 equation 20
 
         self.pi_s, self.pi_a = self._get_symmetry_separation(self.pred_matrix)
         # TODO expected return tr(L@Pi)
+
+    def get_prinport(self, k=1):
+        """
+        Gets the weights of k-th principal portfolio. In the paper this is in equation 15.
+        :param k: int. The number of the desired principal portfolio.
+        :return: tuple. First entry are the weights, second is the selection matrix and third is the singular
+                 value, which can be interpreted as the expected return (proposition 4).
+        """
+
+        assert k <= self.asset_number, "'k' must not be bigger than then number of assets"
+
+        uk = self.svd_left[:, k - 1].reshape((-1, 1))
+        vk = self.svd_right[:, k - 1].reshape((-1, 1))
+        s = self.signals.iloc[-1].values.reshape((-1, 1))
+        singval = self.svd_values[k - 1]
+
+        lk = vk @ uk.T
+        wk = (s.T @ lk)[0]
+        wk = pd.Series(index=self.asset_names, data=wk, name=f'PP {k}')
+
+        return wk, lk, singval
 
     def _get_prediction_matrix(self):
         # TODO to estimate PI should I take the deviations from the mean?
@@ -291,13 +314,12 @@ class PrincipalPortfolios(object):
         pi = (1 / size) * (self.returns.values.T @ dev_mat @ self.signals.values)
         return pi
 
-    def _get_optimal_selection(self):
-        """
-        Computes the selection matrix of the optimal portfolio from proposition 3 of the paper.
-        """
-        pi = self.pred_matrix
-        L = sqrtm(inv(pi.T @ pi)) @ pi.T
-        return L
+    def _get_optimal_weights(self):
+        s = self.signals.iloc[-1].values
+        l = self.optimal_selection
+        w = s.dot(l)  # paper calls this S'L
+        w = pd.Series(index=self.asset_names, data=w)
+        return w
 
     def _get_svd(self):
         pi = self.pred_matrix

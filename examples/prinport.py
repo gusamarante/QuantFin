@@ -1,15 +1,18 @@
 from quantfin.portfolio import PrincipalPortfolios
+import matplotlib.pyplot as plt
 import pandas as pd
 
 # file_path = r'C:\Users\gamarante\Dropbox\CQF\Final Project\Data - BBG Data Values.xlsx'  # BW
-file_path = r'/Users/gustavoamarante/Dropbox/CQF/Final Project/Data - BBG Data Values.xlsx'  # Mac
-# file_path = r'/Users/gusamarante/Dropbox/CQF/Final Project/'  # Macbook
+# file_path = r'/Users/gustavoamarante/Dropbox/CQF/Final Project/Data - BBG Data Values.xlsx'  # Mac
+file_path = r'/Users/gusamarante/Dropbox/CQF/Final Project/Data - BBG Data Values.xlsx'  # Macbook
+
 
 # ===== Read Bloomberg Tickers for renaming =====
 df_tickers = pd.read_excel(file_path, index_col=0, sheet_name='Tickers')
 
 tr_dict = df_tickers['Total Return Index (UBS)'].to_dict()
 tr_dict = {v: k for k, v in tr_dict.items()}
+
 
 # ===== Read Total Return Index and compute monthly returns =====
 df_tr = pd.read_excel(file_path, index_col=0, sheet_name='Total Return')
@@ -26,7 +29,12 @@ df_mom = df_mom.resample('M').last()
 df_mom = df_mom.shift(1)
 df_mom = df_mom.dropna()
 
+
 # ===== Run Principal Portfolios =====
 pp = PrincipalPortfolios(df_ret, df_mom)
-# print(((1 + pp.svd_values)**12 - 1)*100)
-print(pp.optimal_weights)
+w1 = pp.get_prinport(k=1)[0]
+w2 = pp.get_prinport(k=2)[0]
+w = pd.concat([w1, w2], axis=1)
+w = w.sort_values(by='PP 1')
+w.plot(kind='bar')
+plt.show()
