@@ -4,7 +4,7 @@ Classes for porfolio construction
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from numpy.linalg import inv
+from numpy.linalg import inv, eig
 from scipy.linalg import sqrtm
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
@@ -281,14 +281,23 @@ class PrincipalPortfolios(object):
         self.asset_number = len(self.asset_names)
         self.returns, self.signals = self._trim_dataframes(returns, signals)
         self.pred_matrix = self._get_prediction_matrix()
+        self.cov_returns = self._get_covariance_returns()
+
+        # Principal Portfolios (PP)
         self.svd_left, self.svd_values, self.svd_right = self._get_svd()
+        self.er_pp = self.svd_values.sum()  # equivalent to tr(L @ PI)
         self.optimal_selection = self.svd_right @ self.svd_left.T  # paper calls this L, proposition 3, pg 13
         self.optimal_weights = self._get_optimal_weights()
 
-        # TODO Parei aqui - Compute factor weights - pg 16 equation 20
+        # Latent factor
+        self.factor_weights = self._get_factor_weights()
 
+        # Symmetry decompositions
         self.pi_s, self.pi_a = self._get_symmetry_separation(self.pred_matrix)
-        # TODO expected return tr(L@Pi)
+
+        # Principal Exposure Portfolios (PEP) - Symmetric Strategies
+        self.pi_s_eigval, self.pi_s_eigvec = self._get_sorted_eig(self.pi_s)
+        # TODO Parei aqui - PEP - pg 20 equation 28
 
     def get_prinport(self, k=1):
         """
@@ -329,6 +338,26 @@ class PrincipalPortfolios(object):
         pi = self.pred_matrix
         u, sing_values, vt = np.linalg.svd(pi)
         return u, sing_values, vt.T
+
+    def _get_covariance_returns(self):
+        cov = self.returns.cov()
+        return cov
+
+    def _get_factor_weights(self):
+        cov = self.cov_returns.values
+        s = self.signals.iloc[-1].values
+        factor_weights = ((s @ inv(cov) @ s)**(-1)) * (inv(cov) @ s)
+        factor_weights = pd.Series(data=factor_weights, index=self.asset_names, name='Factor Weights')
+        return factor_weights
+
+    @staticmethod
+    def _get_sorted_eig(mat):
+        eigval, eigvec = eig(mat)
+        idx = eigval.argsort()[::-1]
+        eigval = eigval[idx]
+        eigvec = eigvec[:, idx]
+
+        return eigval, eigvec
 
     @staticmethod
     def _get_symmetry_separation(mat):

@@ -32,9 +32,4 @@ df_mom = df_mom.dropna()
 
 # ===== Run Principal Portfolios =====
 pp = PrincipalPortfolios(df_ret, df_mom)
-w1 = pp.get_prinport(k=1)[0]
-w2 = pp.get_prinport(k=2)[0]
-w = pd.concat([w1, w2], axis=1)
-w = w.sort_values(by='PP 1')
-w.plot(kind='bar')
-plt.show()
+print(pp.factor_weights)
