@@ -263,6 +263,10 @@ class ERC(object):
 
 
 class PrincipalPortfolios(object):
+    """
+    Implementation of the 'Principal Portfolios'.
+    https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3623983
+    """
 
     def __init__(self, returns, signals):
         # TODO allow for covariance input, instead of being calculated
@@ -288,7 +292,7 @@ class PrincipalPortfolios(object):
 
     def get_prinport(self, k=1):
         """
-        Gets the weights of k-th principal portfolio. In the paper this is in equation 15.
+        Gets the weights of k-th principal portfolio, shown in euqation 15 of the paper.
         :param k: int. The number of the desired principal portfolio.
         :return: tuple. First entry are the weights, second is the selection matrix and third is the singular
                  value, which can be interpreted as the expected return (proposition 4).
