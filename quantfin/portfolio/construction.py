@@ -299,7 +299,7 @@ class PrincipalPortfolios(object):
         self.pi_s_eigval, self.pi_s_eigvec = self._get_sorted_eig(self.pi_s)
         # TODO Parei aqui - PEP - pg 20 equation 28
 
-    def get_prinport(self, k=1):
+    def get_pp(self, k=1):
         """
         Gets the weights of k-th principal portfolio, shown in euqation 15 of the paper.
         :param k: int. The number of the desired principal portfolio.
@@ -311,14 +311,41 @@ class PrincipalPortfolios(object):
 
         uk = self.svd_left[:, k - 1].reshape((-1, 1))
         vk = self.svd_right[:, k - 1].reshape((-1, 1))
-        s = self.signals.iloc[-1].values.reshape((-1, 1))
+        s = self.signals.iloc[-1].values
         singval = self.svd_values[k - 1]
 
         lk = vk @ uk.T
-        wk = (s.T @ lk)[0]
+        wk = (s.T @ lk)
         wk = pd.Series(index=self.asset_names, data=wk, name=f'PP {k}')
 
         return wk, lk, singval
+
+    def get_pep(self, k=1, absolute=True):
+        """
+        Gets the weights of k-th principal exposure portfolio (PEP), shown in euqation 30 of the paper.
+        :param k: int. The number of the desired principal exposure portfolio.
+        :param absolute: If eigenvalues should be sorted on absolute value or not. Default is true, to get the
+                         PEPs in order of expected return.
+        :return: tuple. First entry are the weights, second is the selection matrix and third is the eigenvalue,
+                 which can be interpreted as the expected return (proposition 6).
+        """
+        assert k <= self.asset_number, "'k' must not be bigger than then number of assets"
+
+        eigval, eigvec = self.pi_s_eigval, self.pi_s_eigvec
+        s = self.signals.iloc[-1].values.reshape((-1, 1))
+
+        if absolute:
+            signal = np.sign(eigval)
+            eigvec = eigvec * signal  # Switch the signals of the eigenvectors with negative eigenvalues
+            eigval = np.abs(eigval)
+            idx = eigval.argsort()[::-1]  # re sort eigenvalues based on absolute value and the associated eigenvectors
+            eigval = eigval[idx]
+            eigvec = eigvec[:, idx]
+
+        wsk = eigvec[:, k - 1].reshape((-1, 1))  # from equation 30
+        lsk = wsk @ wsk.T
+        weights_sk = s.T @ lsk
+        return weights_sk, lsk, eigval[k - 1]
 
     def _get_prediction_matrix(self):
         # TODO to estimate PI should I take the deviations from the mean?
