@@ -268,10 +268,9 @@ class PrincipalPortfolios(object):
     """
 
     def __init__(self, returns, signals):
-        # TODO allow for covariance input, instead of being calculated
         # TODO covariance shirinkage using Eigenvalue reconstruction
         """
-        [DESCRIPTION HERE]
+        [DESCRIPTION HERE OF ALL THE ATTRIBUTES]
         :param returns:
         :param signals: Should already have the appropriate lag.
         """
@@ -295,8 +294,10 @@ class PrincipalPortfolios(object):
         self.pi_s, self.pi_a = self._get_symmetry_separation(self.pred_matrix)
 
         # Principal Exposure Portfolios (PEP) - Symmetric Strategies
-        self.pi_s_eigval, self.pi_s_eigvec = self._get_sorted_eig(self.pi_s)
-        # TODO Parei aqui - PEP - pg 20 equation 28
+        self.pi_s_eigval, self.pi_s_eigvec = self._get_symmetric_eig()
+
+        # Principal Alpha Portfolios (PAP) - Anti-symmetric Strategies
+        self.pi_a_eigval, self.pi_a_eigvec = self._get_antisymmetric_eig()
 
     def get_pp(self, k=1):
         """
@@ -321,7 +322,7 @@ class PrincipalPortfolios(object):
 
     def get_pep(self, k=1, absolute=True):
         """
-        Gets the weights of k-th principal exposure portfolio (PEP), shown in euqation 30 of the paper.
+        Gets the weights of k-th principal exposure portfolio (PEP), shown in equation 30 of the paper.
         :param k: int. The number of the desired principal exposure portfolio.
         :param absolute: If eigenvalues should be sorted on absolute value or not. Default is true, to get the
                          PEPs in order of expected return.
@@ -341,11 +342,31 @@ class PrincipalPortfolios(object):
             eigval = eigval[idx]
             eigvec = eigvec[:, idx]
 
-        wsk = eigvec[:, k - 1].reshape((-1, 1))  # from equation 30
-        lsk = wsk @ wsk.T
-        weights_sk = s.T @ lsk
-        weights_sk = pd.Series(data=weights_sk, index=self.asset_names, name=f'PEP {k}')
-        return weights_sk, lsk, eigval[k - 1]
+        vsk = eigvec[:, k - 1].reshape((-1, 1))  # from equation 30
+        lsk = vsk @ vsk.T
+        wsk = s.T @ lsk
+        wsk = pd.Series(data=wsk, index=self.asset_names, name=f'PEP {k}')
+        return wsk, lsk, eigval[k - 1]
+
+    def get_pap(self, k=1):
+        """
+        Gets the weights of k-th principal alpha portfolio (PAP), shown in equation 35 of the paper.
+        :param k: int. The number of the desired principal alpha portfolio.
+        :return: tuple. First entry are the weights, second is the selection matrix and third is the
+                 eigenvalue times 2, which can be interpreted as the expected return (proposition 8).
+        """
+        assert k <= self.asset_number/2, "'k' must not be bigger than then half of the number of assets"
+
+        eigval, eigvec = self.pi_a_eigval, self.pi_a_eigvec
+        s = self.signals.iloc[-1].values
+
+        v = eigvec[:, k - 1].reshape((-1, 1))
+        x = v.real
+        y = v.imag
+        l = x @ y.T - y @ x.T
+        w = s.T @ l
+        w = pd.Series(data=w, index=self.asset_names, name=f'PAP {k}')
+        return w, l, 2 * eigval[k - 1]
 
     def _get_prediction_matrix(self):
         size = self.returns.shape[0]
@@ -376,13 +397,19 @@ class PrincipalPortfolios(object):
         factor_weights = pd.Series(data=factor_weights, index=self.asset_names, name='Factor Weights')
         return factor_weights
 
-    @staticmethod
-    def _get_sorted_eig(mat):
-        eigval, eigvec = eig(mat)
+    def _get_symmetric_eig(self):
+        eigval, eigvec = eig(self.pi_s)
         idx = eigval.argsort()[::-1]
         eigval = eigval[idx]
         eigvec = eigvec[:, idx]
+        return eigval, eigvec
 
+    def _get_antisymmetric_eig(self):
+        eigval, eigvec = eig(self.pi_a.T)
+        eigval = eigval.imag  # Grabs the imaginary part. The real part is zero, but with numerical error.
+        idx = eigval.argsort()[::-1]
+        eigval = eigval[idx]
+        eigvec = eigvec[:, idx]
         return eigval, eigvec
 
     @staticmethod
