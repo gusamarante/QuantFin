@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 # file_path = r'C:\Users\gamarante\Dropbox\CQF\Final Project\Data - BBG Data Values.xlsx'  # BW
-file_path = r'/Users/gustavoamarante/Dropbox/CQF/Final Project/Data - BBG Data Values.xlsx'  # Mac
-# file_path = r'/Users/gusamarante/Dropbox/CQF/Final Project/Data - BBG Data Values.xlsx'  # Macbook
+# file_path = r'/Users/gustavoamarante/Dropbox/CQF/Final Project/Data - BBG Data Values.xlsx'  # Mac
+file_path = r'/Users/gusamarante/Dropbox/CQF/Final Project/Data - BBG Data Values.xlsx'  # Macbook
 
 
 # ===== Read Bloomberg Tickers for renaming =====
@@ -32,4 +32,4 @@ df_mom = df_mom.dropna()
 
 # ===== Run Principal Portfolios =====
 pp = PrincipalPortfolios(df_ret, df_mom)
-pp.get_pep(k=1)
+print(pp.get_pp(k=1)[0])

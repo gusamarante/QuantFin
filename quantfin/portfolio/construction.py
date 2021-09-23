@@ -4,9 +4,8 @@ Classes for porfolio construction
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from numpy.linalg import inv, eig
-from scipy.linalg import sqrtm
 import matplotlib.pyplot as plt
+from numpy.linalg import inv, eig
 from scipy.optimize import minimize
 import scipy.cluster.hierarchy as sch
 from quantfin.statistics import cov2corr
@@ -345,13 +344,13 @@ class PrincipalPortfolios(object):
         wsk = eigvec[:, k - 1].reshape((-1, 1))  # from equation 30
         lsk = wsk @ wsk.T
         weights_sk = s.T @ lsk
+        weights_sk = pd.Series(data=weights_sk, index=self.asset_names, name=f'PEP {k}')
         return weights_sk, lsk, eigval[k - 1]
 
     def _get_prediction_matrix(self):
-        # TODO to estimate PI should I take the deviations from the mean?
         size = self.returns.shape[0]
-        dev_mat = np.eye(size) - np.ones((size, size)) * (1 / size)
-        pi = (1 / size) * (self.returns.values.T @ dev_mat @ self.signals.values)
+        # dev_mat = np.eye(size) - np.ones((size, size)) * (1 / size)
+        pi = (1 / size) * (self.returns.values.T @ self.signals.values)
         return pi
 
     def _get_optimal_weights(self):
