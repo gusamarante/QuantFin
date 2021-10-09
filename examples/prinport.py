@@ -2,9 +2,9 @@ from quantfin.portfolio import PrincipalPortfolios
 import matplotlib.pyplot as plt
 import pandas as pd
 
-file_path = 'C:/Users/gamarante/Dropbox/CQF/Final Project/Data - BBG Data Values.xlsx'  # BW
+# file_path = 'C:/Users/gamarante/Dropbox/CQF/Final Project/Data - BBG Data Values.xlsx'  # BW
 # file_path = r'/Users/gustavoamarante/Dropbox/CQF/Final Project/Data - BBG Data Values.xlsx'  # Mac
-# file_path = r'/Users/gusamarante/Dropbox/CQF/Final Project/Data - BBG Data Values.xlsx'  # Macbook
+file_path = r'/Users/gusamarante/Dropbox/CQF/Final Project/Data - BBG Data Values.xlsx'  # Macbook
 
 
 # ===== Read Bloomberg Tickers for renaming =====
@@ -34,6 +34,3 @@ df_mom = df_mom.dropna()
 pp = PrincipalPortfolios(df_ret, df_mom)
 pp.get_pep(k=1)[0].sort_values().plot(kind='bar')
 plt.show()
-
-# TODO next thing I have to implement is a way to guarantee that a portfolios always has the same expected vol
-#  0.1/((x @ sigma @ x)**0.5)
