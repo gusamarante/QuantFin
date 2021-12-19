@@ -1,10 +1,10 @@
-import pandas as pd
 import numpy as np
-from tqdm import tqdm
-from quantfin.data import grab_connection
-import matplotlib.pyplot as plt
+import pandas as pd
 import datetime as dt
+from tqdm import tqdm
+import matplotlib.pyplot as plt
 from quantfin.calendars import DayCounts
+from quantfin.data import grab_connection, tracker_uploader
 
 query = 'select * from raw_tesouro_nacional'
 conn = grab_connection()
@@ -189,12 +189,5 @@ for date, datem1 in tqdm(date_loop, 'NTNB - Longa'):
 aux = (100 * df_tracker['Notional'] / df_tracker['Notional'].iloc[0]).rename('NTNB Longa')
 all_trackers = pd.concat([all_trackers, aux], axis=1)
 
-# Chart (temporary)
 all_trackers.index = pd.to_datetime(list(all_trackers.index))
-returns = all_trackers.pct_change(252)
-std = all_trackers.pct_change(1).ewm(halflife=252).std() * np.sqrt(252)
-sharpe = returns / std
-
-sharpe.plot()
-plt.tight_layout()
-plt.show()
+tracker_uploader(all_trackers)
