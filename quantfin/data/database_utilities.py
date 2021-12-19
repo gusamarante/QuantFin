@@ -33,6 +33,7 @@ def tracker_uploader(data, conn=None):
     # TODO Documentation (data must have a DateTime index)
 
     # Makes sure that the Index is DateTime
+    data.index.name = 'reference_date'
     data.index = pd.to_datetime(list(data.index))
 
     # If no connection is passed, grabs the default one
@@ -48,4 +49,4 @@ def tracker_uploader(data, conn=None):
     data = data.melt('index')
 
     # upload the new trackers
-    data.to_sql('trackers', con=conn, index=False)
+    data.to_sql('trackers', con=conn, index=False, if_exists='append')

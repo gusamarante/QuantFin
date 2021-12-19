@@ -1,6 +1,7 @@
 import pandas as pd
 from tqdm import tqdm
-from quantfin.data import grab_connection
+import matplotlib.pyplot as plt
+from quantfin.data import grab_connection, tracker_uploader
 
 query = 'select * from raw_tesouro_direto'
 conn = grab_connection()
@@ -76,6 +77,5 @@ aux = (100 * df_tracker['Notional'] / df_tracker['Notional'].iloc[0]).rename('Te
 all_trackers = pd.concat([all_trackers, aux], axis=1)
 
 # --- Save to SQL ---
-all_trackers = all_trackers.reset_index().melt('index')
-all_trackers = all_trackers.rename({'index': 'reference_date'}, axis=1)
-all_trackers.to_sql('trackers', con=conn, if_exists='append', index=False)
+all_trackers.index = pd.to_datetime(all_trackers.index)
+tracker_uploader(all_trackers)
