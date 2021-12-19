@@ -1,3 +1,8 @@
+"""
+THIS ROUTINE IS NO LONGER USED, SINCE ITS DATA SOURCE WAS DISCCONTINUED
+"""
+# TODO Clear this routine from the project
+
 import numpy as np
 import pandas as pd
 import datetime as dt
