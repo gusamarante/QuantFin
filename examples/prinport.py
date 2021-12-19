@@ -32,5 +32,5 @@ df_mom = df_mom.dropna()
 
 # ===== Run Principal Portfolios =====
 pp = PrincipalPortfolios(df_ret, df_mom)
-pp.get_pap(k=1)[0].sort_values().plot(kind='bar')
+pp.get_pep(k=1)[0].sort_values().plot(kind='bar')
 plt.show()

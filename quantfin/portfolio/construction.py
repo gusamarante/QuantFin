@@ -332,7 +332,7 @@ class PrincipalPortfolios(object):
         assert k <= self.asset_number, "'k' must not be bigger than then number of assets"
 
         eigval, eigvec = self.pi_s_eigval, self.pi_s_eigvec
-        s = self.signals.iloc[-1].values.reshape((-1, 1))
+        s = self.signals.iloc[-1].values
 
         if absolute:
             signal = np.sign(eigval)
