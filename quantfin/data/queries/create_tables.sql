@@ -12,8 +12,8 @@ CREATE TABLE raw_tesouro_direto (
 
 CREATE TABLE trackers (
     'index' TIMESTAMP NOT NULL,
-    variable TEXT NOT NULL,
-    value DOUBLE PRECISION NOT NULL,
+    'variable' TEXT NOT NULL,
+    'value' DOUBLE PRECISION NOT NULL,
     PRIMARY KEY ('index', variable)
 );
 

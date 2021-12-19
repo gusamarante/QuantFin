@@ -2,9 +2,9 @@
 Creates the empty database with the desired structure.
 """
 
-import sqlite3
+from quantfin.data import grab_connection
 
-conn = sqlite3.connect('database_finquant.db')
+conn = grab_connection()
 cursor = conn.cursor()
 
 # Create Table for Tesouro Direto
