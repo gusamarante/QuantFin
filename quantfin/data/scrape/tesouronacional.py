@@ -1,4 +1,6 @@
 """
+THIS ROUTINE NO LONGER WORKS
+
 This routine scrapes prices for the brazilian government bonds.
 This routine works for all bonds.
 """
@@ -9,6 +11,7 @@ from bs4 import BeautifulSoup
 from tqdm import tqdm
 from quantfin.data import grab_connection
 
+# TODO This address will be diccontinued on 2021/12/31
 url = r'https://sisweb.tesouro.gov.br/apex/f?p=2031:2:0::::'
 
 response = requests.get(url)
