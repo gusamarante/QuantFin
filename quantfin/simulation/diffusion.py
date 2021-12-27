@@ -37,10 +37,10 @@ class BrownianMotion(object):
 
 class Diffusion(object):
 
-    supported_process_type = ['bm', 'rwwd', 'gbm', 'ou']
+    supported_process_type = ['bm', 'rwwd', 'gbm', 'ou', 'jump']
 
     def __init__(self, T=1, n=100, k=1, initial_price=0, process_type='bm', drift=None, diffusion=None, mean=None,
-                 random_seed=None, conf=0.95):
+                 random_seed=None, conf=0.95, jump_size=None, jump_freq=None):
         """
         Simulates diffusion processes.
         :param T: Number of years to simulate
@@ -53,6 +53,9 @@ class Diffusion(object):
         :param mean: Coeficient. Use varies depending on the 'process_type'.
         :param random_seed: random seed for the numpy RNG.
         :param conf: confidence for the confidence intervals.
+        :param jump_size: Jump size parameter (only for 'jump' process)
+        :param jump_freq: Average number of jumps per year (only for 'jump' process)
+        :param process_type: Type of diffusion process to simulate.
 
         - process_type='bm': simple brownian motion. In this case, the terms 'drift', 'diffusion' and
                              'mean' are not used.
@@ -67,12 +70,16 @@ class Diffusion(object):
                               used as follows:
                                  dS = drift * S * dt + diffusion * S * dW
 
-        - process_type='ou': Ornstein-Uhlenbeck / Mean-reverting process. The terms 'drift', 'diffusion' and
-                             'mean' are used as follows:
+        - process_type='ou': Ornstein-Uhlenbeck / Mean-reverting process. The terms 'drift', 'diffusion'
+                             and 'mean' are used as follows:
                                 dS = drift * (mean - x) * dt + diffusion * dW
+
+        - process_type='jump': Geometric brownian motion process with jumps. The terms 'drift', 'diffusion',
+                               'jump_size' and 'jump_freq' are used as follows:
+                                dS = drift * S * dt + diffusion * S * dW + S * dJ(jump_size, jump_freq)
         """
 
-        assert process_type in self.supported_process_type, "Process not yet implemented"
+        assert process_type in self.supported_process_type, f"Process {process_type} not yet implemented"
 
         self.n = n  # Number of subintervals of the simulation
         self.T = T  # Time in years
@@ -158,6 +165,18 @@ class Diffusion(object):
             self.ci_lower = self.theoretical_mean - self.theoretical_std * norm.ppf((1 + conf) / 2)
             self.ci_upper = self.theoretical_mean + self.theoretical_std * norm.ppf((1 + conf) / 2)
 
+        elif process_type == 'jump':
+            self.simulated_trajectories = self._get_jump_gbm(drift, diffusion, jump_size, jump_freq)
+
+            # TODO I do not know if the theoretical moments of the Jump GBM can be computed.
+            self.theoretical_mean = None
+            self.theoretical_std = None
+            self.ci_lower = None
+            self.ci_upper = None
+
+        else:
+            raise NotImplementedError("Process not yet implemented")
+
     def _get_brownian_motion(self, random_seed):
         """
         This simulates a brownian motion using a normal distribution, where
@@ -197,7 +216,7 @@ class Diffusion(object):
         cond = (drift is not None) and (diffusion is not None)
         assert cond, "'drift' and 'diffusion' must not be None in a geometric brownian motion"
 
-        gbm = (drift - (diffusion**2)/2) * self.time_array  # exponent
+        gbm = (drift - (diffusion ** 2) / 2) * self.time_array  # exponent
         gbm = np.reshape(gbm, (self.n + 1, 1))  # Reshape array for broadcasting
         gbm = gbm + diffusion * self.brownian_motion.values
         gbm = self.initial_price * np.exp(gbm)
@@ -229,6 +248,30 @@ class Diffusion(object):
                           columns=column_array)
 
         return ou
+
+    def _get_jump_gbm(self, drift, diffusion, jump_size, jump_freq):
+        cond = (drift is not None) and (diffusion is not None) and (jump_size is not None) and (jump_freq is not None)
+        msg = "'drift', 'diffusion' and 'extra_param' must not be None in a geometric brownian motion with jumps. " \
+              "Please check documentation."
+        assert cond, msg
+
+        # generate the Geometric brownian motion
+        gbm = self._get_geometric_brownian_motion(drift, diffusion)
+
+        # simulate the jumps
+        lamb = jump_freq * self.delta_t
+        jumps = np.random.poisson(lam=lamb, size=(self.n + 1, self.k))
+        jumps = (1 + jump_size) ** jumps
+        jumps = jumps.cumprod(axis=0)
+
+        jump_gbm = gbm.values * jumps
+
+        column_array = ['Jump ' + str(i + 1) for i in range(self.k)]
+        jump_gbm = pd.DataFrame(data=jump_gbm,
+                                index=list(self.time_array),
+                                columns=column_array)
+
+        return jump_gbm
 
 
 class MultivariateGBM(object):
