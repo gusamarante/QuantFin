@@ -40,7 +40,7 @@ class Diffusion(object):
     supported_process_type = ['bm', 'rwwd', 'gbm', 'ou', 'jump']
 
     def __init__(self, T=1, n=100, k=1, initial_price=0, process_type='bm', drift=None, diffusion=None, mean=None,
-                 random_seed=None, conf=0.95, jump_size=None, jump_freq=None):
+                 random_seed=None, conf=0.95, jump_mean=None, jump_std=None, jump_freq=None):
         """
         Simulates diffusion processes.
         :param T: Number of years to simulate
@@ -53,7 +53,8 @@ class Diffusion(object):
         :param mean: Coeficient. Use varies depending on the 'process_type'.
         :param random_seed: random seed for the numpy RNG.
         :param conf: confidence for the confidence intervals.
-        :param jump_size: Jump size parameter (only for 'jump' process)
+        :param jump_mean: Jump mean parameter (only for 'jump' process)
+        :param jump_std: Jump std parameter (only for 'jump' process)
         :param jump_freq: Average number of jumps per year (only for 'jump' process)
         :param process_type: Type of diffusion process to simulate.
 
@@ -138,7 +139,7 @@ class Diffusion(object):
                                              index=self.time_array,
                                              data=np.sqrt(variance))
 
-            lower_ci = [lognorm.ppf((1-conf)/2, diffusion * srdt,
+            lower_ci = [lognorm.ppf((1 - conf) / 2, diffusion * srdt,
                                     loc=(drift - 0.5 * diffusion ** 2) * srdt ** 2,
                                     scale=media)
                         for srdt, media in zip(np.sqrt(self.time_array), self.theoretical_mean)]
@@ -166,10 +167,16 @@ class Diffusion(object):
             self.ci_upper = self.theoretical_mean + self.theoretical_std * norm.ppf((1 + conf) / 2)
 
         elif process_type == 'jump':
-            self.simulated_trajectories = self._get_jump_gbm(drift, diffusion, jump_size, jump_freq)
+            self.simulated_trajectories = self._get_jump_gbm(drift, diffusion, jump_mean, jump_std, jump_freq)
+
+            media = self.initial_price * np.exp(self.time_array * (drift + jump_freq *
+                                                                   (np.exp(jump_mean + 0.5 * jump_std ** 2) - 1)))
+
+            self.theoretical_mean = pd.Series(name='Theoretical Mean',
+                                              index=self.time_array,
+                                              data=media)
 
             # TODO I do not know if the theoretical moments of the Jump GBM can be computed.
-            self.theoretical_mean = None
             self.theoretical_std = None
             self.ci_lower = None
             self.ci_upper = None
@@ -249,10 +256,11 @@ class Diffusion(object):
 
         return ou
 
-    def _get_jump_gbm(self, drift, diffusion, jump_size, jump_freq):
-        cond = (drift is not None) and (diffusion is not None) and (jump_size is not None) and (jump_freq is not None)
-        msg = "'drift', 'diffusion' and 'extra_param' must not be None in a geometric brownian motion with jumps. " \
-              "Please check documentation."
+    def _get_jump_gbm(self, drift, diffusion, jump_mean, jump_std, jump_freq):
+        cond = (drift is not None) and (diffusion is not None) and \
+               (jump_mean is not None) and (jump_freq is not None) and (jump_std is not None)
+        msg = "'drift', 'diffusion' and all of the jump parameters must not be None in a " \
+              "geometric brownian motion with jumps. Please check documentation."
         assert cond, msg
 
         # generate the Geometric brownian motion
@@ -260,10 +268,11 @@ class Diffusion(object):
 
         # simulate the jumps
         lamb = jump_freq * self.delta_t
-        jumps = np.random.poisson(lam=lamb, size=(self.n + 1, self.k))
-        jumps = (1 + jump_size) ** jumps
+        jumps = np.random.poisson(lam=lamb, size=(self.n + 1, self.k))  # Chooses the dates of jumps
+        jump_sizes = np.random.normal(jump_mean, jump_std, (self.n + 1, self.k))  # Chooses the sizes of jumps
+        lnV = jump_sizes * jumps
+        jumps = np.exp(lnV)  # Power needed in case of more than one jump in the same period
         jumps = jumps.cumprod(axis=0)
-
         jump_gbm = gbm.values * jumps
 
         column_array = ['Jump ' + str(i + 1) for i in range(self.k)]
