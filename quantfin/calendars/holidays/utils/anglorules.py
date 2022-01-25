@@ -1,5 +1,5 @@
 from pandas.tseries.holiday import Holiday, next_monday_or_tuesday, \
-    sunday_to_monday, MO
+    sunday_to_monday, MO, nearest_workday
 from pandas.tseries.offsets import DateOffset
 
 
@@ -25,3 +25,13 @@ Christmas = Holiday('Christmas', month=12, day=25, observance=sunday_to_monday)
 
 BoxingDay = Holiday('BoxingDay', month=12, day=26,
                     observance=next_monday_or_tuesday)
+
+# Observance adjustments for Lote's calendar
+USIndependenceDayNearest = Holiday('US Independence Day', month=7, day=4,
+                                   observance=nearest_workday)
+
+ChristmasNearest = Holiday('Christmas', month=12, day=25,
+                           observance=nearest_workday)
+
+USVeteransDayNearest = Holiday('US Veteran´s Day', month=11, day=11,
+                               observance=nearest_workday)

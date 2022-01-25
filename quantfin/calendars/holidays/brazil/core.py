@@ -1359,7 +1359,7 @@ class BRCalendars(object):
                   date(2020, 4, 21),
                   date(2020, 5, 1),
                   date(2020, 6, 11),
-                  date(2020, 7, 9),
+                  # date(2020, 7, 9),  Covid-19
                   date(2020, 9, 7),
                   date(2020, 10, 12),
                   date(2020, 11, 2),

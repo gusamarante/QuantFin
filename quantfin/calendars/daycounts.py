@@ -54,8 +54,8 @@ class DayCounts(object):
                 - 'preceding' denotes previous valid date
                 - 'modifiedfollowing' ('modifiedpreceding') is the next
                 (previous) valid date unless it is across a month boundary,
-                in which case it takes the first valid date earlier (later)
-                in time
+                in which case it takes the first valid date earlier (later) in
+                time
 
         calendar : None, str
             If specified, it must be the name of a calendar supported by the
@@ -81,19 +81,7 @@ class DayCounts(object):
 
         Notes
         -----
-            (1) THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR
-            IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-            WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-            PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR
-            CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-            SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-            BUT NOT LIMITED TO,  PROCUREMENT OF SUBSTITUTE GOODS OR
-            SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-            INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-            WHETHER IN CONTRACT, STRICT  LIABILITY, OR TORT (INCLUDING
-            NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-            THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-            (2) Builds on numpy.datetime64 and pandas.Timestamp. As a rule,
+            (1) Builds on numpy.datetime64 and pandas.Timestamp. As a rule,
             inputs of methods are any type/value that can be properly parsed
             by pandas.to_datetime() without optional inputs. Several methods
             from these packaged are used.
@@ -511,7 +499,6 @@ class DayCounts(object):
         NOTE: This is not a truly vectorized function, but it mimics the
         interface of one.
         """
-        assert d1 is not None and d2 is not None, 'Inputs may not be None'
         d1 = self.adjust(d1)
         d2 = self.adjust(d2)
         if isinstance(d1, Timestamp) and isinstance(d2, Timestamp):
@@ -555,7 +542,6 @@ class DayCounts(object):
         NOTE: This is not a truly vectorized function, but it mimics the
         interface of one.
         """
-        assert d1 is not None and d2 is not None, 'Inputs may not be None'
         d1 = self.adjust(d1)
         d2 = self.adjust(d2)
         if isinstance(d1, Timestamp) and isinstance(d2, Timestamp):
@@ -575,7 +561,6 @@ class DayCounts(object):
 
     def dy(self, d):
         """Days in year given by date(s) d"""
-        assert d is not None, 'User may not pass None to DY function'
         d = self.adjust(d)
         leap = self.isleap(d)
         if isinstance(d, Timestamp):
@@ -585,13 +570,12 @@ class DayCounts(object):
 
     def isleap(self, d):
         """Determine if year for input date(s) is leap (True) or not (False)"""
-        assert d is not None, 'User may not pass None to ISLEAP function'
         if isinstance(d, int) or isinstance(d, ndarray):
             year = d
+            return (year % 4 == 0) & ((year % 100 != 0) | (year % 400 == 0))
         else:
             d = self.adjust(d)
-            year = d.year
-        return (year % 4 == 0) & ((year % 100 != 0) | (year % 400 == 0))
+            return d.is_leap_year
 
     # Add methods respecting the interface of BWDate class for compatibility
     def isbus(self, d):
