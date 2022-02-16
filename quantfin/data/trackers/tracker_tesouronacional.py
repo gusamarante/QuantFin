@@ -1,7 +1,6 @@
 """
-THIS ROUTINE IS NO LONGER USED, SINCE ITS DATA SOURCE WAS DISCCONTINUED
+This routine computes the total return indexes for the brazilian federal bonds
 """
-# TODO Clear this routine from the project
 
 import numpy as np
 import pandas as pd
@@ -11,32 +10,45 @@ import matplotlib.pyplot as plt
 from quantfin.calendars import DayCounts
 from quantfin.data import grab_connection, tracker_uploader
 
+start_date = '2005-01-01'
+
 query = 'select * from raw_tesouro_nacional'
 conn = grab_connection()
 df_raw = pd.read_sql(query, con=conn)
+df_raw['maturity_date'] = pd.to_datetime(df_raw['maturity_date'], dayfirst=True)
+df_raw['reference_date'] = pd.to_datetime(df_raw['reference_date'], dayfirst=True)
+
+df_raw = df_raw[df_raw['reference_date'] >= start_date]
 
 all_trackers = pd.DataFrame()
 
 # ===============
 # ===== LFT =====
 # ===============
-df = df_raw[df_raw['bond_type'] == 'LFT']
-df_buy = df.pivot('reference_date', 'maturity', 'preco_compra').dropna(how='all')
-df_sell = df.pivot('reference_date', 'maturity', 'preco_venda').dropna(how='all')
+# TODO - This need a full review. Tracker is coming out too small.
 
-# ----- curto -----
+df = df_raw[df_raw['name'] == 'LFT']
+df_buy = df.pivot_table(index='reference_date', columns='maturity_date', values='max_price').dropna(how='all')
+df_sell = df.pivot_table(index='reference_date', columns='maturity_date', values='min_price').dropna(how='all')
+
+df_volume = df.pivot_table(index='reference_date', columns='maturity_date', values='volume').dropna(how='all')
+df_volume = df_volume.rolling(10).mean().shift(1).dropna(how='all')
+
+# ----- most liquid -----
 df_tracker = pd.DataFrame(columns=['Current', 'Ammount', 'Price', 'Notional'])
-df_tracker.loc[df_buy.index[0], 'Current'] = df_buy.iloc[0].dropna().index.min()
-df_tracker.loc[df_buy.index[0], 'Ammount'] = 1
-df_tracker.loc[df_buy.index[0], 'Price'] = df_buy.iloc[0][df_buy.iloc[0].dropna().index.min()]
-df_tracker.loc[df_buy.index[0], 'Notional'] = df_tracker.loc[df_buy.index[0], 'Price'] * df_tracker.loc[
-    df_buy.index[0], 'Ammount']
 
-date_loop = zip(df_buy.index[1:], df_buy.index[:-1])
+current = df_volume.iloc[0].idxmax()
+start_date = df_volume.index[0]
+df_tracker.loc[start_date, 'Current'] = current
+df_tracker.loc[start_date, 'Ammount'] = 1
+df_tracker.loc[start_date, 'Price'] = df_sell.loc[start_date, current]
+df_tracker.loc[start_date, 'Notional'] = df_tracker.loc[start_date, 'Price'] * df_tracker.loc[start_date, 'Ammount']
 
-for date, datem1 in tqdm(date_loop, 'LFT - Curta'):
+date_loop = zip(df_volume.index[1:], df_volume.index[:-1])
 
-    current = df_buy.loc[date].dropna().index.min()
+for date, datem1 in tqdm(date_loop, 'LFT - Mais Líquida'):
+
+    current = df_volume.loc[date].idxmax()
     if current == df_tracker.loc[datem1, 'Current']:
         df_tracker.loc[date, 'Current'] = df_tracker.loc[datem1, 'Current']
         df_tracker.loc[date, 'Ammount'] = df_tracker.loc[datem1, 'Ammount']
@@ -45,39 +57,12 @@ for date, datem1 in tqdm(date_loop, 'LFT - Curta'):
 
     else:
         df_tracker.loc[date, 'Current'] = current
-        df_tracker.loc[date, 'Ammount'] = df_tracker.loc[datem1, 'Notional'] / df_buy.loc[date, current]
-        df_tracker.loc[date, 'Price'] = df_buy.loc[date, current]
+        df_tracker.loc[date, 'Ammount'] = (df_tracker.loc[datem1, 'Ammount'] * df_sell.loc[date, current]) / df_buy.loc[
+            date, current]
+        df_tracker.loc[date, 'Price'] = df_sell.loc[date, current]
         df_tracker.loc[date, 'Notional'] = df_tracker.loc[date, 'Price'] * df_tracker.loc[date, 'Ammount']
 
 aux = (100 * df_tracker['Notional'] / df_tracker['Notional'].iloc[0]).rename('LFT Curta')
-all_trackers = pd.concat([all_trackers, aux], axis=1)
-
-# ----- longo -----
-df_tracker = pd.DataFrame(columns=['Current', 'Ammount', 'Price', 'Notional'])
-df_tracker.loc[df_buy.index[0], 'Current'] = df_buy.iloc[0].dropna().index.max()
-df_tracker.loc[df_buy.index[0], 'Ammount'] = 1
-df_tracker.loc[df_buy.index[0], 'Price'] = df_buy.iloc[0][df_buy.iloc[0].dropna().index.max()]
-df_tracker.loc[df_buy.index[0], 'Notional'] = df_tracker.loc[df_buy.index[0], 'Price'] * df_tracker.loc[
-    df_buy.index[0], 'Ammount']
-
-date_loop = zip(df_buy.index[1:], df_buy.index[:-1])
-
-for date, datem1 in tqdm(date_loop, 'LFT - Longa'):
-
-    current = df_buy.loc[date].dropna().index.max()
-    if current == df_tracker.loc[datem1, 'Current']:
-        df_tracker.loc[date, 'Current'] = df_tracker.loc[datem1, 'Current']
-        df_tracker.loc[date, 'Ammount'] = df_tracker.loc[datem1, 'Ammount']
-        df_tracker.loc[date, 'Price'] = df_sell.loc[date, current]
-        df_tracker.loc[date, 'Notional'] = df_tracker.loc[date, 'Price'] * df_tracker.loc[date, 'Ammount']
-
-    else:
-        df_tracker.loc[date, 'Current'] = current
-        df_tracker.loc[date, 'Ammount'] = df_tracker.loc[datem1, 'Notional'] / df_buy.loc[date, current]
-        df_tracker.loc[date, 'Price'] = df_buy.loc[date, current]
-        df_tracker.loc[date, 'Notional'] = df_tracker.loc[date, 'Price'] * df_tracker.loc[date, 'Ammount']
-
-aux = (100 * df_tracker['Notional'] / df_tracker['Notional'].iloc[0]).rename('LFT Longa')
 all_trackers = pd.concat([all_trackers, aux], axis=1)
 
 
@@ -105,9 +90,10 @@ def get_coupon_dates(reference_date, maturity):
 df_vna = pd.read_excel('/Users/gustavoamarante/Dropbox/Personal Portfolio/VNA NTNB.xlsx', index_col=0)
 dc = DayCounts('bus/252', calendar='anbima')
 df = df_raw[df_raw['bond_type'] == 'NTNB']
-df_buy = df.pivot_table(index='reference_date', columns='maturity', values='preco_compra', aggfunc='mean').dropna(how='all')
-df_sell = df.pivot_table(index='reference_date', columns='maturity', values='preco_venda', aggfunc='mean').dropna(how='all')
-
+df_buy = df.pivot_table(index='reference_date', columns='maturity', values='preco_compra', aggfunc='mean').dropna(
+    how='all')
+df_sell = df.pivot_table(index='reference_date', columns='maturity', values='preco_venda', aggfunc='mean').dropna(
+    how='all')
 
 # ----- curta -----
 df_tracker = pd.DataFrame(columns=['Current', 'Coupon', 'Ammount', 'Price', 'Notional'])
@@ -139,12 +125,15 @@ for date, datem1 in tqdm(date_loop, 'NTNB - Curta'):
     # Chooses the new bond to invest
     if (pd.to_datetime(date) >= roll_date) or (days2end <= 5):
         new_current = sorted(df_buy.loc[date].dropna().index)[1]
-        df_tracker.loc[date, 'Ammount'] = (df_tracker.loc[datem1, 'Ammount'] * (df_sell.loc[date, current] + df_tracker.loc[date, 'Coupon'])/df_buy.loc[date, new_current])
+        df_tracker.loc[date, 'Ammount'] = (
+                    df_tracker.loc[datem1, 'Ammount'] * (df_sell.loc[date, current] + df_tracker.loc[date, 'Coupon']) /
+                    df_buy.loc[date, new_current])
         current = new_current
         roll_date = dc.following(pd.to_datetime(current) - pd.DateOffset(5))
         coupon_dates = get_coupon_dates(date, current)
     else:
-        df_tracker.loc[date, 'Ammount'] = df_tracker.loc[datem1, 'Ammount'] * (1 + df_tracker.loc[date, 'Coupon']/df_buy.loc[date, current])
+        df_tracker.loc[date, 'Ammount'] = df_tracker.loc[datem1, 'Ammount'] * (
+                    1 + df_tracker.loc[date, 'Coupon'] / df_buy.loc[date, current])
 
     df_tracker.loc[date, 'Current'] = current
     df_tracker.loc[date, 'Price'] = df_sell.loc[date, current]
@@ -152,7 +141,6 @@ for date, datem1 in tqdm(date_loop, 'NTNB - Curta'):
 
 aux = (100 * df_tracker['Notional'] / df_tracker['Notional'].iloc[0]).rename('NTNB Curta')
 all_trackers = pd.concat([all_trackers, aux], axis=1)
-
 
 # ----- longa -----
 df_tracker = pd.DataFrame(columns=['Current', 'Coupon', 'Ammount', 'Price', 'Notional'])
@@ -182,11 +170,13 @@ for date, datem1 in tqdm(date_loop, 'NTNB - Longa'):
     current = df_buy.loc[date].dropna().index.max()
     if current == df_tracker.loc[datem1, 'Current']:
         df_tracker.loc[date, 'Current'] = df_tracker.loc[datem1, 'Current']
-        df_tracker.loc[date, 'Ammount'] = df_tracker.loc[datem1, 'Ammount'] * (1 + df_tracker.loc[date, 'Coupon']/df_buy.loc[date, current])
+        df_tracker.loc[date, 'Ammount'] = df_tracker.loc[datem1, 'Ammount'] * (
+                    1 + df_tracker.loc[date, 'Coupon'] / df_buy.loc[date, current])
 
     else:
         df_tracker.loc[date, 'Current'] = current
-        df_tracker.loc[date, 'Ammount'] = df_tracker.loc[datem1, 'Ammount'] * ((df_sell.loc[date, current] + df_tracker.loc[date, 'Coupon']) / df_buy.loc[date, current])
+        df_tracker.loc[date, 'Ammount'] = df_tracker.loc[datem1, 'Ammount'] * (
+                    (df_sell.loc[date, current] + df_tracker.loc[date, 'Coupon']) / df_buy.loc[date, current])
 
     df_tracker.loc[date, 'Price'] = df_sell.loc[date, current]
     df_tracker.loc[date, 'Notional'] = df_tracker.loc[date, 'Price'] * df_tracker.loc[date, 'Ammount']
