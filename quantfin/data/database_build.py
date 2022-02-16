@@ -7,10 +7,6 @@ from quantfin.data import grab_connection
 conn = grab_connection()
 cursor = conn.cursor()
 
-# Create Table for Tesouro Direto
-query = open('queries/create_table_tesouro.sql').read()
-cursor.execute(query)
-
 # Create table for the trackers
 query = open('queries/create_table_trackers.sql').read()
 cursor.execute(query)
