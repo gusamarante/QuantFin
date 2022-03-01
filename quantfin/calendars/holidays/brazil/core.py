@@ -1381,7 +1381,7 @@ class BRCalendars(object):
                   date(2021, 11, 15),
                   date(2021, 12, 24),
                   date(2021, 12, 31),
-                  date(2022, 1, 25),
+                  # date(2022, 1, 25), B3 new trading calendar
                   date(2022, 2, 28),
                   date(2022, 3, 1),
                   date(2022, 4, 15),
@@ -1392,7 +1392,7 @@ class BRCalendars(object):
                   date(2022, 11, 2),
                   date(2022, 11, 15),
                   date(2022, 12, 30),
-                  date(2023, 1, 25),
+                  # date(2023, 1, 25), B3 new trading calendar
                   date(2023, 2, 20),
                   date(2023, 2, 21),
                   date(2023, 4, 7),
@@ -1403,17 +1403,17 @@ class BRCalendars(object):
                   date(2023, 10, 12),
                   date(2023, 11, 2),
                   date(2023, 11, 15),
-                  date(2023, 11, 20),
+                  # date(2023, 11, 20), B3 new trading calendar
                   date(2023, 12, 25),
                   date(2023, 12, 29),
                   date(2024, 1, 1),
-                  date(2024, 1, 25),
+                  # date(2024, 1, 25), B3 new trading calendar
                   date(2024, 2, 12),
                   date(2024, 2, 13),
                   date(2024, 3, 29),
                   date(2024, 5, 1),
                   date(2024, 5, 30),
-                  date(2024, 7, 9),
+                  # date(2024, 7, 9), B3 new trading calendar
                   date(2024, 11, 15),
                   date(2024, 11, 20),
                   date(2024, 12, 24),
@@ -1426,7 +1426,7 @@ class BRCalendars(object):
                   date(2025, 4, 21),
                   date(2025, 5, 1),
                   date(2025, 6, 19),
-                  date(2025, 7, 9),
+                  # date(2025, 7, 9), B3 new trading calendar
                   date(2025, 11, 20),
                   date(2025, 12, 24),
                   date(2025, 12, 25),
@@ -1438,7 +1438,7 @@ class BRCalendars(object):
                   date(2026, 4, 21),
                   date(2026, 5, 1),
                   date(2026, 6, 4),
-                  date(2026, 7, 9),
+                  # date(2026, 7, 9), B3 new trading calendar
                   date(2026, 9, 7),
                   date(2026, 10, 12),
                   date(2026, 11, 2),
@@ -1447,20 +1447,20 @@ class BRCalendars(object):
                   date(2026, 12, 25),
                   date(2026, 12, 31),
                   date(2027, 1, 1),
-                  date(2027, 1, 25),
+                  # date(2027, 1, 25), B3 new trading calendar
                   date(2027, 2, 8),
                   date(2027, 2, 9),
                   date(2027, 3, 26),
                   date(2027, 4, 21),
                   date(2027, 5, 27),
-                  date(2027, 7, 9),
+                  # date(2027, 7, 9), B3 new trading calendar
                   date(2027, 9, 7),
                   date(2027, 10, 12),
                   date(2027, 11, 2),
                   date(2027, 11, 15),
                   date(2027, 12, 24),
                   date(2027, 12, 31),
-                  date(2028, 1, 25),
+                  # date(2028, 1, 25), B3 new trading calendar
                   date(2028, 2, 28),
                   date(2028, 2, 29),
                   date(2028, 4, 14),
@@ -1471,35 +1471,35 @@ class BRCalendars(object):
                   date(2028, 10, 12),
                   date(2028, 11, 2),
                   date(2028, 11, 15),
-                  date(2028, 11, 20),
+                  # date(2028, 11, 20), B3 new trading calendar
                   date(2028, 12, 25),
                   date(2028, 12, 29),
                   date(2029, 1, 1),
-                  date(2029, 1, 25),
+                  # date(2029, 1, 25), B3 new trading calendar
                   date(2029, 2, 12),
                   date(2029, 2, 13),
                   date(2029, 3, 30),
                   date(2029, 5, 1),
                   date(2029, 5, 31),
-                  date(2029, 7, 9),
+                  # date(2029, 7, 9), B3 new trading calendar
                   date(2029, 9, 7),
                   date(2029, 10, 12),
                   date(2029, 11, 2),
                   date(2029, 11, 15),
-                  date(2029, 11, 20),
+                  # date(2029, 11, 20), B3 new trading calendar
                   date(2029, 12, 24),
                   date(2029, 12, 25),
                   date(2029, 12, 31),
                   date(2030, 1, 1),
-                  date(2030, 1, 25),
+                  # date(2030, 1, 25), B3 new trading calendar
                   date(2030, 3, 4),
                   date(2030, 3, 5),
                   date(2030, 4, 19),
                   date(2030, 5, 1),
                   date(2030, 6, 20),
-                  date(2030, 7, 9),
+                  # date(2030, 7, 9), B3 new trading calendar
                   date(2030, 11, 15),
-                  date(2030, 11, 20),
+                  # date(2030, 11, 20), B3 new trading calendar
                   date(2030, 12, 24),
                   date(2030, 12, 25),
                   date(2030, 12, 31),
@@ -1510,8 +1510,8 @@ class BRCalendars(object):
                   date(2031, 4, 21),
                   date(2031, 5, 1),
                   date(2031, 6, 12),
-                  date(2031, 7, 9),
-                  date(2031, 11, 20),
+                  # date(2031, 7, 9), B3 new trading calendar
+                  # date(2031, 11, 20), B3 new trading calendar
                   date(2031, 12, 24),
                   date(2031, 12, 25),
                   date(2031, 12, 31),
@@ -1521,14 +1521,14 @@ class BRCalendars(object):
                   date(2032, 3, 26),
                   date(2032, 4, 21),
                   date(2032, 5, 27),
-                  date(2032, 7, 9),
+                  # date(2032, 7, 9), B3 new trading calendar
                   date(2032, 9, 7),
                   date(2032, 10, 12),
                   date(2032, 11, 2),
                   date(2032, 11, 15),
                   date(2032, 12, 24),
                   date(2032, 12, 31),
-                  date(2033, 1, 25),
+                  # date(2033, 1, 25), B3 new trading calendar
                   date(2033, 2, 28),
                   date(2033, 3, 1),
                   date(2033, 4, 15),
@@ -1539,7 +1539,7 @@ class BRCalendars(object):
                   date(2033, 11, 2),
                   date(2033, 11, 15),
                   date(2033, 12, 30),
-                  date(2034, 1, 25),
+                  # date(2034, 1, 25), B3 new trading calendar
                   date(2034, 2, 20),
                   date(2034, 2, 21),
                   date(2034, 4, 7),
@@ -1550,35 +1550,35 @@ class BRCalendars(object):
                   date(2034, 10, 12),
                   date(2034, 11, 2),
                   date(2034, 11, 15),
-                  date(2034, 11, 20),
+                  # date(2034, 11, 20), B3 new trading calendar
                   date(2034, 12, 25),
                   date(2034, 12, 29),
                   date(2035, 1, 1),
-                  date(2035, 1, 25),
+                  # date(2035, 1, 25), B3 new trading calendar
                   date(2035, 2, 5),
                   date(2035, 2, 6),
                   date(2035, 3, 23),
                   date(2035, 5, 1),
                   date(2035, 5, 24),
-                  date(2035, 7, 9),
+                  # date(2035, 7, 9), B3 new trading calendar
                   date(2035, 9, 7),
                   date(2035, 10, 12),
                   date(2035, 11, 2),
                   date(2035, 11, 15),
-                  date(2035, 11, 20),
+                  # date(2035, 11, 20), B3 new trading calendar
                   date(2035, 12, 24),
                   date(2035, 12, 25),
                   date(2035, 12, 31),
                   date(2036, 1, 1),
-                  date(2036, 1, 25),
+                  # date(2036, 1, 25), B3 new trading calendar
                   date(2036, 2, 25),
                   date(2036, 2, 26),
                   date(2036, 4, 11),
                   date(2036, 4, 21),
                   date(2036, 5, 1),
                   date(2036, 6, 12),
-                  date(2036, 7, 9),
-                  date(2036, 11, 20),
+                  # date(2036, 7, 9), B3 new trading calendar
+                  # date(2036, 11, 20), B3 new trading calendar
                   date(2036, 12, 24),
                   date(2036, 12, 25),
                   date(2036, 12, 31)]
