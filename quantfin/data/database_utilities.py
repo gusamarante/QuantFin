@@ -1,11 +1,13 @@
 import sqlite3
+import getpass
 import pandas as pd
 
 
 def grab_connection():
     # TODO Documentation
     # TODO grab path to project
-    conn = sqlite3.connect('/Users/gustavoamarante/PycharmProjects/QuantFin/quantfin/data/database_finquant.db')
+    username = getpass.getuser()
+    conn = sqlite3.connect(f'/Users/{username}/PycharmProjects/QuantFin/quantfin/data/database_finquant.db')
     return conn
 
 
