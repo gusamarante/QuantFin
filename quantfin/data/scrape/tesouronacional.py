@@ -48,6 +48,7 @@ for date in tqdm(dates2scrape):
     df_aux = df_aux.rename(rename_dict, axis=1)
     df_aux['maturity_date'] = pd.to_datetime(df_aux['maturity_date'], dayfirst=True)
     df_aux['issuance_date'] = pd.to_datetime(df_aux['issuance_date'], dayfirst=True)
+    df_aux['reference_date'] = pd.to_datetime(df_aux['reference_date'], dayfirst=True)
     df_raw = pd.concat([df_raw, df_aux], axis=0)
 
 # Save to database

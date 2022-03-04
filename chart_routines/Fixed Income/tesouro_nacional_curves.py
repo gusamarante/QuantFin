@@ -20,18 +20,18 @@ conn = grab_connection()
 
 # ===== LTN =====
 # grab data
-query = 'SELECT * FROM raw_tesouro_direto WHERE bond_type=="Tesouro Prefixado"'
+query = "SELECT * FROM raw_tesouro_nacional WHERE name='LTN'"
 df_ltn = pd.read_sql(sql=query, con=conn)
 
 # Filter Last Date
 latest_date = df_ltn['reference_date'].max()
 df_ltn = df_ltn[df_ltn['reference_date'] == latest_date]
-df_ltn = df_ltn.sort_values(by='maturity')
+df_ltn = df_ltn.sort_values(by='maturity_date')
 
 # plot
 plt.figure(figsize=(size, size * ratio))
-plt.scatter(x=pd.to_datetime(df_ltn['maturity']),
-            y=df_ltn['taxa_compra'],
+plt.scatter(x=pd.to_datetime(df_ltn['maturity_date']),
+            y=df_ltn['mid_rate'],
             edgecolors=None,
             s=60,
             c='#3333ac')
@@ -41,6 +41,7 @@ plt.tick_params(axis='x', which='both', top=False, bottom=False, labelbottom=Tru
 
 plt.xlabel('Maturity', MyFont)
 plt.ylabel('Yield', MyFont)
+plt.xticks(rotation=45, ha='right', rotation_mode='anchor')
 
 plt.title(f"Curva LTN em {pd.to_datetime(latest_date).strftime('%d/%b/%y')}", **MyFont)
 
@@ -53,6 +54,3 @@ ax.xaxis.set_major_formatter(mdates.DateFormatter(date_format))
 plt.tight_layout()
 plt.savefig(save_path.joinpath('LTN example curve.pdf'))
 plt.show()
-
-
-a = 1
