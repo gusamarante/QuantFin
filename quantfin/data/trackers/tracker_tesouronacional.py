@@ -14,7 +14,7 @@ pd.options.display.max_columns = 50
 pd.options.display.width = 200
 
 
-start_date = '2004-01-01'
+start_date = '2006-01-01'
 dc = DayCounts(dc='bus/252', calendar='anbima')
 
 query = 'select * from raw_tesouro_nacional'
@@ -30,7 +30,6 @@ all_trackers = pd.DataFrame()
 # ===============
 # ===== LFT =====
 # ===============
-# TODO - This need a full review. Tracker is coming out too small.
 
 df = df_raw[df_raw['name'] == 'LFT']
 df_buy = df.pivot_table(index='reference_date', columns='maturity_date', values='max_price').dropna(how='all')
@@ -54,7 +53,7 @@ df_tracker.loc[start_date, 'Notional'] = df_tracker.loc[start_date, 'Price'] * d
 
 date_loop = zip(df_volume.index[1:], df_volume.index[:-1])
 
-for date, datem1 in tqdm(date_loop, 'LFT - Mais Líquida'):
+for date, datem1 in tqdm(date_loop, 'LFT - Mais Longa'):
 
     new_current = df_buy.loc[date].dropna().index.max()
 
@@ -79,53 +78,51 @@ for date, datem1 in tqdm(date_loop, 'LFT - Mais Líquida'):
         df_tracker.loc[date, 'Notional'] = df_tracker.loc[date, 'Price'] * df_tracker.loc[date, 'Ammount']
 
 
-aux = (100 * df_tracker['Notional'] / df_tracker['Notional'].iloc[0]).rename('LFT Curta')
-aux.plot()
-plt.show()
+aux = (100 * df_tracker['Notional'] / df_tracker['Notional'].iloc[0]).rename('LFT Longa')
 all_trackers = pd.concat([all_trackers, aux], axis=1)
-aux.to_clipboard()
 
-# # ----- most liquid -----
-# df_tracker = pd.DataFrame(columns=['Current', 'Ammount', 'Price', 'Notional'])
-#
-# current = df_volume.iloc[0].idxmax()
-# start_date = df_volume.index[0]
-# df_tracker.loc[start_date, 'Current'] = current
-# df_tracker.loc[start_date, 'Ammount'] = 1
-# df_tracker.loc[start_date, 'Price'] = df_sell.loc[start_date, current]
-# df_tracker.loc[start_date, 'Notional'] = df_tracker.loc[start_date, 'Price'] * df_tracker.loc[start_date, 'Ammount']
-#
-# date_loop = zip(df_volume.index[1:], df_volume.index[:-1])
-#
-# for date, datem1 in tqdm(date_loop, 'LFT - Mais Líquida'):
-#
-#     days2mat = dc.days(date, current)
-#
-#     if days2mat >= 1:  # Hold the position
-#         df_tracker.loc[date, 'Current'] = df_tracker.loc[datem1, 'Current']
-#         df_tracker.loc[date, 'Ammount'] = df_tracker.loc[datem1, 'Ammount']
-#         df_tracker.loc[date, 'Price'] = df_sell.loc[date, current]
-#         df_tracker.loc[date, 'Notional'] = df_tracker.loc[date, 'Price'] * df_tracker.loc[date, 'Ammount']
-#
-#     else:  # Roll the position
-#         new_maturity = df_volume.loc[date].idxmax()
-#         if new_maturity == current:
-#             current = df_volume.loc[date].dropna().sort_values().index[-2]
-#         else:
-#             current = new_maturity
-#
-#         df_tracker.loc[date, 'Current'] = current
-#         df_tracker.loc[date, 'Ammount'] = (df_tracker.loc[datem1, 'Ammount'] * df_sell.loc[date, current]) / df_buy.loc[
-#             date, current]
-#         df_tracker.loc[date, 'Price'] = df_sell.loc[date, current]
-#         df_tracker.loc[date, 'Notional'] = df_tracker.loc[date, 'Price'] * df_tracker.loc[date, 'Ammount']
-#
-# aux = (100 * df_tracker['Notional'] / df_tracker['Notional'].iloc[0]).rename('LFT Curta')
-# aux.plot()
-# plt.show()
-# all_trackers = pd.concat([all_trackers, aux], axis=1)
+# ----- most liquid -----
+df_tracker = pd.DataFrame(columns=['Current', 'Ammount', 'Price', 'Notional'])
 
+current = df_volume.iloc[0].idxmax()
+start_date = df_volume.index[0]
+df_tracker.loc[start_date, 'Current'] = current
+df_tracker.loc[start_date, 'Ammount'] = 1
+df_tracker.loc[start_date, 'Price'] = df_sell.loc[start_date, current]
+df_tracker.loc[start_date, 'Notional'] = df_tracker.loc[start_date, 'Price'] * df_tracker.loc[start_date, 'Ammount']
 
+date_loop = zip(df_volume.index[1:], df_volume.index[:-1])
+
+for date, datem1 in tqdm(date_loop, 'LFT - Mais Líquida'):
+
+    days2mat = dc.days(date, current)
+
+    if days2mat >= 1:  # Hold the position
+        df_tracker.loc[date, 'Current'] = df_tracker.loc[datem1, 'Current']
+        df_tracker.loc[date, 'Ammount'] = df_tracker.loc[datem1, 'Ammount']
+        df_tracker.loc[date, 'Price'] = df_sell.loc[date, current]
+        df_tracker.loc[date, 'Notional'] = df_tracker.loc[date, 'Price'] * df_tracker.loc[date, 'Ammount']
+
+    else:  # Roll the position
+        new_maturity = df_volume.loc[date].idxmax()
+        if new_maturity == current:
+            current = df_volume.loc[date].dropna().sort_values().index[-2]
+        else:
+            current = new_maturity
+
+        df_tracker.loc[date, 'Current'] = current
+        df_tracker.loc[date, 'Ammount'] = (df_tracker.loc[datem1, 'Ammount'] * df_sell.loc[date, current]) / df_buy.loc[
+            date, current]
+        df_tracker.loc[date, 'Price'] = df_sell.loc[date, current]
+        df_tracker.loc[date, 'Notional'] = df_tracker.loc[date, 'Price'] * df_tracker.loc[date, 'Ammount']
+
+    if np.abs(df_tracker.loc[date, 'Notional'] / df_tracker.loc[datem1, 'Notional'] - 1) >= 0.1:
+        df_tracker.loc[date, 'Ammount'] = df_tracker.loc[datem1, 'Ammount']
+        df_tracker.loc[date, 'Price'] = df_buy.loc[date, current]
+        df_tracker.loc[date, 'Notional'] = df_tracker.loc[date, 'Price'] * df_tracker.loc[date, 'Ammount']
+
+aux = (100 * df_tracker['Notional'] / df_tracker['Notional'].iloc[0]).rename('LFT Líquida')
+all_trackers = pd.concat([all_trackers, aux], axis=1)
 
 
 # =================
@@ -248,3 +245,8 @@ aux.to_clipboard()
 #
 # all_trackers.index = pd.to_datetime(list(all_trackers.index))
 # tracker_uploader(all_trackers)
+
+
+# Plot
+all_trackers.plot(legend='best')
+plt.show()
