@@ -49,6 +49,20 @@ def tracker_uploader(data, conn=None):
     # Put data in the "melted" format
     data = data.reset_index()
     data = data.melt('index')
+    data = data.dropna()
 
     # upload the new trackers
     data.to_sql('trackers', con=conn, index=False, if_exists='append')
+
+
+def tracker_feeder(conn=None):
+    # TODO Documentation
+    # If no connection is passed, grabs the default one
+    if conn is None:
+        conn = grab_connection()
+
+    query = 'SELECT * FROM trackers'
+    df = pd.read_sql(sql=query, con=conn)
+    df = df.pivot('index', 'variable', 'value')
+
+    return df
