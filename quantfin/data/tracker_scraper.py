@@ -11,6 +11,13 @@ df = pd.DataFrame()
 # ============================
 # ===== Tesouro Nacional =====
 # ============================
+# LFT Curta
+aux = pd.read_csv('/Users/gustavoamarante/Dropbox/Personal Portfolio/trackers/lft_curta.csv',
+                  index_col=0, sep=';')
+aux = aux['Notional'].rename('LFT Curta')
+aux.index = pd.to_datetime(aux.index)
+df = pd.concat([df, aux], axis=1)
+
 # LFT Longa
 aux = pd.read_csv('/Users/gustavoamarante/Dropbox/Personal Portfolio/trackers/lft_longa.csv',
                   index_col=0, sep=';')
