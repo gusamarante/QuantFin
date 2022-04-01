@@ -6,15 +6,15 @@ from sklearn.decomposition import PCA
 from scipy.stats import percentileofscore
 from pandas.tseries.offsets import BDay, Day
 
-pd.set_option('display.max_columns', 500)
-pd.set_option('display.width', 1000)
+pd.set_option('display.max_columns', 25)
+pd.set_option('display.width', 250)
 
 
 # User defined parameters
-window_size = 252 * 2  # TODO Hyper
+window_size = 252 * 3  # TODO Hyper
 min_sample = 21  # TODO Hyper
 start_date = '2007-01-01'
-exposition_pcadv01 = [0, 0, 1000]
+exposition_pcadv01 = [0, 0, 100]
 exposition_pca_number = 3
 holding_period = 30  # TODO Hyper
 entry_bound = 10  # Must be below 50 # TODO Hyper
@@ -32,6 +32,7 @@ df_curve.index = pd.to_datetime(df_curve.index)
 # Organize DV01
 df_dv01 = df_raw.pivot(index='reference_date', columns='du', values='dv01')
 df_dv01.index = pd.to_datetime(df_dv01.index)
+df_dv01 = - df_dv01
 
 # ===========================
 # ===== Full sample PCA =====
@@ -73,10 +74,10 @@ def get_portfolio(current_date, pcadv01, window):
 
     aux_pcadv01 = current_loadings.loc[available_maturities].multiply(df_dv01.loc[current_date, available_maturities],
                                                                       axis=0)
-    vertices_du = [aux_pcadv01.index[2], aux_pcadv01.idxmax()[3], aux_pcadv01.idxmin()[3]]
+    vertices_du = [aux_pcadv01.index[2], aux_pcadv01.idxmin()[3], aux_pcadv01.idxmax()[3]]
 
     if len(set(vertices_du)) != 3:
-        vertices_du = [aux_pcadv01.index[2], aux_pcadv01.idxmax()[3], aux_pcadv01.index[-1]]
+        vertices_du = [aux_pcadv01.index[2], aux_pcadv01.idxmin()[3], aux_pcadv01.index[-1]]
 
     selected_portfolio = pd.DataFrame(index=vertices_du)
     cond_date = df_raw['reference_date'] == current_date
@@ -102,7 +103,10 @@ df_backtest = pd.DataFrame()
 dates2loop = df_curve.index[df_curve.index >= start_date]
 df_backtest.loc[dates2loop[0], 'position'] = 0
 
-dates2loop = zip(dates2loop[1:], dates2loop[:-1])
+current_portfolios, current_signal = get_portfolio(dates2loop[0], exposition_pcadv01, window_size)
+df_backtest.loc[dates2loop[0], 'notional'] = (current_portfolios['quantities'] * current_portfolios['pu']).abs().sum()
+
+dates2loop = list(zip(dates2loop[1:], dates2loop[:-1]))
 for date, datem1 in tqdm(dates2loop, 'Backtesting'):
     # Signal and portfolio will be computed everyday
     current_portfolios, current_signal = get_portfolio(datem1, exposition_pcadv01, window_size)
@@ -110,6 +114,7 @@ for date, datem1 in tqdm(dates2loop, 'Backtesting'):
 
     if df_backtest.shape[0] < min_sample:  # Only compute signal until reach minimun
         df_backtest.loc[date, 'position'] = 0  # Neutral to the PC
+        df_backtest.loc[date, 'notional'] = df_backtest.loc[datem1, 'notional']
         continue
 
     # Rolling percentile of the signal
@@ -117,7 +122,7 @@ for date, datem1 in tqdm(dates2loop, 'Backtesting'):
                                                                    score=df_backtest.loc[date, 'signal'],
                                                                    kind='mean')
 
-    # Build Portfolios
+    # Build Position
     if (df_backtest.loc[datem1, 'position'] == 1) or (df_backtest.loc[datem1, 'position'] == -1):
         # If yesterday I had a position, check if the signal percentile is back at 50.
         signm1 = np.sign(df_backtest.loc[datem1, 'signal percentile'] - 50)
@@ -141,21 +146,28 @@ for date, datem1 in tqdm(dates2loop, 'Backtesting'):
             # stay out
             df_backtest.loc[date, 'position'] = 0
 
-
     # Today's PnL
-    # filter_contracts = df_raw['contract'].isin(current_portfolios['contracts'].values)
-    # filter_date = df_raw['reference_date'] == date
-    # pnl_contracts = df_raw[filter_date & filter_contracts].sort_values('du')['pnl'].values
-    # pnl_today = current_portfolios['quantities'].values.dot(pnl_contracts)
-    # df_backtest.loc[date, 'notional'] = df_backtest.loc[datem1, 'notional'] + pnl_today
-    #
+    if np.abs(df_backtest.loc[date, 'position']) == 1:  # If I am positioned
+        filter_contracts = df_raw['contract'].isin(current_portfolios['contracts'].values)
+        filter_date = df_raw['reference_date'] == date
+        pnl_contracts = df_raw[filter_date & filter_contracts].sort_values('du')['pnl'].values
+        pnl_today = (df_backtest.loc[date, 'position'] * current_portfolios['quantities']).values.dot(pnl_contracts)
+        df_backtest.loc[date, ['du 1', 'du 2', 'du 3']] = current_portfolios.index.sort_values()
+        df_backtest.loc[date, ['q 1', 'q 2', 'q 3']] = current_portfolios['quantities'].values
+    else:  # If I am not positioned
+        pnl_today = 0
+        df_backtest.loc[date, ['du 1', 'du 2', 'du 3']] = [0, 0, 0]
+        df_backtest.loc[date, ['q 1', 'q 2', 'q 3']] = [0, 0, 0]
+
+    df_backtest.loc[date, 'pnl'] = pnl_today
+    df_backtest.loc[date, 'notional'] = df_backtest.loc[datem1, 'notional'] + pnl_today
+    # TODO cost
+
+
     # # Today's Signal
     # next_roll_date = pd.to_datetime(dates2loop[0]) + pd.offsets.Day(holding_period)
     # # Roll
     # if pd.to_datetime(date) >= next_roll_date:
-    #     current_portfolios, current_signal = get_portfolio(datem1, exposition_pcadv01, window_size)
-    #     df_backtest.loc[date, 'signal'] = current_signal.iloc[exposition_pca_number - 1]
-    #     df_backtest.loc[date, ['du 1', 'du 2', 'du 3']] = current_portfolios.index.sort_values()
     #     next_roll_date = pd.to_datetime(date) + pd.offsets.Day(holding_period)
 
 # df_backtest['notional'] = 100 * df_backtest['notional'] / df_backtest['notional'].iloc[0]
