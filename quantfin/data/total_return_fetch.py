@@ -25,6 +25,20 @@ aux = aux['Notional'].rename('LFT Longa')
 aux.index = pd.to_datetime(aux.index)
 df = pd.concat([df, aux], axis=1)
 
+# LTN Curta
+aux = pd.read_csv('/Users/gustavoamarante/Dropbox/Personal Portfolio/trackers/ltn_curta.csv',
+                  index_col=0, sep=';')
+aux = aux['Notional'].rename('LTN Curta')
+aux.index = pd.to_datetime(aux.index)
+df = pd.concat([df, aux], axis=1)
+
+# LTN Longa
+aux = pd.read_csv('/Users/gustavoamarante/Dropbox/Personal Portfolio/trackers/ltn_longa.csv',
+                  index_col=0, sep=';')
+aux = aux['Notional'].rename('LTN Longa')
+aux.index = pd.to_datetime(aux.index)
+df = pd.concat([df, aux], axis=1)
+
 # NTN-B Curta
 aux = pd.read_csv('/Users/gustavoamarante/Dropbox/Personal Portfolio/trackers/ntnb_curta.csv',
                   index_col=0, sep=';')
@@ -36,6 +50,20 @@ df = pd.concat([df, aux], axis=1)
 aux = pd.read_csv('/Users/gustavoamarante/Dropbox/Personal Portfolio/trackers/ntnb_longa.csv',
                   index_col=0, sep=';')
 aux = aux['Notional'].rename('NTNB Longa')
+aux.index = pd.to_datetime(aux.index)
+df = pd.concat([df, aux], axis=1)
+
+# NTN-F Curta
+aux = pd.read_csv('/Users/gustavoamarante/Dropbox/Personal Portfolio/trackers/ntnf_curta.csv',
+                  index_col=0, sep=';')
+aux = aux['Notional'].rename('NTNF Curta')
+aux.index = pd.to_datetime(aux.index)
+df = pd.concat([df, aux], axis=1)
+
+# NTN-B Longa
+aux = pd.read_csv('/Users/gustavoamarante/Dropbox/Personal Portfolio/trackers/ntnf_longa.csv',
+                  index_col=0, sep=';')
+aux = aux['Notional'].rename('NTNF Longa')
 aux.index = pd.to_datetime(aux.index)
 df = pd.concat([df, aux], axis=1)
 
