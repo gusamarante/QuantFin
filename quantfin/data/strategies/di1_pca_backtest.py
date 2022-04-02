@@ -163,19 +163,4 @@ for date, datem1 in tqdm(dates2loop, 'Backtesting'):
     df_backtest.loc[date, 'notional'] = df_backtest.loc[datem1, 'notional'] + pnl_today
     # TODO cost
 
-
-    # # Today's Signal
-    # next_roll_date = pd.to_datetime(dates2loop[0]) + pd.offsets.Day(holding_period)
-    # # Roll
-    # if pd.to_datetime(date) >= next_roll_date:
-    #     next_roll_date = pd.to_datetime(date) + pd.offsets.Day(holding_period)
-
-# df_backtest['notional'] = 100 * df_backtest['notional'] / df_backtest['notional'].iloc[0]
-
-# ax1 = df_backtest['signal'].plot()
-# ax2 = ax1.twinx()
-# ax2.spines['right'].set_position(('axes', 1.0))
-# df_backtest['signal percentile'].plot(ax=ax2, color='orange')
-# plt.show()
-
 df_backtest.to_clipboard()
