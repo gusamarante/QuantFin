@@ -14,10 +14,10 @@ pd.set_option('display.width', 250)
 window_size = 252 * 3  # TODO Hyper
 min_sample = 21  # TODO Hyper
 start_date = '2007-01-01'
-exposition_pcadv01 = [0, 0, 100]
+exposition_pcadv01 = [0, 100, 0]
 exposition_pca_number = 3
 holding_period = 30  # TODO Hyper
-entry_bound = 10  # Must be below 50 # TODO Hyper
+entry_bound = 5  # Must be below 50 # TODO Hyper
 
 # get data
 df_raw = pd.read_csv(r'/Users/gustavoamarante/Dropbox/Aulas/Insper - Renda Fixa/2022/Dados DI1.csv', index_col=0)

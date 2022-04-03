@@ -8,7 +8,7 @@ from pandas.tseries.offsets import BDay
 # User defined parameters
 window_size = 252 * 2
 min_sample = 21
-start_date = '2020-01-01'
+start_date = '2007-01-01'
 exposition_pcadv01 = [0, 0, 1000]
 exposition_pca_number = 3
 holding_period = 30
