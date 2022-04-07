@@ -99,6 +99,15 @@ aux = aux['SPXI11']
 aux.index = pd.to_datetime(aux.index)
 df = pd.concat([df, aux], axis=1)
 
+
+# ======================
+# ===== Cota da XP =====
+# ======================
+aux = pd.read_excel('/Users/gustavoamarante/Dropbox/Personal Portfolio/trackers/XP.xlsx',
+                    index_col=0, sheet_name='day')
+aux = aux['tracker']
+df = pd.concat([df, aux], axis=1)
+
 # =============================
 # ===== Save the Trackers =====
 # =============================
