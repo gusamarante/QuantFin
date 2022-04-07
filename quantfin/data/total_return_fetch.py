@@ -105,7 +105,7 @@ df = pd.concat([df, aux], axis=1)
 # ======================
 aux = pd.read_excel('/Users/gustavoamarante/Dropbox/Personal Portfolio/trackers/XP.xlsx',
                     index_col=0, sheet_name='day')
-aux = aux['tracker']
+aux = aux['tracker'].rename('Cota XP')
 df = pd.concat([df, aux], axis=1)
 
 # =============================

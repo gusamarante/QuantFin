@@ -1,15 +1,6 @@
-"""
-Classes to evaluate portfolio performance
-- Performance Table
-    - Expected Shortfall (Historical)
-    - Value at Risk (Historical)
-- Charts
-    - Total Return Indexes
-    - Histogram with Stats
-    - Rolling Sharpe
-"""
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 
@@ -20,6 +11,10 @@ class Performance(object):
         Computes performance measures for each columns in 'total_return'
         :param total_return: pandas DataFrame with total return inndexes.
         """
+        # TODO Detailed documentation
+
+        assert isinstance(total_return, pd.DataFrame), \
+            "'total_return' must be a pandas DataFrame, even if there is only one column"
 
         self.total_return = total_return
         self.returns_ts = total_return.pct_change(1)
@@ -67,7 +62,7 @@ class Performance(object):
 
         df_drawdowns = pd.DataFrame()
 
-        for col in self.total_return.columns:
+        for col in tqdm(self.total_return.columns, 'Computing Drawdowns'):
             data = pd.DataFrame(index=self.total_return.index)
             data['tracker'] = self.total_return[col]
             data['expanding max'] = data['tracker'].expanding().max()
@@ -130,7 +125,7 @@ class Performance(object):
             aux = self.total_return[col].dropna()
             start, end = aux.iloc[0], aux.iloc[-1]
             n = len(aux) - 1
-            df_ret.loc[col] = (end / start) ** (252 / n) - 1  # TODO adjustment factor goes here
+            df_ret.loc[col] = (end / start) ** (252 / n) - 1
 
         return df_ret
 
@@ -139,7 +134,7 @@ class Performance(object):
         df_std = pd.Series(name='Annualized Standard Deviation')
         for col in self.total_return.columns:
             aux = self.returns_ts[col].dropna()
-            df_std.loc[col] = aux.std() * np.sqrt(252)  # TODO adjustment factor goes here
+            df_std.loc[col] = aux.std() * np.sqrt(252)
 
         return df_std
 
@@ -148,7 +143,7 @@ class Performance(object):
         df_sor = pd.Series(name='Sortino')
         for col in self.total_return.columns:
             aux = self.returns_ts[col][self.returns_ts[col] < 0].dropna()
-            df_sor.loc[col] = self.returns_ann[col] / (np.sqrt(252) * aux.std())  # TODO adjustment factor goes here
+            df_sor.loc[col] = self.returns_ann[col] / (np.sqrt(252) * aux.std())
 
         return df_sor
 
