@@ -30,5 +30,5 @@ def random_correlation(size, n_factors, random_seed=None):
     :return: numpy.array. correlation matrix
     """
     cov = random_covariance(size, n_factors, random_seed)
-    corr = cov2corr(cov)
+    corr, _ = cov2corr(cov)
     return corr
