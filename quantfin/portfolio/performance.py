@@ -2,69 +2,140 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
 
 class Performance(object):
 
-    def __init__(self, total_return):
+    def __init__(self, total_return, rolling_window=252):
         """
         Computes performance measures for each columns in 'total_return'
         :param total_return: pandas DataFrame with total return inndexes.
+        :param rolling_window: int. number of business day for the rolling measures
         """
-        # TODO Detailed documentation
 
         assert isinstance(total_return, pd.DataFrame), \
             "'total_return' must be a pandas DataFrame, even if there is only one column"
 
         self.total_return = total_return
+        self.rolling_window = rolling_window
         self.returns_ts = total_return.pct_change(1)
         self.returns_ann = self._get_ann_returns()
         self.std = self._get_ann_std()
         self.sharpe = self.returns_ann / self.std
         self.skewness = self.returns_ts.skew()
-        self.kurtosis = self.returns_ts.kurtosis()  # Excess Kurtosis (k=0 is normal)
+        self.kurtosis = self.returns_ts.kurt()  # Excess Kurtosis (k=0 is normal)
         self.sortino = self._get_sortino()
         self.drawdowns = self._get_drawdowns()
         self.max_dd = self.drawdowns.groupby(level=0).min()['dd']
         self.table = self._get_perf_table()
+        self.rolling_return = self.total_return.pct_change(rolling_window)
+        self.rolling_std = self.returns_ts.rolling(rolling_window).std() * np.sqrt(rolling_window)
+        self.rolling_sharpe = self.rolling_return / self.rolling_std
+        self.rolling_skewness = self.returns_ts.rolling(rolling_window).skew()
+        self.rolling_kurtosis = self.returns_ts.rolling(rolling_window).kurt()
 
-    def plot_drawdowns(self, name, n=5):
-        # TODO Make it neater
-
-        plt.figure()
-        plt.plot(self.total_return[name], zorder=-1, color='blue')
+    def plot_drawdowns(self, name, n=5, show_chart=False, save_path=None):
+        # TODO Documentation
+        tri = self.total_return[name].interpolate(limit_area='inside')
+        fig = plt.figure(figsize=(7, 5))
+        ax = fig.gca()
+        plt.plot(tri, color='#0000CD', linewidth=1)
+        plt.title(f'{name} - {n} Biggest Drawdowns')
 
         for dd in range(n):
-            start = self.drawdowns.loc[name].loc[dd, 'last start']
+            start = self.drawdowns.loc[name].loc[dd, 'start']
             end = self.drawdowns.loc[name].loc[dd, 'end']
-            plt.plot(self.total_return[name].loc[start: end], color='red')
+            plt.plot(tri.loc[start: end], color='#E00000')
 
-        plt.show()
+        plt.tick_params(axis='y', which='both', right=False, left=False, labelleft=True)
+        plt.tick_params(axis='x', which='both', top=False, bottom=False, labelbottom=True)
 
-    def plot_underwater(self, name=None):
-        # TODO Make it neater
+        plt.xticks(rotation=90)
+        locators = mdates.YearLocator()
+        ax.xaxis.set_major_locator(locators)
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 
-        tr = self.total_return
+        ax.yaxis.grid(color='grey', linestyle='-', linewidth=0.5, alpha=0.5)
+        ax.xaxis.grid(color='grey', linestyle='-', linewidth=0.5, alpha=0.5)
+
+        plt.tight_layout()
+
+        if save_path is not None:
+            plt.savefig(save_path)
+
+        if show_chart:
+            plt.show()
+
+        plt.close()
+
+    def plot_underwater(self, name, show_chart=False, save_path=None):
+        # TODO Documentation
+
+        tr = self.total_return[name].dropna()
         exp_max = tr.expanding().max()
-        uw = tr/exp_max-1
+        uw = tr / exp_max - 1
 
-        if name is not None:
-            uw = uw[name]
+        fig = plt.figure(figsize=(7, 5))
+        ax = fig.gca()
+        ax.plot(uw, color='#0000CD', linewidth=1)
+        ax.axhline(0, color='black', linewidth=1)
 
-        plt.figure()
-        plt.plot(uw)
-        plt.legend()
-        plt.show()
+        # Plot percentiles
+        props = dict(boxstyle='round', facecolor='white', alpha=1)
+
+        q10 = self.drawdowns.loc[name, 'dd'].quantile(0.10)
+        ax.axhline(q10, color='#E00000', linewidth=1)
+        ax.text(uw.index[0], q10, '10% Percentile', color='#E00000', size=7,
+                bbox=props, verticalalignment='top', horizontalalignment='left')
+
+        q5 = self.drawdowns.loc[name, 'dd'].quantile(0.05)
+        ax.axhline(q5, color='#E00000', linewidth=1)
+        ax.text(uw.index[0], q5, '5% Percentile', color='#E00000', size=7,
+                bbox=props, verticalalignment='top', horizontalalignment='left')
+
+        q1 = self.drawdowns.loc[name, 'dd'].quantile(0.01)
+        ax.axhline(q1, color='#E00000', linewidth=1)
+        ax.text(uw.index[0], q1, '1% Percentile', color='#E00000', size=7,
+                bbox=props, verticalalignment='top', horizontalalignment='left')
+
+        plt.title(f'{name} - Underwater Chart')
+
+        plt.tick_params(axis='y', which='both', right=False, left=False, labelleft=True)
+        plt.tick_params(axis='x', which='both', top=False, bottom=False, labelbottom=True)
+
+        plt.xticks(rotation=90)
+        locators = mdates.YearLocator()
+        ax.xaxis.set_major_locator(locators)
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+
+        ax.yaxis.grid(color='grey', linestyle='-', linewidth=0.5, alpha=0.5)
+        ax.xaxis.grid(color='grey', linestyle='-', linewidth=0.5, alpha=0.5)
+
+        plt.tight_layout()
+
+        if save_path is not None:
+            plt.savefig(save_path)
+
+        if show_chart:
+            plt.show()
+
+        plt.close()
 
     def _get_drawdowns(self):
-        # TODO Documentaion and explanations
-        # TODO BUG: If the latest value is a drawdown, it does not get into the list
+        """
+        Finds all of the drawdowns, from peak to bottom, and its dates. At the
+        margin, even if drawdown is not recovered, it treats the local bottom as
+        the bottom of the last drawdon.
+        :return: pandas.DataFrame with a MultiIndex. The first level is the asset,
+                 and the second are the ranked drawdowns.
+        """
 
         df_drawdowns = pd.DataFrame()
 
         for col in tqdm(self.total_return.columns, 'Computing Drawdowns'):
-            data = pd.DataFrame(index=self.total_return.index)
-            data['tracker'] = self.total_return[col]
+            data = pd.DataFrame(index=self.total_return[col].dropna().index)
+            data['tracker'] = self.total_return[col].dropna()
             data['expanding max'] = data['tracker'].expanding().max()
             data['dd'] = data['tracker'] / data['expanding max'] - 1
             data['iszero'] = data['dd'] == 0
@@ -99,6 +170,7 @@ class Performance(object):
             data['dd duration'] = (data['end'] - data['last start']).dt.days
             data['dd duration shift'] = data['dd duration'].shift(-1)
             data['isnegative'] = data['dd duration shift'] < 0
+            data.iloc[-1, -1] = True
 
             data = data.reset_index()
 
@@ -112,7 +184,9 @@ class Performance(object):
 
             df_add = pd.DataFrame(index=pd.MultiIndex.from_product([[col], data.index]),
                                   data=data.values,
-                                  columns=['dd', 'last start', 'end'])
+                                  columns=['dd', 'start', 'end'])
+
+            df_add['duration'] = (df_add['end'] - df_add['start']).dt.days
 
             df_drawdowns = df_drawdowns.append(df_add)
 
