@@ -1,18 +1,24 @@
-from quantfin.portfolio import Performance
-from quantfin.data import tracker_feeder
+from quantfin.data import tracker_feeder, SGS
+from quantfin.finmath import compute_eri
 import matplotlib.pyplot as plt
 import pandas as pd
 
+# Visualization options
 pd.options.display.max_columns = 50
 pd.options.display.width = 250
 
+# Grab total return indexes
 df = tracker_feeder()
 df = df[df.index >= '2010-01-01']
 
-perf = Performance(df)
+# Grab funding series
+sgs = SGS()
+df_cdi = sgs.fetch({12: 'CDI'})
+df_cdi = df_cdi / 100
 
-for var in perf.table.index:
-    aux = perf.table.loc[var].sort_values()
-    aux.plot(kind='bar', title=var)
-    plt.tight_layout()
-    plt.show()
+# Compute ERIs
+df_eri = compute_eri(total_return_index=df, funding_return=df_cdi['CDI'])
+
+# Plot
+df_eri.plot()
+plt.show()
