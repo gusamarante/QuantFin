@@ -1,3 +1,4 @@
+from quantfin.statistics import empirical_correlation
 from quantfin.data import tracker_feeder, SGS
 from quantfin.finmath import compute_eri
 import matplotlib.pyplot as plt
@@ -19,6 +20,8 @@ df_cdi = df_cdi / 100
 # Compute ERIs
 df_eri = compute_eri(total_return_index=df, funding_return=df_cdi['CDI'])
 
+# Corr mat
+df_corr = empirical_correlation(df_eri.pct_change(1, fill_method=None))
+
 # Plot
-df_eri.plot()
-plt.show()
+print(df_corr)

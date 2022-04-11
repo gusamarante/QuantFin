@@ -32,3 +32,14 @@ def corr2cov(corr, std):
 
     cov = np.diag(std) @ corr @ np.diag(std)
     return cov
+
+
+def empirical_correlation(df):
+    """
+    This functions just excludes the observations that are not available before computing the correlation matrix.
+    This makes sures that the resulting matrix is positive definite.
+    :param df: pandas.DataFrame with the series that are going to be in the correlation matrix.
+    :return: pandas.DataFrame with the correlation matrix.
+    """
+    corr = df.dropna().corr()
+    return corr
