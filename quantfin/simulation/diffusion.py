@@ -7,11 +7,11 @@ class BrownianMotion(object):
 
     def __init__(self, T, n, k=1, random_seed=None):
         """
-        Simulates the scaled random walk that leads to the brownian motion
+        Simulates the scaled random walk that leads to the brownian motion.
         :param T: number of years in the simulation
         :param n: number of steps in the simulated trajectories
         :param k: number of trajectories to simulate
-        :param random_seed: random seed for numpy RNG
+        :param random_seed: random seed for numpy's RNG
         """
 
         self.T = T
@@ -58,9 +58,9 @@ class Diffusion(object):
         :param jump_freq: Average number of jumps per year (only for 'jump' process)
         :param process_type: Type of diffusion process to simulate.
 
-        - process_type='bm': simple brownian motion. In this case, the terms 'drift', 'diffusion' and
-                             'mean' are not used.
-                                dW
+        - process_type='bm': simple brownian motion. In this case, the terms 'drift', 'diffusion',
+                            'mean' and 'initial_price' are not used.
+                                dS = dW
 
         - process_type='rwwd': Random walk with drift. In this case the 'mean' term is not used and the
                                terms 'drift' and 'diffusion' are used as follows:
@@ -78,6 +78,19 @@ class Diffusion(object):
         - process_type='jump': Geometric brownian motion process with jumps. The terms 'drift', 'diffusion',
                                'jump_size' and 'jump_freq' are used as follows:
                                 dS = drift * S * dt + diffusion * S * dW + S * dJ(jump_size, jump_freq)
+
+
+        The returned object has the following attributes:
+        - simulated_trajectories: pandas.DataFrame with all the simulated trajectories.
+        - theoretical_mean: pandas.Serie with the theoretical mean.
+        - theoretical_std: pandas.Series with the theoretical standard deviation.
+        - ci_lower / ci_upper: pandas.Series with the bounds of the confidence interval for each date. They are
+                               generated in a different way than simply adding and subtracting standard errors from the
+                               mean. In some cases the distribution is not symmetrical, and the bounds are calculated in
+                               a way that the probability of the values going outside the confidence intervals is the
+                               same for both tails.
+
+        Obs: theoretical_std, ci_lower and ci_lower are not available for the jump GBM process.
         """
 
         assert process_type in self.supported_process_type, f"Process {process_type} not yet implemented"

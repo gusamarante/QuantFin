@@ -26,6 +26,9 @@ def corr2cov(corr, std):
     :return: numpy.array covariance matrix
     """
 
+    corr = np.array(corr)
+    std = np.array(std)
+
     assert np.all(np.linalg.eigvals(corr) > 0), "'cov' matrix is not positive definite"
     assert np.all(std >= 0), "'std' must not contain negative numbers"
     assert corr.shape[0] == corr.shape[1], "'cov' matrix is not square"
