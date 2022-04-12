@@ -1,14 +1,14 @@
 """
 This routine grabs the trackers built and adds them to my database to easily handle them later.
 """
-from pathlib import Path
 import pandas as pd
+from pathlib import Path
 import matplotlib.pyplot as plt
 from quantfin.data import tracker_uploader
 
 df = pd.DataFrame()
-file_path = Path(r"C:\Users\gamarante\Dropbox\Personal Portfolio\trackers")  # BW
-# file_path = Path(r"/Users/gustavoamarante/Dropbox/Personal Portfolio/trackers")  # Mac
+# file_path = Path(r"C:\Users\gamarante\Dropbox\Personal Portfolio\trackers")  # BW
+file_path = Path(r"/Users/gustavoamarante/Dropbox/Personal Portfolio/trackers")  # Mac
 
 # ============================
 # ===== Tesouro Nacional =====

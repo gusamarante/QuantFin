@@ -2,7 +2,9 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+from matplotlib import rcParams
 import matplotlib.dates as mdates
+from matplotlib.ticker import PercentFormatter
 
 
 class Performance(object):
@@ -37,11 +39,15 @@ class Performance(object):
 
     def plot_drawdowns(self, name, n=5, show_chart=False, save_path=None):
         # TODO Documentation
+
+        MyFont = {'fontname': 'Century Gothic'}
+        rcParams['font.family'] = 'sans-serif'
+        rcParams['font.sans-serif'] = ['Century Gothic']
+
         tri = self.total_return[name].interpolate(limit_area='inside')
-        fig = plt.figure(figsize=(7, 5))
+        fig = plt.figure(figsize=(12, 12 * 0.61))
         ax = fig.gca()
         plt.plot(tri, color='#0000CD', linewidth=1)
-        plt.title(f'{name} - {n} Biggest Drawdowns')
 
         for dd in range(n):
             start = self.drawdowns.loc[name].loc[dd, 'start']
@@ -59,6 +65,11 @@ class Performance(object):
         ax.yaxis.grid(color='grey', linestyle='-', linewidth=0.5, alpha=0.5)
         ax.xaxis.grid(color='grey', linestyle='-', linewidth=0.5, alpha=0.5)
 
+        for label in ax.get_xticklabels() + ax.get_yticklabels():
+            label.set_fontsize(15)
+
+        ax.set_title(f'{name} - {n} Biggest Drawdowns', fontdict={'fontsize': 15 + 2, 'fontweight': 'bold'}, **MyFont)
+
         plt.tight_layout()
 
         if save_path is not None:
@@ -72,11 +83,15 @@ class Performance(object):
     def plot_underwater(self, name, show_chart=False, save_path=None):
         # TODO Documentation
 
+        MyFont = {'fontname': 'Century Gothic'}
+        rcParams['font.family'] = 'sans-serif'
+        rcParams['font.sans-serif'] = ['Century Gothic']
+
         tr = self.total_return[name].dropna()
         exp_max = tr.expanding().max()
-        uw = tr / exp_max - 1
+        uw = 100 * (tr / exp_max - 1)
 
-        fig = plt.figure(figsize=(7, 5))
+        fig = plt.figure(figsize=(12, 12 * 0.61))
         ax = fig.gca()
         ax.plot(uw, color='#0000CD', linewidth=1)
         ax.axhline(0, color='black', linewidth=1)
@@ -84,22 +99,24 @@ class Performance(object):
         # Plot percentiles
         props = dict(boxstyle='round', facecolor='white', alpha=1)
 
-        q10 = self.drawdowns.loc[name, 'dd'].quantile(0.10)
+        q10 = self.drawdowns.loc[name, 'dd'].quantile(0.10) * 100
+        q5 = self.drawdowns.loc[name, 'dd'].quantile(0.05) * 100
+        q1 = self.drawdowns.loc[name, 'dd'].quantile(0.01) * 100
+
         ax.axhline(q10, color='#E00000', linewidth=1)
-        ax.text(uw.index[0], q10, '10% Percentile', color='#E00000', size=7,
+        ax.text(uw.index[0], q10, '10% Percentile', color='#E00000', size=13,
                 bbox=props, verticalalignment='top', horizontalalignment='left')
 
-        q5 = self.drawdowns.loc[name, 'dd'].quantile(0.05)
         ax.axhline(q5, color='#E00000', linewidth=1)
-        ax.text(uw.index[0], q5, '5% Percentile', color='#E00000', size=7,
+        ax.text(uw.index[0], q5, '5% Percentile', color='#E00000', size=13,
                 bbox=props, verticalalignment='top', horizontalalignment='left')
 
-        q1 = self.drawdowns.loc[name, 'dd'].quantile(0.01)
         ax.axhline(q1, color='#E00000', linewidth=1)
-        ax.text(uw.index[0], q1, '1% Percentile', color='#E00000', size=7,
+        ax.text(uw.index[0], q1, '1% Percentile', color='#E00000', size=13,
                 bbox=props, verticalalignment='top', horizontalalignment='left')
 
-        plt.title(f'{name} - Underwater Chart')
+        ax.set_title(f'{name} - Underwater Chart',
+                     fontdict={'fontsize': 15 + 2, 'fontweight': 'bold'}, **MyFont)
 
         plt.tick_params(axis='y', which='both', right=False, left=False, labelleft=True)
         plt.tick_params(axis='x', which='both', top=False, bottom=False, labelbottom=True)
@@ -109,8 +126,13 @@ class Performance(object):
         ax.xaxis.set_major_locator(locators)
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
 
+        ax.yaxis.set_major_formatter(PercentFormatter())
+
         ax.yaxis.grid(color='grey', linestyle='-', linewidth=0.5, alpha=0.5)
         ax.xaxis.grid(color='grey', linestyle='-', linewidth=0.5, alpha=0.5)
+
+        for label in ax.get_xticklabels() + ax.get_yticklabels():
+            label.set_fontsize(15)
 
         plt.tight_layout()
 

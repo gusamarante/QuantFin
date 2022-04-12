@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 from pathlib2 import Path
 import pandas as pd
 
-save_path = Path(r'C:\Users\gamarante\Dropbox\Personal Portfolio\charts')
+show_charts = False
+save_path = Path(r'/Users/gustavoamarante/Dropbox/Personal Portfolio/charts')
 
 # Grab data
 df_tri = tracker_feeder()
@@ -22,17 +23,18 @@ df_cdi = df_cdi['CDI'] / 100
 df_eri = compute_eri(df_tri, df_cdi)
 
 # Performance Data
-# perf_t = Performance(df_tri)
+perf_t = Performance(df_tri)
 
 # Charts
 for asset in df_eri.columns:
 
     df_plot = df_tri[asset].dropna()
     timeseries(df_plot, title=f'{asset} - Total Return Index',
-               show_chart=True)
+               show_chart=show_charts,
+               save_path=save_path.joinpath(f'{asset} - Total Return Index.pdf'))
 
-    # perf_t.plot_drawdowns(asset, show_chart=True,
-    #                       save_path=save_path.joinpath(f'{asset} - Drawdowns.pdf'))
-    #
-    # perf_t.plot_underwater(asset, show_chart=True,
-    #                        save_path=save_path.joinpath(f'{asset} - Underwater.pdf'))
+    perf_t.plot_drawdowns(asset, show_chart=show_charts,
+                          save_path=save_path.joinpath(f'{asset} - Drawdowns.pdf'))
+
+    perf_t.plot_underwater(asset, show_chart=show_charts,
+                           save_path=save_path.joinpath(f'{asset} - Underwater.pdf'))
