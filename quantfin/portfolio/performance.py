@@ -9,7 +9,7 @@ from matplotlib.ticker import PercentFormatter
 
 class Performance(object):
 
-    def __init__(self, total_return, funding_return=None, rolling_window=252):
+    def __init__(self, total_return, rolling_window=252):
         """
         Computes performance measures for each columns in 'total_return'
         :param total_return: pandas DataFrame with total return inndexes.
@@ -22,10 +22,9 @@ class Performance(object):
         self.total_return = total_return
         self.rolling_window = rolling_window
         self.returns_ts = total_return.pct_change(1)
-        self.total_returns_ann = self._get_ann_returns()
-        self.excess_returns_ann = None  # TODO organize this
+        self.returns_ann = self._get_ann_returns()
         self.std = self._get_ann_std()
-        self.sharpe = self.total_returns_ann / self.std
+        self.sharpe = self.returns_ann / self.std
         self.skewness = self.returns_ts.skew()
         self.kurtosis = self.returns_ts.kurt()  # Excess Kurtosis (k=0 is normal)
         self.sortino = self._get_sortino()
@@ -241,7 +240,7 @@ class Performance(object):
         df_sor = pd.Series(name='Sortino')
         for col in self.total_return.columns:
             aux = self.returns_ts[col][self.returns_ts[col] < 0].dropna()
-            df_sor.loc[col] = self.total_returns_ann[col] / (np.sqrt(252) * aux.std())
+            df_sor.loc[col] = self.returns_ann[col] / (np.sqrt(252) * aux.std())
 
         return df_sor
 
@@ -249,14 +248,13 @@ class Performance(object):
 
         df = pd.DataFrame(columns=self.total_return.columns)
 
-        df.loc['Total Return'] = self.total_returns_ann
-        # df.loc['Excess Return'] = self.returns_ann
-        df.loc['Volatility'] = self.std
+        df.loc['Return'] = self.returns_ann
+        df.loc['Vol'] = self.std
         df.loc['Sharpe'] = self.sharpe
-        df.loc['Skewness'] = self.skewness
-        df.loc['Kurtosis'] = self.kurtosis
+        df.loc['Skew'] = self.skewness
+        df.loc['Kurt'] = self.kurtosis
         df.loc['Sortino'] = self.sortino
-        df.loc['Drawdown 5% Percentile'] = self.drawdowns.reset_index().groupby('level_0').quantile(0.05)['dd']
-        df.loc['Max Drawdown'] = self.max_dd
+        df.loc['DD 5%q'] = self.drawdowns.reset_index().groupby('level_0').quantile(0.05)['dd']
+        df.loc['Max DD'] = self.max_dd
 
         return df
