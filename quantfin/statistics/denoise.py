@@ -166,12 +166,12 @@ def detone(corr, n=1):
 
 
 # ===== Shrinking the Covariance Matrix =====
-def shrink_cov(cov, alpha=0.1):
+def shrink_cov(df, alpha=0.1):
     """
     Applies shirinkage to the covariance matrix without changing the variance of each factor. This
     method differs from sklearn's method as this preserves the main diagonal of the covariance matrix,
     making this a more suitable method for financial data.
-    :param cov: numpy array. Empirical Covariance matrix
+    :param df: pandas.DataFrame. Data frame with returns data
     :param alpha: float. A number between 0 and 1 that represents the shrinkage intensity.
     :return: numpy array. Shrunk Covariance matrix.
     """
@@ -179,6 +179,7 @@ def shrink_cov(cov, alpha=0.1):
 
     assert 0 <= alpha <= 1, "'alpha' must be between 0 and 1"
 
+    cov = df.dropna().cov()
     vols = np.sqrt(np.diag(cov))
     corr, _ = cov2corr(cov)
     shrunk_corr = (1 - alpha) * corr + alpha * np.eye(corr.shape[0])

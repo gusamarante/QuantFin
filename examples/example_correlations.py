@@ -1,4 +1,4 @@
-from quantfin.statistics import empirical_correlation, shrink_cov
+from quantfin.statistics import empirical_covariance, shrink_cov, marchenko_pastur, cov2corr
 from quantfin.data import tracker_feeder, SGS
 from quantfin.finmath import compute_eri
 import matplotlib.pyplot as plt
@@ -20,15 +20,17 @@ df_cdi = df_cdi / 100
 
 # Compute ERIs
 df_eri = compute_eri(total_return_index=df, funding_return=df_cdi['CDI'])
+df_returns = df_eri.pct_change(1)
 
 # Correlation
-df_returns = df_eri.pct_change(1)
-emp_corr = empirical_correlation(df_returns)
-print(emp_corr)
+emp_cov = empirical_covariance(df_returns)
+emp_corr, _ = cov2corr(emp_cov)
+print(emp_corr, '\n')
 
 # Shirinkage
-shrunk_corr = shrink_cov(emp_corr, alpha=0.5)
-print(shrunk_corr)
+shrunk_cov = shrink_cov(df_returns, alpha=0.5)
+shrunk_corr, _ = cov2corr(shrunk_cov)
+print(shrunk_corr, '\n')
 
 # Ledoit-Wolfe
 
