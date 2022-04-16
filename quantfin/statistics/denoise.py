@@ -47,7 +47,7 @@ def marchenko_pastur(df, bandwidth=0.1):
     return cov, nFacts, var
 
 
-def targeted_shirinkage(df, bandwidth=0.1, ts_alpha=None):
+def targeted_shirinkage(df, bandwidth=0.1, ts_alpha=0.5):
     """
     Uses the Marchenko-Pastur theorem to find noisy eigenvalues from a correlation matrix and
     performs shrinkage only on the noisy part of the correlation matrix. This code is adapted
@@ -55,18 +55,17 @@ def targeted_shirinkage(df, bandwidth=0.1, ts_alpha=None):
     :param df: pandas.DataFrame. Time series of returns.
     :param bandwidth: smoothing parameter for the KernelDensity estimation
     :param ts_alpha: float. Number between 0 and 1 indicating the ammount of targeted shrinkage
-                     on the random eigenvectors. ts_alpha=0 means no shrinkage and ts_alpha=1
-                     means total shrinkage.
+                     on the random eigenvectors. ts_alpha=0 means total shrinkage and ts_alpha=1
+                     means no shrinkage.
     :return: 'corr' is the denoised correlation matrix, 'nFacts' is the number of non-random
              factors in the original correlation matrix and 'var' is the estimate of sigma**2,
              which can be interpreted as the % of noise in the original correlationm matrix.
     """
 
-    # assertions
-    if ts_alpha is not None:
-        assert 0 <= ts_alpha <= 1, "targeted shrinkage parameter must be between zero and 1."
+    assert 0 <= ts_alpha <= 1, "'ts_alpha' must be between 0 and 1."
 
-    corr_matrix = df.dropna().corr()
+    cov_matrix = df.dropna().cov()
+    corr_matrix, vols = cov2corr(cov_matrix)
     T, N = df.dropna().shape
 
     # get eigenvalues and eigenvectors
@@ -87,9 +86,11 @@ def targeted_shirinkage(df, bandwidth=0.1, ts_alpha=None):
     eValR, eVecR = eVal[nFacts:, nFacts:], eVec[:, nFacts:]
     corrL = np.dot(eVecL, eValL).dot(eVecL.T)
     corrR = np.dot(eVecR, eValR).dot(eVecR.T)
-    corr = corrL + (1 - ts_alpha) * corrR + ts_alpha * np.diag(np.diag(corrR))
+    corr = corrL + ts_alpha * corrR + (1 - ts_alpha) * np.diag(np.diag(corrR))
 
-    return corr, nFacts, var
+    cov = corr2cov(corr, vols)
+
+    return cov, nFacts, var
 
 
 def _marchenko_pastur_pdf(var, q, pts):

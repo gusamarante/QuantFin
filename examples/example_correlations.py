@@ -1,4 +1,4 @@
-from quantfin.statistics import empirical_covariance, shrink_cov, marchenko_pastur, cov2corr
+from quantfin.statistics import empirical_covariance, shrink_cov, marchenko_pastur, cov2corr, targeted_shirinkage
 from quantfin.data import tracker_feeder, SGS
 from quantfin.finmath import compute_eri
 import matplotlib.pyplot as plt
@@ -38,7 +38,9 @@ mp_corr, _ = cov2corr(mp_cov)
 print(mp_corr, '\n')
 
 # Targeted Shrinkage
-
+ts_cov, _, _ = targeted_shirinkage(df_returns, ts_alpha=1)  # TODO deveria dar o MP?
+ts_corr, _ = cov2corr(ts_cov)
+print(ts_corr, '\n')
 
 # Ledoit-Wolfe
 
@@ -47,3 +49,4 @@ print(mp_corr, '\n')
 
 
 # Plot
+print(ts_corr - mp_corr)
