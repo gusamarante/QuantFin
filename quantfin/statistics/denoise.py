@@ -7,7 +7,7 @@ from sklearn.neighbors import KernelDensity
 
 # ===== Marchenko-Pastur Denoising =====
 def marchenko_pastur(corr_matrix, T, N, bandwidth=0.1):
-    # TODO allow input to be covariance
+    # TODO allow input to be covariance (can I check if diagonal is all ones?)
     """
     Uses the Marchenko-Pastur theorem to remove noisy eigenvalues from a correlation matrix.
     This code is adapted from Lopez de Prado (2020).
@@ -165,22 +165,8 @@ def detone(corr, n=1):
     return corr_d
 
 
-# ===== Shrinking the Correlation Matrix =====
-def shrunk_correlation(corr, alpha=0.1):
-    """
-    Applies shirinkage to the correlation matrix.
-    :param corr: numpy array. Empirical correlation matrix
-    :param alpha: float. A number between 0 and 1 that represents the shrinkage intensity.
-    :return: numpy array. Shrunk correlation matrix.
-    """
-
-    assert 0 <= alpha <= 1, "'alpha' must be between 0 and 1"
-
-    shrunk_corr = (1 - alpha) * corr + alpha * np.eye(corr.shape[0])
-    return shrunk_corr
-
-
-def shrunk_covariance(cov, alpha=0.1):
+# ===== Shrinking the Covariance Matrix =====
+def shrink_cov(cov, alpha=0.1):
     """
     Applies shirinkage to the covariance matrix without changing the variance of each factor. This
     method differs from sklearn's method as this preserves the main diagonal of the covariance matrix,
@@ -190,8 +176,11 @@ def shrunk_covariance(cov, alpha=0.1):
     :return: numpy array. Shrunk Covariance matrix.
     """
     # TODO Example
+
+    assert 0 <= alpha <= 1, "'alpha' must be between 0 and 1"
+
     vols = np.sqrt(np.diag(cov))
-    corr = cov2corr(cov)
-    shrunk_corr = shrunk_correlation(corr, alpha)
+    corr, _ = cov2corr(cov)
+    shrunk_corr = (1 - alpha) * corr + alpha * np.eye(corr.shape[0])
     shrunk_cov = np.diag(vols) @ shrunk_corr @ np.diag(vols)
     return shrunk_cov
