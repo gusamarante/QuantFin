@@ -31,6 +31,9 @@ def make_psd(mat, method='abseig'):
         val, vec = np.linalg.eig(mat)
         new_mat = vec @ np.diag(np.abs(val)) @ vec.T
 
+        if isinstance(mat, pd.DataFrame):
+            new_mat = pd.DataFrame(data=new_mat, index=mat.index, columns=mat.columns)
+
     elif method == 'frobenius':
         B = (mat + mat.T) / 2
         _, s, V = np.linalg.svd(B)
@@ -64,7 +67,7 @@ def cov2corr(cov):
     :return: numpy.array correlation matrix
     """
 
-    assert np.all(np.linalg.eigvals(cov) >= 0), "'cov' matrix is not positive semi-definite"
+    assert is_psd(cov), "'cov' matrix is not positive semi-definite"
     assert cov.shape[0] == cov.shape[1], "'cov' matrix is not square"
 
     std = np.sqrt(np.diag(cov))

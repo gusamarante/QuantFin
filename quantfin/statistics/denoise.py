@@ -183,4 +183,11 @@ def shrink_cov(cov, alpha=0.1):
     corr, _ = cov2corr(cov)
     shrunk_corr = (1 - alpha) * corr + alpha * np.eye(corr.shape[0])
     shrunk_cov = np.diag(vols) @ shrunk_corr @ np.diag(vols)
+
+    if isinstance(cov, pd.DataFrame):
+        shrunk_cov = pd.DataFrame(data=shrunk_cov.values, index=cov.index, columns=cov.columns)
+
     return shrunk_cov
+
+# ===== Ledoit-Wolfe =====
+
