@@ -6,19 +6,20 @@ from sklearn.neighbors import KernelDensity
 
 
 # ===== Marchenko-Pastur Denoising =====
-def marchenko_pastur(corr_matrix, T, N, bandwidth=0.1):
+def marchenko_pastur(df, bandwidth=0.1):
     # TODO allow input to be covariance (can I check if diagonal is all ones?)
     """
     Uses the Marchenko-Pastur theorem to remove noisy eigenvalues from a correlation matrix.
     This code is adapted from Lopez de Prado (2020).
-    :param corr_matrix: numpy.array. Correlation matrix from data.
-    :param T: int. Sample size of the timeseries dimensions.
-    :param N: int. Sample size of the cross-section dimensions.
-    :param bandwidth: smoothing parameter for the KernelDensity estimation
-    :return: 'corr' is the denoised correlation matrix, 'nFacts' is the number of non-random
+    @param df: pandas.DataFrame. Time series of returns.
+    @param bandwidth: smoothing parameter for the KernelDensity estimation
+    @return: 'corr' is the denoised correlation matrix, 'nFacts' is the number of non-random
              factors in the original correlation matrix and 'var' is the estimate of sigma**2,
              which can be interpreted as the % of noise in the original correlationm matrix.
     """
+
+    corr_matrix = df.dropna().corr()
+    T, N = df.dropna().shape
 
     # get eigenvalues and eigenvectors
     eVal, eVec = np.linalg.eigh(corr_matrix)
@@ -37,9 +38,10 @@ def marchenko_pastur(corr_matrix, T, N, bandwidth=0.1):
     eVal_[nFacts:] = eVal_[nFacts:].sum() / float(eVal_.shape[0] - nFacts)
     eVal_ = np.diag(eVal_)
     cov = np.dot(eVec, eVal_).dot(eVec.T)
-    corr = cov2corr(cov)
 
-    return corr, nFacts, var
+    cov = pd.DataFrame(data=cov, index=df.columns, columns=df.columns)
+
+    return cov, nFacts, var
 
 
 def targeted_shirinkage(corr_matrix, T, N, bandwidth=0.1, ts_alpha=None):

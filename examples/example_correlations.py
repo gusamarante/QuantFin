@@ -32,10 +32,12 @@ shrunk_cov = shrink_cov(df_returns, alpha=0.5)
 shrunk_corr, _ = cov2corr(shrunk_cov)
 print(shrunk_corr, '\n')
 
-# Ledoit-Wolfe
-
-
 # Marchenko-Pastur
+mp_cov, _, _ = marchenko_pastur(df_returns)
+mp_corr, _ = cov2corr(mp_cov)
+print(mp_corr, '\n')
+
+# Ledoit-Wolfe
 
 
 # Targeted Shrinkage
