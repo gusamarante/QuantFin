@@ -30,4 +30,16 @@ print(emp_corr)
 shrunk_corr = shrink_cov(emp_corr, alpha=0.5)
 print(shrunk_corr)
 
+# Ledoit-Wolfe
+
+
+# Marchenko-Pastur
+
+
+# Targeted Shrinkage
+
+
+# Detoning
+
+
 # Plot
