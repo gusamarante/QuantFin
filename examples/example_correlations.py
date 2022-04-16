@@ -37,10 +37,10 @@ mp_cov, _, _ = marchenko_pastur(df_returns)
 mp_corr, _ = cov2corr(mp_cov)
 print(mp_corr, '\n')
 
-# Ledoit-Wolfe
-
-
 # Targeted Shrinkage
+
+
+# Ledoit-Wolfe
 
 
 # Detoning

@@ -1,13 +1,12 @@
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
-from quantfin.statistics import cov2corr
+from quantfin.statistics import cov2corr, corr2cov
 from sklearn.neighbors import KernelDensity
 
 
 # ===== Marchenko-Pastur Denoising =====
 def marchenko_pastur(df, bandwidth=0.1):
-    # TODO allow input to be covariance (can I check if diagonal is all ones?)
     """
     Uses the Marchenko-Pastur theorem to remove noisy eigenvalues from a correlation matrix.
     This code is adapted from Lopez de Prado (2020).
@@ -18,7 +17,8 @@ def marchenko_pastur(df, bandwidth=0.1):
              which can be interpreted as the % of noise in the original correlationm matrix.
     """
 
-    corr_matrix = df.dropna().corr()
+    emp_cov_matrix = df.dropna().cov()
+    corr_matrix, vols = cov2corr(emp_cov_matrix)
     T, N = df.dropna().shape
 
     # get eigenvalues and eigenvectors
@@ -39,19 +39,20 @@ def marchenko_pastur(df, bandwidth=0.1):
     eVal_ = np.diag(eVal_)
     cov = np.dot(eVec, eVal_).dot(eVec.T)
 
+    corr, _ = cov2corr(cov)
+    cov = corr2cov(corr, vols)
+
     cov = pd.DataFrame(data=cov, index=df.columns, columns=df.columns)
 
     return cov, nFacts, var
 
 
-def targeted_shirinkage(corr_matrix, T, N, bandwidth=0.1, ts_alpha=None):
+def targeted_shirinkage(df, bandwidth=0.1, ts_alpha=None):
     """
     Uses the Marchenko-Pastur theorem to find noisy eigenvalues from a correlation matrix and
     performs shrinkage only on the noisy part of the correlation matrix. This code is adapted
     from Lopez de Prado (2020).
-    :param corr_matrix: numpy.array. Correlation matrix from data.
-    :param T: int. Sample size of the timeseries dimensions.
-    :param N: int. Sample size of the cross-section dimensions.
+    :param df: pandas.DataFrame. Time series of returns.
     :param bandwidth: smoothing parameter for the KernelDensity estimation
     :param ts_alpha: float. Number between 0 and 1 indicating the ammount of targeted shrinkage
                      on the random eigenvectors. ts_alpha=0 means no shrinkage and ts_alpha=1
@@ -64,6 +65,9 @@ def targeted_shirinkage(corr_matrix, T, N, bandwidth=0.1, ts_alpha=None):
     # assertions
     if ts_alpha is not None:
         assert 0 <= ts_alpha <= 1, "targeted shrinkage parameter must be between zero and 1."
+
+    corr_matrix = df.dropna().corr()
+    T, N = df.dropna().shape
 
     # get eigenvalues and eigenvectors
     eVal, eVec = np.linalg.eigh(corr_matrix)
