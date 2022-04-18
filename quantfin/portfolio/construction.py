@@ -6,6 +6,15 @@ import pandas as pd
 from numpy.linalg import inv, eig
 
 
+class EqualWeights(object):
+
+    def __init__(self, df):
+        self.weights = (~df.isna()).div(df.count(axis=1), axis=0)
+        self.returns = (self.weights * df.pct_change(1).dropna(how='all')).sum(axis=1)
+        self.return_index = 100 * (1 + self.returns).cumprod()
+        self.return_index.name = 'Equal Weighted'
+
+
 class PrincipalPortfolios(object):
     """
     Implementation of the 'Principal Portfolios'.
