@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
-from quantfin.statistics import cov2corr, corr2cov
+from sklearn.covariance import LedoitWolf
 from sklearn.neighbors import KernelDensity
+from quantfin.statistics import cov2corr, corr2cov
 
 
 # ===== Marchenko-Pastur Denoising =====
@@ -90,6 +91,8 @@ def targeted_shirinkage(df, bandwidth=0.1, ts_alpha=0.5):
 
     cov = corr2cov(corr, vols)
 
+    cov = pd.DataFrame(data=cov, index=df.columns, columns=df.columns)
+
     return cov, nFacts, var
 
 
@@ -144,7 +147,7 @@ def _find_max_eigval(eVal, q, bWidth):
 
 
 # ===== detoning correlation matrix =====
-def detone(corr, n=1):
+def detone_corr(corr, n=1):
     """
     Removes the first `n` components of the correlation matrix. The detoned correlation matrix
     is singular. This is not a problem for clustering applications as most approaches do not
@@ -197,5 +200,11 @@ def shrink_cov(df, alpha=0.1):
 
     return shrunk_cov
 
+
 # ===== Ledoit-Wolfe =====
+def ledoitwolf_cov(df):
+    lw = LedoitWolf().fit(df)
+    cov = lw.covariance_
+    cov = pd.DataFrame(data=cov, index=df.columns, columns=df.columns)
+    return cov
 
