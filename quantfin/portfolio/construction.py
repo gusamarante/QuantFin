@@ -8,11 +8,40 @@ from numpy.linalg import inv, eig
 
 class EqualWeights(object):
 
-    def __init__(self, df):
+    def __init__(self, df, name='Equal Weighted'):
+        # TODO Documentation
         self.weights = (~df.isna()).div(df.count(axis=1), axis=0)
         self.returns = (self.weights * df.pct_change(1).dropna(how='all')).sum(axis=1)
         self.return_index = 100 * (1 + self.returns).cumprod()
-        self.return_index.name = 'Equal Weighted'
+        self.return_index.name = name
+
+
+class SignalWeighted(object):
+
+    available_schemes = ['value']  # TODO Rank, Rank-LS
+
+    def __init__(self, trackers, signals, scheme='value', lag_signals=True, name='Signal Weighted'):
+
+        assert scheme in self.available_schemes, f"weighting scheme '{scheme}' not implemented"
+
+        returns = trackers.pct_change(1)
+
+        if lag_signals:
+            signals = signals.shift(1)
+
+        self.signals = signals
+
+        if scheme == 'value':
+            weights = signals.div(signals.sum(axis=1), axis=0)
+            weights = weights.dropna(how='all')
+
+        else:
+            raise NotImplementedError(f"weighting scheme '{scheme}' not implemented")
+
+        self.weights = weights
+        self.returns = (returns * weights).sum(axis=1).reindex(self.weights.index)
+        self.return_index = 100 * (1 + self.returns).cumprod()
+        self.return_index.name = name
 
 
 class PrincipalPortfolios(object):

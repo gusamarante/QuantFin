@@ -1,5 +1,5 @@
 from quantfin.data import tracker_feeder, SGS
-from quantfin.portfolio import Performance, EqualWeights
+from quantfin.portfolio import Performance, EqualWeights, SignalWeighted
 from quantfin.finmath import compute_eri
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -22,19 +22,26 @@ df_cdi = df_cdi / 100
 
 # Compute ERIs
 df_eri = compute_eri(total_return_index=df, funding_return=df_cdi['CDI'])
-df_returns = df_eri.pct_change(1).dropna()
+df_returns = df_eri.pct_change(1)
 
 # Equal Weights
-ew = EqualWeights(df_eri)
-df_eri = pd.concat([df_eri, ew.return_index], axis=1)
-
-# Inverse Vol
-# TODO this is a particular case o "signal weighted" with the vol as the signal, so I better work on signal weighted
+ew = EqualWeights(df_eri, name='Equal')
 
 
-# Viz
-df_eri.plot()
-plt.show()
+# Signal Weighted
+df_vol = df_returns.rolling(252).std() * np.sqrt(252)
+volw = SignalWeighted(trackers=df_eri, signals=df_vol, scheme='value', lag_signals=True, name='Vol')
 
-perf = Performance(df_eri)
+# Signal Weighted
+df_vol = 1 / df_vol
+ivolw = SignalWeighted(trackers=df_eri, signals=df_vol, scheme='value', lag_signals=True, name='Inv Vol')
+
+
+# Ending
+df_strats = pd.concat([ew.return_index, volw.return_index, ivolw.return_index], axis=1)
+
+perf = Performance(df_strats)
 print(perf.table)
+
+df_strats.plot()
+plt.show()
