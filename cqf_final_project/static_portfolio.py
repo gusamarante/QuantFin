@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from time import time
 import matplotlib.pyplot as plt
-from quantfin.statistics import marchenko_pastur, detone, cov2corr
+from quantfin.statistics import marchenko_pastur, detone_corr, cov2corr
 from quantfin.portfolio import Markowitz, BlackLitterman, HRP
 
 # User defined parameters
@@ -105,7 +105,7 @@ hrp = HRP(cov=df_cov.loc[last_date])
 df_weights['Hierarchical Risk Parity'] = hrp.weights
 
 # ----- Detoned HRP -----
-corr_detoned = detone(df_corr.loc[last_date])
+corr_detoned = detone_corr(df_corr.loc[last_date])
 dhrp = HRP(cov=df_cov.loc[last_date], corr=corr_detoned)
 df_weights['Detoned Hierarchical Risk Parity'] = dhrp.weights
 

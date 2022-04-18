@@ -5,7 +5,7 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import matplotlib.dates as mdates
-from quantfin.statistics import marchenko_pastur, detone, cov2corr
+from quantfin.statistics import marchenko_pastur, detone_corr, cov2corr
 from quantfin.portfolio import Markowitz, BlackLitterman, HRP, Performance
 
 # User defined parameters
@@ -189,7 +189,7 @@ for date in tqdm(calendar, 'HRP'):
     if date >= next_rebalance_date:
         try:
             hrp = HRP(cov=df_cov.loc[date])
-            corr_detoned = detone(df_corr.loc[date])
+            corr_detoned = detone_corr(df_corr.loc[date])
             dhrp = HRP(cov=df_cov.loc[date], corr=corr_detoned)
         except ValueError:
             continue
