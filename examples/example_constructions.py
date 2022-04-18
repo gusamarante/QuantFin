@@ -39,6 +39,12 @@ ivolw = SignalWeighted(trackers=df_eri, signals=df_vol, scheme='value', lag_sign
 
 # Ending
 df_strats = pd.concat([ew.return_index, volw.return_index, ivolw.return_index], axis=1)
+df_weights = pd.DataFrame(columns=df_eri.columns)
+df_weights.loc['Equal'] = ew.weights.iloc[-1]
+df_weights.loc['Vol'] = volw.weights.iloc[-1]
+df_weights.loc['Inv Vol'] = ivolw.weights.iloc[-1]
+
+print(df_weights)
 
 perf = Performance(df_strats)
 print(perf.table)

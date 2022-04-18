@@ -18,7 +18,7 @@ class EqualWeights(object):
 
 class SignalWeighted(object):
 
-    available_schemes = ['value']  # TODO Rank, Rank-LS
+    available_schemes = ['value']  # TODO Rank, Rank-LS, value-LS
 
     def __init__(self, trackers, signals, scheme='value', lag_signals=True, name='Signal Weighted'):
 
