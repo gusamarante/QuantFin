@@ -89,6 +89,13 @@ aux = aux['BOVA11']
 aux.index = pd.to_datetime(aux.index)
 df = pd.concat([df, aux], axis=1)
 
+# BRAX11
+aux = pd.read_excel(file_path.joinpath('BRAX11.xlsx'),
+                    index_col=0, sheet_name='Tracker')
+aux = aux['BRAX11']
+aux.index = pd.to_datetime(aux.index)
+df = pd.concat([df, aux], axis=1)
+
 # HASH11
 aux = pd.read_excel(file_path.joinpath('HASH11.xlsx'),
                     index_col=0, sheet_name='Tracker')
@@ -96,10 +103,17 @@ aux = aux['HASH11']
 aux.index = pd.to_datetime(aux.index)
 df = pd.concat([df, aux], axis=1)
 
-# HASH11
+# SPXI11
 aux = pd.read_excel(file_path.joinpath('SPXI11.xlsx'),
                     index_col=0, sheet_name='Tracker')
 aux = aux['SPXI11']
+aux.index = pd.to_datetime(aux.index)
+df = pd.concat([df, aux], axis=1)
+
+# TECK11
+aux = pd.read_excel(file_path.joinpath('TECK11.xlsx'),
+                    index_col=0, sheet_name='Tracker')
+aux = aux['TECK11']
 aux.index = pd.to_datetime(aux.index)
 df = pd.concat([df, aux], axis=1)
 
