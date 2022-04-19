@@ -50,9 +50,12 @@ class Performance(object):
         plt.plot(tri, color='#0000CD', linewidth=1)
 
         for dd in range(n):
-            start = self.drawdowns.loc[name].loc[dd, 'start']
-            end = self.drawdowns.loc[name].loc[dd, 'end']
-            plt.plot(tri.loc[start: end], color='#E00000')
+            try:
+                start = self.drawdowns.loc[name].loc[dd, 'start']
+                end = self.drawdowns.loc[name].loc[dd, 'end']
+                plt.plot(tri.loc[start: end], color='#E00000')
+            except KeyError:
+                pass
 
         plt.tick_params(axis='y', which='both', right=False, left=False, labelleft=True)
         plt.tick_params(axis='x', which='both', top=False, bottom=False, labelbottom=True)
