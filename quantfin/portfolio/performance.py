@@ -9,7 +9,7 @@ from matplotlib.ticker import PercentFormatter
 
 class Performance(object):
 
-    def __init__(self, total_return, rolling_window=252):
+    def __init__(self, total_return, rolling_window=252, skip_dd=False):
         """
         Computes performance measures for each columns in 'total_return'
         :param total_return: pandas DataFrame with total return inndexes.
@@ -28,9 +28,15 @@ class Performance(object):
         self.skewness = self.returns_ts.skew()
         self.kurtosis = self.returns_ts.kurt()  # Excess Kurtosis (k=0 is normal)
         self.sortino = self._get_sortino()
-        self.drawdowns = self._get_drawdowns()
-        self.max_dd = self.drawdowns.groupby(level=0).min()['dd']
-        self.table = self._get_perf_table()
+
+        if skip_dd:
+            self.drawdowns = None
+            self.max_dd = None
+        else:
+            self.drawdowns = self._get_drawdowns()
+            self.max_dd = self.drawdowns.groupby(level=0).min()['dd']
+
+        self.table = self._get_perf_table(skip_dd=skip_dd)
         self.rolling_return = self.total_return.pct_change(rolling_window)
         self.rolling_std = self.returns_ts.rolling(rolling_window).std() * np.sqrt(rolling_window)
         self.rolling_sharpe = self.rolling_return / self.rolling_std
@@ -247,7 +253,7 @@ class Performance(object):
 
         return df_sor
 
-    def _get_perf_table(self):
+    def _get_perf_table(self, skip_dd=False):
 
         df = pd.DataFrame(columns=self.total_return.columns)
 
@@ -257,7 +263,9 @@ class Performance(object):
         df.loc['Skew'] = self.skewness
         df.loc['Kurt'] = self.kurtosis
         df.loc['Sortino'] = self.sortino
-        df.loc['DD 5%q'] = self.drawdowns.reset_index().groupby('level_0').quantile(0.05)['dd']
-        df.loc['Max DD'] = self.max_dd
+
+        if not skip_dd:
+            df.loc['DD 5%q'] = self.drawdowns.reset_index().groupby('level_0').quantile(0.05)['dd']
+            df.loc['Max DD'] = self.max_dd
 
         return df
