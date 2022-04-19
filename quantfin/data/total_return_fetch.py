@@ -120,5 +120,6 @@ tracker_uploader(df)
 # =============================
 # ===== Plot the Trackers =====
 # =============================
+print(df.index[-1])
 df.plot()
 plt.show()
