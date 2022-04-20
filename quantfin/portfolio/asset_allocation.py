@@ -342,7 +342,7 @@ class HRP(object):
     Implements Hierarchical Risk Parity
     """
 
-    def __init__(self, cov, corr=None, method='single', metric='euclidean'):
+    def __init__(self, cov, method='single', metric='euclidean'):
         """
         Combines the assets in `data` using HRP
         returns an object with the following attributes:
@@ -359,18 +359,11 @@ class HRP(object):
         :param method: any method available in scipy.cluster.hierarchy.linkage
         :param metric: any metric available in scipy.cluster.hierarchy.linkage
         """
-        # TODO include detoning as an optional input
 
         assert isinstance(cov, pd.DataFrame), "input 'cov' must be a pandas DataFrame"
 
         self.cov = cov
-
-        if corr is None:
-            self.corr = cov2corr(cov)
-        else:
-            assert isinstance(corr, pd.DataFrame), "input 'corr' must be a pandas DataFrame"
-            self.corr = corr
-
+        self.corr, self.vols = cov2corr(cov)
         self.method = method
         self.metric = metric
 
@@ -471,7 +464,8 @@ class HRP(object):
         """
 
         plt.figure(figsize=figsize)
-        dn = sch.dendrogram(self.link, orientation='left', labels=self.sort_ix, color_threshold=threshold)
+        dn = sch.dendrogram(self.link, orientation='left', labels=self.corr.columns.to_list(),
+                            color_threshold=threshold)
 
         plt.tight_layout()
 
