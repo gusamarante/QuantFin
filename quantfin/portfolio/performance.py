@@ -20,6 +20,7 @@ class Performance(object):
             "'total_return' must be a pandas DataFrame, even if there is only one column"
 
         self.total_return = total_return
+        self.start_date = total_return.isna().astype(int).diff().idxmin().rename('Start Date')
         self.rolling_window = rolling_window
         self.returns_ts = total_return.pct_change(1)
         self.returns_ann = self._get_ann_returns()
@@ -267,5 +268,7 @@ class Performance(object):
         if not skip_dd:
             df.loc['DD 5%q'] = self.drawdowns.reset_index().groupby('level_0').quantile(0.05)['dd']
             df.loc['Max DD'] = self.max_dd
+
+        df.loc['Start Date'] = self.start_date
 
         return df
