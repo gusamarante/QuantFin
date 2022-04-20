@@ -72,9 +72,9 @@ aux.index = pd.to_datetime(aux.index)
 df = pd.concat([df, aux], axis=1)
 
 
-# ======================
-# ===== ETFs da B3 =====
-# ======================
+# ===========================
+# ===== Fundo Exclusivo =====
+# ===========================
 # BDIV11
 aux = pd.read_excel(file_path.joinpath('BDIV11.xlsx'),
                     index_col=0, sheet_name='Tracker')
@@ -82,38 +82,13 @@ aux = aux['BDIV11']
 aux.index = pd.to_datetime(aux.index)
 df = pd.concat([df, aux], axis=1)
 
-# BOVA11
-aux = pd.read_excel(file_path.joinpath('BOVA11.xlsx'),
-                    index_col=0, sheet_name='Tracker')
-aux = aux['BOVA11']
-aux.index = pd.to_datetime(aux.index)
-df = pd.concat([df, aux], axis=1)
 
-# BRAX11
-aux = pd.read_excel(file_path.joinpath('BRAX11.xlsx'),
-                    index_col=0, sheet_name='Tracker')
-aux = aux['BRAX11']
-aux.index = pd.to_datetime(aux.index)
-df = pd.concat([df, aux], axis=1)
-
-# HASH11
-aux = pd.read_excel(file_path.joinpath('HASH11.xlsx'),
-                    index_col=0, sheet_name='Tracker')
-aux = aux['HASH11']
-aux.index = pd.to_datetime(aux.index)
-df = pd.concat([df, aux], axis=1)
-
-# SPXI11
-aux = pd.read_excel(file_path.joinpath('SPXI11.xlsx'),
-                    index_col=0, sheet_name='Tracker')
-aux = aux['SPXI11']
-aux.index = pd.to_datetime(aux.index)
-df = pd.concat([df, aux], axis=1)
-
-# TECK11
-aux = pd.read_excel(file_path.joinpath('TECK11.xlsx'),
-                    index_col=0, sheet_name='Tracker')
-aux = aux['TECK11']
+# ======================
+# ===== ETFs da B3 =====
+# ======================
+aux = pd.read_excel(file_path.joinpath('ETFs B3.xlsx'),
+                    index_col=0, sheet_name='Trackers')
+aux.columns = aux.columns.str[:4]
 aux.index = pd.to_datetime(aux.index)
 df = pd.concat([df, aux], axis=1)
 
@@ -126,10 +101,12 @@ aux = pd.read_excel(file_path.joinpath('XP.xlsx'),
 aux = aux['tracker'].rename('Cota XP')
 df = pd.concat([df, aux], axis=1)
 
+
 # =============================
 # ===== Save the Trackers =====
 # =============================
 tracker_uploader(df)
+
 
 # =============================
 # ===== Plot the Trackers =====
