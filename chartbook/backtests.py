@@ -14,8 +14,8 @@ pd.options.display.width = 250
 
 # Parameters
 show_charts = False
-save_path = Path(r'/Users/gustavoamarante/Dropbox/Personal Portfolio/charts')  # Mac
-# save_path = Path(r'C:\Users\gamarante\Dropbox\Personal Portfolio\charts')  # BW
+save_path = Path(r'/Users/gustavoamarante/Dropbox/Personal Portfolio')  # Mac
+# save_path = Path(r'C:\Users\gamarante\Dropbox\Personal Portfolio')  # BW
 long_run_sharpe = 0.2
 chosen_assets = ['LTN Longa', 'NTNF Curta', 'NTNF Longa', 'NTNB Curta', 'NTNB Longa',
                  'BDIV11', 'IVVB', 'BBSD', 'FIND', 'GOVE', 'MATB']
@@ -95,8 +95,8 @@ df_bt = pd.concat([df_bt, return_index.rename('Max Sharpe')], axis=1)
 perf_bt = Performance(df_bt, skip_dd=False, rolling_window=252 * 2)
 
 timeseries(df_bt, title='Backtests - Excess Return Indexes', show_chart=show_charts,
-           save_path=save_path.joinpath('Backtests - Total Return Index.pdf'))
+           save_path=save_path.joinpath('charts/Backtests - Total Return Index.pdf'))
 
-writer = pd.ExcelWriter(r'C:\Users\gamarante\Dropbox\Personal Portfolio\Backtests.xlsx')
+writer = pd.ExcelWriter(save_path.joinpath(f'Backtests.xlsx'))
 perf_bt.table.T.to_excel(writer, 'Backtests')
 writer.save()
