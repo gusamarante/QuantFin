@@ -8,7 +8,7 @@ import numpy as np
 
 
 def timeseries(df, title=None, x_major_ticks='year', date_format='%Y', x_label=None, y_label=None,
-               fontsize=15, save_path=None, show_chart=False):
+               fontsize=15, legend_cols=1, save_path=None, show_chart=False):
     # TODO Documentation
 
     MyFont = {'fontname': 'Century Gothic'}
@@ -19,15 +19,17 @@ def timeseries(df, title=None, x_major_ticks='year', date_format='%Y', x_label=N
     ax = fig.gca()
 
     if isinstance(df, pd.Series):
-        ax.plot(df.dropna(), label=df.name, color='#0000CD')
+        ax.plot(df.dropna(), label=df.name)
     elif isinstance(df, pd.DataFrame):
         for col in df.columns:
-            ax.plot(df[col].dropna(), label=col, color='#0000CD')
+            ax.plot(df[col].dropna(), label=col, linewidth=2)
     else:
         raise ValueError("'df' must be pandas Series or DataFrame")
 
     ax.tick_params(axis='y', which='both', right=False, left=False, labelleft=True)
     ax.tick_params(axis='x', which='both', top=False, bottom=False, labelbottom=True)
+
+    ax.legend(ncol=legend_cols)
 
     if x_label is not None:
         plt.xlabel(x_label, MyFont)

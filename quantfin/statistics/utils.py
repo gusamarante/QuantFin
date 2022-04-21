@@ -85,14 +85,18 @@ def corr2cov(corr, std):
     :return: numpy.array covariance matrix
     """
 
-    corr = np.array(corr)
+    corr_a = np.array(corr)
     std = np.array(std)
 
-    assert np.all(np.linalg.eigvals(corr) > 0), "'cov' matrix is not positive definite"
+    assert np.all(np.linalg.eigvals(corr_a) > 0), "'cov' matrix is not positive definite"
     assert np.all(std >= 0), "'std' must not contain negative numbers"
-    assert corr.shape[0] == corr.shape[1], "'cov' matrix is not square"
+    assert corr_a.shape[0] == corr_a.shape[1], "'cov' matrix is not square"
 
-    cov = np.diag(std) @ corr @ np.diag(std)
+    cov = np.diag(std) @ corr_a @ np.diag(std)
+
+    if isinstance(corr, pd.DataFrame):
+        cov = pd.DataFrame(data=cov, index=corr.index, columns=corr.columns)
+
     return cov
 
 
