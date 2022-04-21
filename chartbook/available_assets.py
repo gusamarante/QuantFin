@@ -14,8 +14,8 @@ pd.set_option('display.max_columns', 100)
 pd.set_option('display.width', 200)
 
 show_charts = False
-# save_path = Path(r'/Users/gustavoamarante/Dropbox/Personal Portfolio/charts')  # Mac
-save_path = Path(r'C:\Users\gamarante\Dropbox\Personal Portfolio\charts')  # BW
+save_path = Path(r'/Users/gustavoamarante/Dropbox/Personal Portfolio/charts')  # Mac
+# save_path = Path(r'C:\Users\gamarante\Dropbox\Personal Portfolio\charts')  # BW
 
 # Grab data
 df_tri = tracker_feeder()
