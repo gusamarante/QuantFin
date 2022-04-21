@@ -14,7 +14,7 @@ pd.set_option('display.max_columns', 100)
 pd.set_option('display.width', 200)
 
 show_charts = False
-save_path = Path(r'/Users/gustavoamarante/Dropbox/Personal Portfolio/charts')  # Mac
+save_path = Path(r'/Users/gustavoamarante/Dropbox/Personal Portfolio')  # Mac
 # save_path = Path(r'C:\Users\gamarante\Dropbox\Personal Portfolio\charts')  # BW
 
 # Grab data
@@ -56,7 +56,7 @@ except KeyError:
 df_perf['Score'] = df_score['Score']
 df_perf = df_perf.dropna()
 
-writer = pd.ExcelWriter(r'C:\Users\gamarante\Dropbox\Personal Portfolio\Available Assets.xlsx')
+writer = pd.ExcelWriter(save_path.joinpath(f'Available Assets.xlsx'))
 df_perf.to_excel(writer, 'Filtered')
 writer.save()
 
@@ -66,10 +66,10 @@ for asset in tqdm(df_eri.columns, 'Generating Charts'):
     df_plot = df_tri[asset].dropna()
     timeseries(df_plot, title=f'{asset} - Total Return Index',
                show_chart=show_charts,
-               save_path=save_path.joinpath(f'{asset} - Total Return Index.pdf'))
+               save_path=save_path.joinpath(f'charts/{asset} - Total Return Index.pdf'))
 
     perf_t.plot_drawdowns(asset, show_chart=show_charts,
-                          save_path=save_path.joinpath(f'{asset} - Drawdowns.pdf'))
+                          save_path=save_path.joinpath(f'charts/{asset} - Drawdowns.pdf'))
 
     perf_t.plot_underwater(asset, show_chart=show_charts,
-                           save_path=save_path.joinpath(f'{asset} - Underwater.pdf'))
+                           save_path=save_path.joinpath(f'charts/{asset} - Underwater.pdf'))
