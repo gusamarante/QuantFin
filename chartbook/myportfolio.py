@@ -1,9 +1,15 @@
-from quantfin.portfolio import Performance, Markowitz, SignalWeighted, HRP
-from quantfin.charts import timeseries, df2pdf, df2heatmap
+"""
+This routine generates the latest update of my portfolio
+"""
+
+from quantfin.portfolio import Performance, Markowitz
 from quantfin.data import tracker_feeder, SGS
+from quantfin.statistics import corr2cov
 from quantfin.finmath import compute_eri
+from quantfin.charts import timeseries
 import matplotlib.pyplot as plt
 from pathlib2 import Path
+import seaborn as sns
 import pandas as pd
 import numpy as np
 
@@ -11,11 +17,16 @@ pd.options.display.max_columns = 50
 pd.options.display.width = 250
 
 # Parameters
+save_path = Path(r'/Users/gustavoamarante/Dropbox/Personal Portfolio/charts')  # Mac
+# save_path = Path(r'C:\Users\gamarante\Dropbox\Personal Portfolio\charts')  # BW
 rf = 0.1265
+long_run_sharpe = 0.2
+chosen_assets = ['LTN Longa', 'NTNF Curta', 'NTNF Longa', 'NTNB Curta', 'NTNB Longa',
+                 'BDIV11', 'IVVB', 'BBSD', 'FIND', 'GOVE', 'MATB']
 
 # Grab data
 df_tri = tracker_feeder()
-df_tri = df_tri.drop(['Cota XP', 'LFT Curta', 'LFT Longa'], axis=1)
+df_tri = df_tri[chosen_assets]
 df_tri = df_tri[df_tri.index >= '2008-01-01']
 
 # Risk-free
@@ -28,46 +39,67 @@ df_eri = compute_eri(df_tri, df_cdi)
 
 # Performance Data
 perf = Performance(df_eri, skip_dd=True)
-# print(perf.table)
 
-# ==============================
-# ===== Allocation Methods =====
-# ==============================
-df_weights = pd.DataFrame(columns=df_eri.columns)
 
-# === Markowitz ===
-# generate vols
-df_vols = df_eri.pct_change(1).ewm(com=252).std() * np.sqrt(252)
-vols = df_vols.iloc[-1]
+# ======================
+# ===== Parameters =====
+# ======================
 
-# generate expected returns
-adj_sharpe = perf.table.loc['Sharpe'] * (1/3)
-exp_ret = adj_sharpe * vols + rf
+# ===== Estimates of Correlation =====
+# With Monthly Returns
+corr_monthly = df_eri.resample('M').last().pct_change().corr()
 
-# generate correlation matrix
-df_corr = df_eri.pct_change(1).ewm(com=252).corr()
-corr_mat = df_corr.xs('2022-04-14', level=0)
+# With Daily Returns
+last_date = df_eri.index[-1]
+df_corr_daily = df_eri.pct_change().ewm(com=252, min_periods=63).corr()
+corr_daily = df_corr_daily.xs(last_date)
 
-# generate allocation
-mkw = Markowitz(mu=exp_ret, sigma=vols, corr=corr_mat, rf=rf, risk_aversion=20, short_sell=False)
+# Plot all rolling daily correlations
+for asset in chosen_assets:
+    aux = df_corr_daily.xs(asset, level=1)
+    aux = aux.drop(asset, axis=1)
+    timeseries(aux.dropna(how='all'), legend_cols=2,
+               title=f'EWM Correlations of {asset}',
+               save_path=save_path.joinpath(f'{asset} - Correlations.pdf'))
 
-df_weights.loc['Markowitz'] = mkw.risky_weights
+# Clustermap based on daily correlations
+sns.clustermap(corr_daily,
+               method='single',
+               metric='euclidean',
+               cmap='vlag')
+plt.savefig(save_path.joinpath('Available Assets - Daily Clustermap.pdf'), pad_inches=1, dpi=400)
+plt.close()
 
-# === Inverso Vol ===
-df_weights.loc['Inverse Vol'] = (1/vols) / (1/vols).sum()
+# Clustermap based on monthly correlations
+sns.clustermap(corr_monthly,
+               method='single',
+               metric='euclidean',
+               cmap='vlag')
+plt.savefig(save_path.joinpath('Available Assets - Monthly Clustermap.pdf'), pad_inches=1, dpi=400)
+plt.close()
 
-# === Equal Weighted ===
-df_weights.loc['Equal'] = 1 / df_eri.shape[1]
 
-# === Hierarchical Risk Parity ===
-hrp = HRP(corr_mat)
-df_weights.loc['HRP'] = hrp.weights
+# ===== Estimates of Volatility =====
+# With Monthly Returns
+vols_monthly = df_eri.resample('M').last().pct_change().std() * np.sqrt(12)
 
-hrp.plot_dendrogram()
-hrp.plot_corr_matrix()
+# With Daily Returns
+last_date = df_eri.index[-1]
+df_vols_daily = df_eri.pct_change().ewm(com=252, min_periods=63).std() * np.sqrt(252)
+vols_daily = df_vols_daily.loc[last_date]
 
-# === End ===
-df_weights = df_weights.round(4) * 100
-df_weights.loc['Average'] = 100 * df_weights.mean() / df_weights.mean().sum()
-df_weights.T.plot.bar()
-plt.show()
+# Plot volatilities
+timeseries(df_vols_daily.dropna(how='all'), legend_cols=2,
+           title=f'EWM Volatilities',
+           save_path=save_path.joinpath(f'Volatilities.pdf'))
+
+# ===== Expected Returns =====
+sharpe_ratios = perf.table.loc['Sharpe'] * (2/3) + long_run_sharpe * (1/3)
+expected_returns = sharpe_ratios * vols_daily + rf
+
+# ===== Covariance Matrix =====
+cov_mat = corr2cov(corr_daily, vols_daily)
+
+# =======================
+# ===== Allocations =====
+# =======================
