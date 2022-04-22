@@ -2,7 +2,7 @@
 This routine generates the latest update of my portfolio
 """
 
-from quantfin.portfolio import Performance, Markowitz
+from quantfin.portfolio import Performance, MaxSharpe
 from quantfin.data import tracker_feeder, SGS, DROPBOX
 from quantfin.statistics import corr2cov
 from quantfin.finmath import compute_eri

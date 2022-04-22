@@ -1,4 +1,4 @@
-from quantfin.portfolio import BlackLitterman, Markowitz
+from quantfin.portfolio import BlackLitterman, MaxSharpe
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -52,13 +52,13 @@ bl = BlackLitterman(sigma=sigma,
                     relative_uncertainty=u,
                     mu_historical=mu_historical)
 
-mkw_original = Markowitz(bl.mu_best_guess['Best Guess of mu'], vol, corr, risk_free, risk_aversion=1.2)
+mkw_original = MaxSharpe(bl.mu_best_guess['Best Guess of mu'], vol, corr, risk_free, risk_aversion=1.2)
 print('original weights')
 print(mkw_original.risky_weights)
 original_frontier_mu, original_frontier_sigma = mkw_original.min_var_frontier(n_steps=300)
 
 vol2 = pd.Series(data=np.diag(bl.sigma_bl.values)**0.5, index=asset_list, name='Vol')
-mkw_bl = Markowitz(bl.mu_bl['Expected Returns'], vol2, corr, risk_free, risk_aversion=1.2)
+mkw_bl = MaxSharpe(bl.mu_bl['Expected Returns'], vol2, corr, risk_free, risk_aversion=1.2)
 print('BL weights')
 print(mkw_bl.risky_weights)
 bl_frontier_mu, bl_frontier_sigma = mkw_bl.min_var_frontier(n_steps=300)

@@ -17,7 +17,7 @@ DROPBOX = file_path
 def grab_connection():
     # TODO Documentation
     # TODO grab path to project
-    conn = sqlite3.connect(r'C:\Users\gamarante\PycharmProjects\QuantFin\quantfin\data\database_finquant.db')
+    conn = sqlite3.connect(f'/Users/{username}/PycharmProjects/QuantFin/quantfin/data/database_finquant.db')
     return conn
 
 

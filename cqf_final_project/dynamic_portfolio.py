@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import matplotlib.dates as mdates
 from quantfin.statistics import marchenko_pastur, detone_corr, cov2corr
-from quantfin.portfolio import Markowitz, BlackLitterman, HRP, Performance
+from quantfin.portfolio import MaxSharpe, BlackLitterman, HRP, Performance
 
 # User defined parameters
 mu_shrink = 0.99
@@ -174,7 +174,7 @@ for date in tqdm(calendar, 'Marchenk-Pastur + Black-Litterman'):
         vol_bl = pd.Series(data=np.sqrt(np.diag(bl.sigma_bl)), index=bl.sigma_bl.index)
         corr_bl = cov2corr(bl.sigma_bl)
 
-        mkw = Markowitz(mu=bl.mu_bl,
+        mkw = MaxSharpe(mu=bl.mu_bl,
                         sigma=vol_bl,
                         corr=corr_bl,
                         rf=(1 + df_libor.loc[date, 'US 3m LIBOR']) ** 0.25 - 1,

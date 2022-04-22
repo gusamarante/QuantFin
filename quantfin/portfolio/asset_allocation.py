@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 
 
-class Markowitz(object):
+class MaxSharpe(object):
 
     # TODO turn rf into optional
 

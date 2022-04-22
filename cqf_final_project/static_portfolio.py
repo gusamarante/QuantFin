@@ -3,7 +3,7 @@ import pandas as pd
 from time import time
 import matplotlib.pyplot as plt
 from quantfin.statistics import marchenko_pastur, detone_corr, cov2corr
-from quantfin.portfolio import Markowitz, BlackLitterman, HRP
+from quantfin.portfolio import MaxSharpe, BlackLitterman, HRP
 
 # User defined parameters
 ew_com = 21 * 3
@@ -154,7 +154,7 @@ bl = BlackLitterman(sigma=mp_cov,
 vol_bl = pd.Series(data=np.sqrt(np.diag(bl.sigma_bl)), index=bl.sigma_bl.index)
 corr_bl = cov2corr(bl.sigma_bl)
 
-mkw = Markowitz(mu=bl.mu_bl,
+mkw = MaxSharpe(mu=bl.mu_bl,
                 sigma=vol_bl,
                 corr=corr_bl,
                 rf=(1 + df_libor.loc[last_date, 'US 3m LIBOR']) ** 0.25 - 1,
