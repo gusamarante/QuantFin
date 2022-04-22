@@ -3,7 +3,7 @@ This routine generates the latest update of my portfolio
 """
 
 from quantfin.portfolio import Performance, Markowitz
-from quantfin.data import tracker_feeder, SGS
+from quantfin.data import tracker_feeder, SGS, DROPBOX
 from quantfin.statistics import corr2cov
 from quantfin.finmath import compute_eri
 from quantfin.charts import timeseries
@@ -17,8 +17,6 @@ pd.options.display.max_columns = 50
 pd.options.display.width = 250
 
 # Parameters
-save_path = Path(r'/Users/gustavoamarante/Dropbox/Personal Portfolio/charts')  # Mac
-# save_path = Path(r'C:\Users\gamarante\Dropbox\Personal Portfolio\charts')  # BW
 rf = 0.1265
 long_run_sharpe = 0.2
 chosen_assets = ['LTN Longa', 'NTNF Curta', 'NTNF Longa', 'NTNB Curta', 'NTNB Longa',
@@ -60,14 +58,14 @@ for asset in chosen_assets:
     aux = aux.drop(asset, axis=1)
     timeseries(aux.dropna(how='all'), legend_cols=2,
                title=f'EWM Correlations of {asset}',
-               save_path=save_path.joinpath(f'{asset} - Correlations.pdf'))
+               save_path=DROPBOX.joinpath(f'charts/{asset} - Correlations.pdf'))
 
 # Clustermap based on daily correlations
 sns.clustermap(corr_daily,
                method='single',
                metric='euclidean',
                cmap='vlag')
-plt.savefig(save_path.joinpath('Available Assets - Daily Clustermap.pdf'), pad_inches=1, dpi=400)
+plt.savefig(DROPBOX.joinpath('charts/Available Assets - Daily Clustermap.pdf'), pad_inches=1, dpi=400)
 plt.close()
 
 # Clustermap based on monthly correlations
@@ -75,7 +73,7 @@ sns.clustermap(corr_monthly,
                method='single',
                metric='euclidean',
                cmap='vlag')
-plt.savefig(save_path.joinpath('Available Assets - Monthly Clustermap.pdf'), pad_inches=1, dpi=400)
+plt.savefig(DROPBOX.joinpath('charts/Available Assets - Monthly Clustermap.pdf'), pad_inches=1, dpi=400)
 plt.close()
 
 
@@ -91,7 +89,7 @@ vols_daily = df_vols_daily.loc[last_date]
 # Plot volatilities
 timeseries(df_vols_daily.dropna(how='all'), legend_cols=2,
            title=f'EWM Volatilities',
-           save_path=save_path.joinpath(f'Volatilities.pdf'))
+           save_path=DROPBOX.joinpath(f'charts/Volatilities.pdf'))
 
 # ===== Expected Returns =====
 sharpe_ratios = perf.table.loc['Sharpe'] * (2/3) + long_run_sharpe * (1/3)
