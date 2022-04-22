@@ -1,5 +1,5 @@
 """
-Generates the csv file with the total return index from my XP account.
+Generates the excel file with the total return index from my XP account.
 """
 
 import numpy as np
@@ -7,6 +7,7 @@ import pandas as pd
 from tqdm import tqdm
 from datetime import date
 from bs4 import BeautifulSoup
+from quantfin.data import DROPBOX
 from pandas.tseries.offsets import MonthEnd
 
 # Parameters
@@ -110,7 +111,7 @@ tracker = 100 * tracker / tracker.iloc[0]
 df_day['tracker'] = tracker
 
 # Save to Excel
-writer = pd.ExcelWriter('/Users/gustavoamarante/Dropbox/Personal Portfolio/trackers/XP.xlsx')
+writer = pd.ExcelWriter(DROPBOX.joinpath('/trackers/XP.xlsx'))
 df_year.to_excel(writer, 'year')
 df_month.to_excel(writer, 'month')
 df_day.to_excel(writer, 'day')
