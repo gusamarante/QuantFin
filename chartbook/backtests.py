@@ -95,7 +95,7 @@ df_bt = pd.concat([df_bt, return_index.rename('Max Sharpe')], axis=1)
 perf_bt = Performance(df_bt, skip_dd=False, rolling_window=252 * 2)
 
 timeseries(df_bt, title='Backtests - Excess Return Indexes', show_chart=show_charts,
-           save_path=save_path.joinpath('charts/Backtests - Total Return Index.pdf'))
+           save_path=save_path.joinpath('charts/Backtests - Excess Return Index.pdf'))
 
 writer = pd.ExcelWriter(save_path.joinpath(f'Backtests.xlsx'))
 perf_bt.table.T.to_excel(writer, 'Backtests')
