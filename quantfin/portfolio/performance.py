@@ -9,6 +9,8 @@ from matplotlib.ticker import PercentFormatter
 
 class Performance(object):
 
+    # TODO Add cumulative/expanding measures - great for backtest
+
     def __init__(self, total_return, rolling_window=252, skip_dd=False):
         """
         Computes performance measures for each columns in 'total_return'
@@ -38,8 +40,8 @@ class Performance(object):
             self.max_dd = self.drawdowns.groupby(level=0).min()['dd']
 
         self.table = self._get_perf_table(skip_dd=skip_dd)
-        self.rolling_return = self.total_return.pct_change(rolling_window)
-        self.rolling_std = self.returns_ts.rolling(rolling_window).std() * np.sqrt(rolling_window)
+        self.rolling_return = (1 + self.total_return.pct_change(rolling_window)) ** (252 / rolling_window) - 1
+        self.rolling_std = self.returns_ts.rolling(rolling_window).std() * np.sqrt(252)
         self.rolling_sharpe = self.rolling_return / self.rolling_std
         self.rolling_skewness = self.returns_ts.rolling(rolling_window).skew()
         self.rolling_kurtosis = self.returns_ts.rolling(rolling_window).kurt()

@@ -10,10 +10,10 @@ import numpy as np
 
 
 class Markowitz(object):
-    # TODO Make the 'risk_aversion' parameter optional
-    # TODO change inputs to covariance
 
-    def __init__(self, mu, sigma, corr, rf, risk_aversion=None, short_sell=True):
+    # TODO turn rf into optional
+
+    def __init__(self, mu, cov, rf, risk_aversion=None, short_sell=True):
         """
         Receives informations about the set of assets available for allocation and computes the following
         measures as atributes:
@@ -50,19 +50,15 @@ class Markowitz(object):
         """
 
         # Asseert data indexes and organize
-        self._assert_indexes(mu, sigma, corr)
+        self._assert_indexes(mu, cov)
 
         # Save inputs as attributes
         self.mu = mu
-        self.sigma = sigma
-        self.corr = corr
+        self.cov = cov
         self.rf = rf
         self.risk_aversion = risk_aversion
         self.short_selling = short_sell
-
-        # Compute atributes
         self.n_assets = self._n_assets()
-        self.cov = self._get_cov_matrix()
 
         # Get the optimal risky porfolio
         self.mu_p, self.sigma_p, self.risky_weights, self.sharpe_p = self._get_optimal_risky_portfolio()
@@ -71,8 +67,16 @@ class Markowitz(object):
         self.mu_mv, self.sigma_mv, self.mv_weights, self.sharpe_mv = self._get_minimal_variance_portfolio()
 
         # Get the investor's portfolio and build the complete set of weights
-        self.weight_p, self.complete_weights, self.mu_c, self.sigma_c, self.certain_equivalent \
-            = self._investor_allocation()
+        if risk_aversion is None:
+            self.weight_p = None
+            self.complete_weights = None
+            self.mu_c = None
+            self.sigma_c = None
+            self.certain_equivalent = None
+
+        else:
+            self.weight_p, self.complete_weights, self.mu_c, self.sigma_c, self.certain_equivalent \
+                = self._investor_allocation()
 
     def plot(self, figsize=None, save_path=None):
 
@@ -129,11 +133,10 @@ class Markowitz(object):
         Makes sure that all inputs have the correct shape and returns the number of assets
         """
         shape_mu = self.mu.shape
-        shape_sigma = self.sigma.shape
-        shape_corr = self.corr.shape
+        shape_sigma = self.cov.shape
 
-        max_shape = max(shape_mu[0], shape_sigma[0], shape_corr[0], shape_corr[1])
-        min_shape = min(shape_mu[0], shape_sigma[0], shape_corr[0], shape_corr[1])
+        max_shape = max(shape_mu[0], shape_sigma[0], shape_sigma[1])
+        min_shape = min(shape_mu[0], shape_sigma[0], shape_sigma[1])
 
         if max_shape == min_shape:
             return max_shape
@@ -144,8 +147,8 @@ class Markowitz(object):
 
         if self.n_assets == 1:  # one risky asset (analytical)
             mu_p = self.mu.iloc[0]
-            sigma_p = self.sigma.iloc[0]
-            sharpe_p = (mu_p - self.rf)/sigma_p
+            sigma_p = self.cov.iloc[0, 0]
+            sharpe_p = (mu_p - self.rf) / sigma_p
             weights = pd.Series(data={self.mu.index[0]: 1},
                                 name='Risky Weights')
 
@@ -153,7 +156,7 @@ class Markowitz(object):
 
             # define the objective function (notice the sign change on the return value)
             def sharpe(x):
-                return -self._sharpe(x, self.mu.values, self.cov.values, self.rf, self.n_assets)
+                return - self._sharpe(x, self.mu.values, self.cov.values, self.rf, self.n_assets)
 
             # budget constraint
             constraints = ({'type': 'eq',
@@ -182,7 +185,7 @@ class Markowitz(object):
             # Compute optimal portfolio parameters
             mu_p = np.sum(res.x * self.mu.values.flatten())
             sigma_p = np.sqrt(res.x @ self.cov @ res.x)
-            sharpe_p = -sharpe(res.x)
+            sharpe_p = - sharpe(res.x)
             weights = pd.Series(index=self.mu.index,
                                 data=res.x,
                                 name='Risky Weights')
@@ -227,16 +230,6 @@ class Markowitz(object):
                             name='Minimal Variance Weights')
 
         return mu_mv, sigma_mv, weights, sharpe_mv
-
-    def _get_cov_matrix(self):
-
-        cov = np.diag(self.sigma) @ self.corr.values @ np.diag(self.sigma)
-
-        cov = pd.DataFrame(index=self.sigma.index,
-                           columns=self.sigma.index,
-                           data=cov)
-
-        return cov
 
     def _investor_allocation(self):
         weight_p = (self.mu_p - self.rf) / (self.risk_aversion * (self.sigma_p**2))
@@ -328,12 +321,8 @@ class Markowitz(object):
         return mu - 0.5 * risk_aversion * (sigma ** 2)
 
     @staticmethod
-    def _assert_indexes(mu, sigma, corr):
-        cond1 = sorted(mu.index) == sorted(sigma.index)
-        cond2 = sorted(mu.index) == sorted(corr.index)
-
-        cond = cond1 and cond2
-
+    def _assert_indexes(mu, cov):
+        cond = sorted(mu.index) == sorted(cov.index)
         assert cond, "elements in the input indexes do not match"
 
 
