@@ -64,39 +64,22 @@ df_bt = pd.concat([df_bt, bt_ms.return_index], axis=1)
 print(bt_ms.weights.iloc[-1].round(4)*100)
 
 # ===== Hierarchical Risk Parity =====
+df_cov = df_eri.pct_change().ewm(com=252 * 5, min_periods=63).cov() * 252
 
-for wc in [0.5, 1, 2, 3, 4, 5]:
-    df_cov = df_eri.pct_change().ewm(com=int(252 * wc), min_periods=63).cov() * 252
+bt_hrp = BacktestHRP(eri=df_eri, cov=df_cov, rebalance_dates=rebalance_dates,
+                     method='complete', metric='braycurtis')
+df_bt = pd.concat([df_bt, bt_hrp.return_index], axis=1)
 
-    for mo in ['single', 'complete', 'average', 'weighted']:
-        for mi in ['braycurtis', 'canberra', 'chebyshev', 'cityblock', 'correlation', 'cosine', 'dice', 'euclidean', 'hamming', 'jaccard', 'jensenshannon', 'kulsinski', 'matching', 'minkowski', 'rogerstanimoto', 'russellrao', 'seuclidean', 'sokalmichener', 'sokalsneath', 'sqeuclidean', 'yule']:
-            print(mo, mi)
-            bt_hrp = BacktestHRP(eri=df_eri, cov=df_cov, rebalance_dates=rebalance_dates,
-                                 method=mo, metric=mi)
-            df_bt = pd.concat([df_bt, bt_hrp.return_index.rename(f'HRP {wc} {mo} {mi}')], axis=1)
+hrp = HRP(cov=df_cov.xs(rebalance_dates[-1]), method='complete', metric='braycurtis')
+hrp.plot_dendrogram(show_chart=show_charts,
+                    save_path=DROPBOX.joinpath(r'charts/HRP - Dendrogram.pdf'))
+hrp.plot_corr_matrix(save_path=DROPBOX.joinpath(r'charts/HRP - Correlation matrix.pdf'),
+                     show_chart=show_charts)
 
-            # hrp = HRP(cov=df_cov.xs(rebalance_dates[-1]), method=mo, metric=mi)
-            # hrp.plot_dendrogram(show_chart=show_charts,
-            #                     save_path=DROPBOX.joinpath(r'charts/HRP - Dendrogram.pdf'))
-            # hrp.plot_corr_matrix(save_path=DROPBOX.joinpath(r'charts/HRP - Correlation matrix.pdf'),
-            #                      show_chart=show_charts)
+bt_hrp.weights.plot()
+plt.show()
 
-    for mo in ['centroid', 'median', 'ward']:
-        print(mo, 'euclidean')
-        bt_hrp = BacktestHRP(eri=df_eri, cov=df_cov, rebalance_dates=rebalance_dates,
-                             method=mo, metric='euclidean')
-        df_bt = pd.concat([df_bt, bt_hrp.return_index.rename(f'HRP {wc} {mo} euclidean')], axis=1)
-
-        # hrp = HRP(cov=df_cov.xs(rebalance_dates[-1]), method=mo, metric=mi)
-        # hrp.plot_dendrogram(show_chart=show_charts,
-        #                     save_path=DROPBOX.joinpath(r'charts/HRP - Dendrogram.pdf'))
-        # hrp.plot_corr_matrix(save_path=DROPBOX.joinpath(r'charts/HRP - Correlation matrix.pdf'),
-        #                      show_chart=show_charts)
-
-# bt_hrp.weights.plot()
-# plt.show()
-
-# print(bt_hrp.weights.iloc[-1].round(4)*100)
+print(bt_hrp.weights.iloc[-1].round(4)*100)
 
 # ===================
 # ===== Reports =====
