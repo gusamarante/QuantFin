@@ -1,10 +1,9 @@
 from quantfin.portfolio import Performance, EqualWeights, BacktestMaxSharpe, BacktestHRP, HRP
-from quantfin.charts import timeseries, df2pdf
 from quantfin.data import tracker_feeder, SGS, DROPBOX
+from quantfin.charts import timeseries, df2pdf
 from quantfin.statistics import cov2corr
 from quantfin.finmath import compute_eri
 import matplotlib.pyplot as plt
-from pathlib2 import Path
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
@@ -13,7 +12,7 @@ pd.options.display.max_columns = 50
 pd.options.display.width = 250
 
 # Parameters
-show_charts = True
+show_charts = False
 long_run_sharpe = 0.2
 chosen_assets = ['LTN Longa', 'NTNF Curta', 'NTNF Longa', 'NTNB Curta', 'NTNB Longa',
                  'BDIV11', 'IVVB', 'BBSD', 'FIND', 'GOVE', 'MATB']
@@ -43,6 +42,7 @@ df_bt = pd.DataFrame()
 # ===== Equal Weights =====
 bt_ew = EqualWeights(df_eri)
 df_bt = pd.concat([df_bt, bt_ew.return_index], axis=1)
+weights_equal = bt_ew.weights.iloc[-1].rename('Equal Weights')
 
 # ===== Max Sharpe =====
 rebalance_dates = df_rf.index[df_rf.diff() != 0]
@@ -61,7 +61,7 @@ bt_ms = BacktestMaxSharpe(eri=df_eri,
                           short_sell=False)
 
 df_bt = pd.concat([df_bt, bt_ms.return_index], axis=1)
-print(bt_ms.weights.iloc[-1].round(4)*100)
+weights_maxsharpe = bt_ms.weights.iloc[-1].rename('Max Sharpe')
 
 # ===== Hierarchical Risk Parity =====
 df_cov = df_eri.pct_change().ewm(com=252 * 5, min_periods=63).cov() * 252
@@ -76,10 +76,7 @@ hrp.plot_dendrogram(show_chart=show_charts,
 hrp.plot_corr_matrix(save_path=DROPBOX.joinpath(r'charts/HRP - Correlation matrix.pdf'),
                      show_chart=show_charts)
 
-bt_hrp.weights.plot()
-plt.show()
-
-print(bt_hrp.weights.iloc[-1].round(4)*100)
+weights_hrp = bt_hrp.weights.iloc[-1].rename('HRP')
 
 # ===================
 # ===== Reports =====
@@ -90,6 +87,19 @@ print(perf_bt.table)
 timeseries(df_bt, title='Backtests - Excess Return Indexes', show_chart=show_charts,
            save_path=DROPBOX.joinpath('charts/Backtests - Excess Return Index.pdf'))
 
+timeseries(perf_bt.rolling_return, title='Backtests - Rolling Returns', show_chart=show_charts,
+           save_path=DROPBOX.joinpath('charts/Backtests - Rolling Returns.pdf'))
+
+timeseries(perf_bt.rolling_std, title='Backtests - Rolling Vol', show_chart=show_charts,
+           save_path=DROPBOX.joinpath('charts/Backtests - Rolling Vol.pdf'))
+
+timeseries(perf_bt.rolling_sharpe, title='Backtests - Rolling Sharpe', show_chart=show_charts,
+           save_path=DROPBOX.joinpath('charts/Backtests - Rolling Sharpe.pdf'))
+
+df_weights = pd.concat([weights_equal, weights_maxsharpe, weights_hrp], axis=1)
+df_weights['Average Allocation'] = df_weights.mean(axis=1)
+
 writer = pd.ExcelWriter(DROPBOX.joinpath(f'Backtests.xlsx'))
 perf_bt.table.T.to_excel(writer, 'Backtests')
+df_weights.to_excel(writer, 'Weights')
 writer.save()
