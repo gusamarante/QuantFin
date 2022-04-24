@@ -1,8 +1,10 @@
 from quantfin.portfolio import Performance, EqualWeights, BacktestMaxSharpe, BacktestHRP, HRP
 from quantfin.data import tracker_feeder, SGS, DROPBOX
-from quantfin.charts import timeseries, df2pdf
+from quantfin.simulation import Diffusion
 from quantfin.statistics import cov2corr
 from quantfin.finmath import compute_eri
+from pandas.tseries.offsets import BDay
+from quantfin.charts import timeseries
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import pandas as pd
@@ -81,6 +83,7 @@ weights_hrp = bt_hrp.weights.iloc[-1].rename('HRP')
 # ===================
 # ===== Reports =====
 # ===================
+# Performance of the allocations
 perf_bt = Performance(df_bt, skip_dd=False, rolling_window=252)
 print(perf_bt.table)
 
@@ -96,10 +99,23 @@ timeseries(perf_bt.rolling_std, title='Backtests - Rolling Vol', show_chart=show
 timeseries(perf_bt.rolling_sharpe, title='Backtests - Rolling Sharpe', show_chart=show_charts,
            save_path=DROPBOX.joinpath('charts/Backtests - Rolling Sharpe.pdf'))
 
+# Expected performance of the current portfolio
 df_weights = pd.concat([weights_equal, weights_maxsharpe, weights_hrp], axis=1)
-df_weights['Average Allocation'] = df_weights.mean(axis=1)
+df_weights['Average'] = df_weights.mean(axis=1)
 
+exp_ret = (df_expret.iloc[-1] * df_weights['Average']).sum()
+exp_vol = np.sqrt(df_weights['Average'].T @ df_cov.xs(df_cov.index.get_level_values(0).max()) @ df_weights['Average'])
+
+df_cota = pd.read_excel('/Users/gusamarante/Dropbox/Personal Portfolio/Minha cota XP.xlsx', index_col=0)
+
+diff = Diffusion(T=1, n=252, k=1, initial_price=df_cota.iloc[-1].loc['Risky'], process_type='gbm',
+                 drift=exp_ret, diffusion=exp_vol)
+
+df_cone = pd.concat([diff.theoretical_mean, diff.ci_upper, diff.ci_lower], axis=1)
+
+# Save to Excel
 writer = pd.ExcelWriter(DROPBOX.joinpath(f'Backtests.xlsx'))
 perf_bt.table.T.to_excel(writer, 'Backtests')
 df_weights.to_excel(writer, 'Weights')
+df_cone.to_excel(writer, 'Cone')
 writer.save()

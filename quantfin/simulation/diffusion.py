@@ -39,7 +39,7 @@ class Diffusion(object):
 
     supported_process_type = ['bm', 'rwwd', 'gbm', 'ou', 'jump']
 
-    def __init__(self, T=1, n=100, k=1, initial_price=0, process_type='bm', drift=None, diffusion=None, mean=None,
+    def __init__(self, T=1, n=100, k=1, initial_price=100, process_type='bm', drift=None, diffusion=None, mean=None,
                  random_seed=None, conf=0.95, jump_mean=None, jump_std=None, jump_freq=None):
         """
         Simulates diffusion processes.
