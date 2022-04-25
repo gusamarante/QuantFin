@@ -1,4 +1,5 @@
 from matplotlib.colors import LinearSegmentedColormap
+from PyPDF4 import PdfFileReader, PdfFileWriter
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
@@ -234,3 +235,43 @@ def df2heatmap(data, show_table=False, figsize=(9, 9), nodes=None, colors=None, 
         plt.show()
 
     return fig, ax
+
+
+def merge_pdfs(file_path, pdf_writer=None, page=None):
+    """
+    Utility function to compose a PDF file from parts of other PDF files. The
+    output of the function is a PdfFileWriter object from PyPDF4. In order to
+    save the resulting object output 'pdf_writer' as a PDF file, use the
+    following logic in your routine:
+
+    ```
+    with open('save/path/here.pdf', 'wb') as out:
+        pdf_writer.write(out)
+    ```
+
+    @param file_path: path of the PDF file to get pages from.
+    @param pdf_writer: PyPDF4 object PdfFileWriter. If None, starts a new writer.
+    @param page: int or list of ints. Number of the page from the file to be added.
+                 If None, all pages from 'file_path' are added in order. If list of
+                 ints, selected pages are added in the order of the list.
+    @return: PdfFileWriter object with the new pages added.
+    """
+
+    pdf_reader = PdfFileReader(str(file_path))
+
+    if pdf_writer is None:
+        pdf_writer = PdfFileWriter()
+
+    if page is None:
+        for pg in range(pdf_reader.getNumPages()):
+            pdf_writer.addPage(pdf_reader.getPage(pg))
+
+    else:
+        try:
+            for pg in page:
+                pdf_writer.addPage(pdf_reader.getPage(pg))
+
+        except TypeError:
+            pdf_writer.addPage(pdf_reader.getPage(page))
+
+    return pdf_writer

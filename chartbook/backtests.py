@@ -16,6 +16,7 @@ pd.options.display.width = 250
 # Parameters
 show_charts = False
 long_run_sharpe = 0.2
+y_star = 0.5
 chosen_assets = ['LTN Longa', 'NTNF Curta', 'NTNF Longa', 'NTNB Curta', 'NTNB Longa',
                  'BDIV11', 'IVVB', 'BBSD', 'FIND', 'GOVE', 'MATB']
 
@@ -103,12 +104,14 @@ timeseries(perf_bt.rolling_sharpe, title='Backtests - Rolling Sharpe', show_char
 df_weights = pd.concat([weights_equal, weights_maxsharpe, weights_hrp], axis=1)
 df_weights['Average'] = df_weights.mean(axis=1)
 
-exp_ret = (df_expret.iloc[-1] * df_weights['Average']).sum()
-exp_vol = np.sqrt(df_weights['Average'].T @ df_cov.xs(df_cov.index.get_level_values(0).max()) @ df_weights['Average'])
+exp_ret = (df_expret.iloc[-1] * df_weights['Average']).sum() * y_star + (1 - y_star) * df_rf.iloc[-1]
+exp_vol = y_star * np.sqrt(df_weights['Average'].T
+                           @ df_cov.xs(df_cov.index.get_level_values(0).max())
+                           @ df_weights['Average'])
 
-df_cota = pd.read_excel('/Users/gusamarante/Dropbox/Personal Portfolio/Minha cota XP.xlsx', index_col=0)
+df_cota = pd.read_excel(DROPBOX.joinpath('Minha cota XP.xlsx'), index_col=0)
 
-diff = Diffusion(T=1, n=252, k=1, initial_price=df_cota.iloc[-1].loc['Risky'], process_type='gbm',
+diff = Diffusion(T=1, n=252, k=1, initial_price=df_cota.iloc[0].loc['Long Run Savings'], process_type='gbm',
                  drift=exp_ret, diffusion=exp_vol)
 
 df_cone = pd.concat([diff.theoretical_mean, diff.ci_upper, diff.ci_lower], axis=1)
