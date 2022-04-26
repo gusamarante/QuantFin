@@ -21,11 +21,11 @@ means = np.array([[0.0, 0.0],
 # The covariance of each component
 # covars = .5 * np.tile(np.identity(2), (4, 1, 1))
 
-covars = np.array([[[1., 0.9],  # Variables should be positively correlated in state 1
-                    [0.9, 1.]],
+covars = np.array([[[1., 0.8],  # Variables should be positively correlated in state 1
+                    [0.8, 1.]],
 
-                   [[1., -0.9],  # and negatively correlated in state 2
-                    [-0.9, 1.]],
+                   [[1., -0.8],  # and negatively correlated in state 2
+                    [-0.8, 1.]],
 
                    [[1., 0.],  # and not correlated in states 3 and 4
                     [0., 1.]],
@@ -87,3 +87,24 @@ plt.show()
 # use the Viterbi algorithm to predict the most likely sequence of states
 # given the model
 states = model.predict(X)
+
+# plot model states over time
+fig, ax = plt.subplots()
+ax.plot(Z, states)
+ax.set_title('States compared to generated')
+ax.set_xlabel('Generated State')
+ax.set_ylabel('Recovered State')
+fig.show()
+
+# plot the transition matrix
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 5))
+ax1.imshow(gen_model.transmat_, aspect='auto', cmap='spring')
+ax1.set_title('Generated Transition Matrix')
+ax2.imshow(model.transmat_, aspect='auto', cmap='spring')
+ax2.set_title('Recovered Transition Matrix')
+for ax in (ax1, ax2):
+    ax.set_xlabel('State To')
+    ax.set_ylabel('State From')
+
+plt.tight_layout()
+plt.show()
