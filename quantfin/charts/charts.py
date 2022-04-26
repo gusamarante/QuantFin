@@ -53,7 +53,7 @@ def timeseries(df, title=None, x_major_ticks='year', date_format='%Y', x_label=N
 
     plt.xticks(rotation=90)
 
-    x_max, x_min = df.dropna(how='all').index.max(), df.index.dropna(how='all').min()
+    x_max, x_min = df.index.max(), df.index.min()
     ax.set_xlim(x_min - pd.offsets.Day(1), x_max + pd.offsets.Day(1))
 
     ax.xaxis.set_major_formatter(mdates.DateFormatter(date_format))

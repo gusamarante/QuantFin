@@ -75,10 +75,10 @@ df = pd.concat([df, aux], axis=1)
 # ===========================
 # ===== Fundo Exclusivo =====
 # ===========================
-# BDIV11
-aux = pd.read_excel(file_path.joinpath('BDIV11.xlsx'),
+# BDIV
+aux = pd.read_excel(file_path.joinpath('BDIV.xlsx'),
                     index_col=0, sheet_name='Tracker')
-aux = aux['BDIV11']
+aux = aux['BDIV']
 aux.index = pd.to_datetime(aux.index)
 df = pd.concat([df, aux], axis=1)
 

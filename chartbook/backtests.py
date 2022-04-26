@@ -17,8 +17,8 @@ pd.options.display.width = 250
 show_charts = False
 long_run_sharpe = 0.2
 y_star = 0.5
-chosen_assets = ['LTN Longa', 'NTNF Curta', 'NTNF Longa', 'NTNB Curta', 'NTNB Longa',
-                 'BDIV11', 'IVVB', 'BBSD', 'FIND', 'GOVE', 'MATB']
+chosen_assets = ['BDIV', 'IVVB', 'NTNB Curta', 'NTNF Curta', 'BBSD', 'FIND', 'NTNF Longa', 'LTN Longa', 'GOVE',
+                 'NTNB Longa', 'MATB']
 
 # Grab data
 df_tri = tracker_feeder()
@@ -84,6 +84,14 @@ weights_hrp = bt_hrp.weights.iloc[-1].rename('HRP')
 # ===================
 # ===== Reports =====
 # ===================
+# Correlations
+df_corr = df_eri.pct_change().ewm(com=252 * 5, min_periods=63).corr()
+for asset in tqdm(df_eri.columns, 'Generating Correlations'):
+    timeseries(df_corr.xs(asset, level=1).dropna(how='all').drop(asset, axis=1),
+               title=f'{asset} - Rolling Correlations',
+               show_chart=show_charts, legend_cols=2,
+               save_path=DROPBOX.joinpath(f'charts/{asset} - Rolling Correlations.pdf'))
+
 # Performance of the allocations
 perf_bt = Performance(df_bt, skip_dd=False, rolling_window=252)
 print(perf_bt.table)

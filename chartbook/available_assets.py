@@ -1,3 +1,7 @@
+"""
+Generates individual charts and filters the assets
+"""
+
 from quantfin.data import tracker_feeder, SGS, DROPBOX
 from quantfin.portfolio import Performance
 from quantfin.finmath import compute_eri
@@ -6,8 +10,6 @@ import matplotlib.pyplot as plt
 from pathlib2 import Path
 from tqdm import tqdm
 import pandas as pd
-
-# TODO add rolling measures to chartbook
 
 pd.set_option('display.max_rows', 100)
 pd.set_option('display.max_columns', 100)
@@ -61,10 +63,22 @@ writer.save()
 # Charts
 for asset in tqdm(df_eri.columns, 'Generating Charts'):
 
-    df_plot = df_tri[asset].dropna()
-    timeseries(df_plot, title=f'{asset} - Total Return Index',
+    df_plot = df_eri[asset].dropna()
+    timeseries(df_plot, title=f'{asset} - Excess Return Index',
                show_chart=show_charts,
-               save_path=DROPBOX.joinpath(f'charts/{asset} - Total Return Index.pdf'))
+               save_path=DROPBOX.joinpath(f'charts/{asset} - Excess Return Index.pdf'))
+
+    timeseries(perf_t.rolling_return[asset], title=f'{asset} - Rolling Return',
+               show_chart=show_charts,
+               save_path=DROPBOX.joinpath(f'charts/{asset} - Rolling Return.pdf'))
+
+    timeseries(perf_t.rolling_std[asset], title=f'{asset} - Rolling Vol',
+               show_chart=show_charts,
+               save_path=DROPBOX.joinpath(f'charts/{asset} - Rolling Vol.pdf'))
+
+    timeseries(perf_t.rolling_sharpe[asset], title=f'{asset} - Rolling Sharpe',
+               show_chart=show_charts,
+               save_path=DROPBOX.joinpath(f'charts/{asset} - Rolling Sharpe.pdf'))
 
     perf_t.plot_drawdowns(asset, show_chart=show_charts,
                           save_path=DROPBOX.joinpath(f'charts/{asset} - Drawdowns.pdf'))

@@ -10,6 +10,7 @@ class EqualWeights(object):
 
     def __init__(self, df, name='Equal Weighted'):
         # TODO Documentation
+        df = df.fillna(method='pad')
         self.weights = (~df.isna()).div(df.count(axis=1), axis=0)
         self.returns = (self.weights * df.pct_change(1).dropna(how='all')).sum(axis=1)
         self.return_index = 100 * (1 + self.returns).cumprod()
