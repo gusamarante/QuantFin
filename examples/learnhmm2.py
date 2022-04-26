@@ -44,7 +44,7 @@ gen_model.means_ = means
 gen_model.covars_ = covars
 
 # Generate samples
-X, Z = gen_model.sample(500)
+X, Z = gen_model.sample(5000)
 
 # Plot the sampled data
 fig, ax = plt.subplots()
@@ -58,3 +58,32 @@ for i, m in enumerate(means):
             bbox=dict(alpha=.7, facecolor='w'))
 
 plt.show()
+
+# Estimate the parameters
+scores = list()
+models = list()
+plotx = list()
+for n_components in range(2, 9):
+    # define our hidden Markov model
+    model = hmm.GaussianHMM(n_components=n_components,
+                            covariance_type='full', n_iter=10)
+    model.fit(X[:X.shape[0] // 2])  # 50/50 train/validate
+    models.append(model)
+    scores.append(model.score(X[X.shape[0] // 2:]))
+    plotx.append(n_components)
+    print(f'Converged: {model.monitor_.converged}'
+          f'\tScore: {scores[-1]}')
+
+
+# get the best model
+model = models[np.argmax(scores)]
+n_states = model.n_components
+print(f'The best model had a score of {max(scores)} and {n_states} '
+      'states')
+
+plt.plot(plotx, scores)
+plt.show()
+
+# use the Viterbi algorithm to predict the most likely sequence of states
+# given the model
+states = model.predict(X)
