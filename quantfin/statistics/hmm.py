@@ -6,7 +6,7 @@ import numpy as np
 
 class GaussianHMM(object):
 
-    def __init__(self, df_eri, n_states=None, select_iter=10):
+    def __init__(self, df_eri, n_states=None, select_iter=10, estimate_iter=100):
         # TODO Documentation - format is focused in finance
         # TODO result tables - Prob of persistance, average duration, relative frequency
         # TODO plot methods - return, std and sharpe by state, eri with states in the background, matrix transitions, distributions by state + normal mixture of the states

@@ -9,7 +9,7 @@ pd.options.display.width = 250
 
 # Parameters
 show_charts = False
-chosen_assets = ['NTNF Longa']
+chosen_assets = ['NTNF Longa', 'BOVA']
 
 # Grab data
 df_tri = tracker_feeder()
