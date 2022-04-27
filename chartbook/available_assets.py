@@ -1,7 +1,7 @@
 """
 Generates individual charts and filters the assets
 """
-
+# TODO TRI vs CDI
 from quantfin.data import tracker_feeder, SGS, DROPBOX
 from quantfin.portfolio import Performance
 from quantfin.finmath import compute_eri

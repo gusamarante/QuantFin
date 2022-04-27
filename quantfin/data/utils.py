@@ -67,6 +67,7 @@ def tracker_uploader(data, conn=None):
 
 def tracker_feeder(conn=None):
     # TODO Documentation
+    # TODO deal with missing data
     # If no connection is passed, grabs the default one
     if conn is None:
         conn = grab_connection()
@@ -75,5 +76,6 @@ def tracker_feeder(conn=None):
     df = pd.read_sql(sql=query, con=conn)
     df = df.pivot('index', 'variable', 'value')
     df.index = pd.to_datetime(df.index)
+    df = df.interpolate(limit_area='inside')
 
     return df
