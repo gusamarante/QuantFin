@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from hmmlearn import hmm
+import pandas as pd
 import numpy as np
 
 # Prepare parameters for a 4-state / 2-variable
@@ -44,7 +45,7 @@ gen_model.means_ = means
 gen_model.covars_ = covars
 
 # Generate samples
-X, Z = gen_model.sample(5000)
+X, Z = gen_model.sample(1000)
 
 # Plot the sampled data
 fig, ax = plt.subplots()
@@ -63,7 +64,7 @@ plt.show()
 scores = list()
 models = list()
 plotx = list()
-for n_components in range(2, 9):
+for n_components in range(2, 20):
     # define our hidden Markov model
     model = hmm.GaussianHMM(n_components=n_components,
                             covariance_type='full', n_iter=10)
@@ -80,6 +81,8 @@ model = models[np.argmax(scores)]
 n_states = model.n_components
 print(f'The best model had a score of {max(scores)} and {n_states} '
       'states')
+
+select_state = pd.Series(index=plotx, data=scores)
 
 plt.plot(plotx, scores)
 plt.show()
