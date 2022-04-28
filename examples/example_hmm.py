@@ -27,4 +27,3 @@ df_eri = compute_eri(df_tri, df_cdi)
 # Get HMM
 hmm = GaussianHMM(returns=df_eri.pct_change(1).dropna())
 hmm.select_order(show_chart=True, select_iter=2)
-
