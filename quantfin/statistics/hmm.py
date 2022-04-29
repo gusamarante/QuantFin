@@ -15,13 +15,11 @@ class GaussianHMM(object):
     #      - instability of the estimator
 
     # TODO Stuff to check
-    #      - Do NAs work?
-    #      - understand the priors
-    #      - check consistency of estimates
+    #      - understand the options for prior parameters
 
     # TODO plot methods
     #      - DF with states in the background
-    #      - network de transição de states
+    #      - networkx de transição de states
     #      - distributions by state + normal mixture of the states
 
     # TODO before showing
