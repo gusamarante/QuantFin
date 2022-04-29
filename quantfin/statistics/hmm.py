@@ -24,7 +24,7 @@ class GaussianHMM(object):
     vols = None
 
     def __init__(self, returns):
-        # TODO Documentation - format is focused in finance, Do NAs work?, kind of a wrapper for DFs and our interests and instability of the estimator
+        # TODO Documentation - format is focused in finance, Do NAs work?, kind of a wrapper for DFs and our interests and instability of the estimator, always order the states by most to least likely
         # TODO understand the priors, check consistency of estimates, sort states in order of persistence
         # TODO plot methods - return, std and sharpe by state, eri with states in the background, matrix transitions, distributions by state + normal mixture of the states, network de transição de states
         # TODO Examples with simulated and real data, visualize change in correlations
@@ -93,38 +93,49 @@ class GaussianHMM(object):
             model_dict[model.score(self.returns)] = model
 
         chosen_model = model_dict[max(model_dict.keys())]
-        self.score = chosen_model.score(self.returns)
+        sort_order = np.flip(np.argsort(np.diag(chosen_model.transmat_)))
 
-        self.trans_mat = pd.DataFrame(data=chosen_model.transmat_,
+        # Build the sorted model
+        sorted_model = hmm.GaussianHMM(n_components=self.n_states,
+                                       covariance_type='full')
+
+        sorted_model.startprob_ = chosen_model.startprob_[sort_order]
+        sorted_model.transmat_ = pd.DataFrame(chosen_model.transmat_).loc[sort_order, sort_order].values
+        sorted_model.means_ = chosen_model.means_[sort_order, :]
+        sorted_model.covars_ = chosen_model.covars_[sort_order, :, :]
+
+        self.score = sorted_model.score(self.returns)
+
+        self.trans_mat = pd.DataFrame(data=sorted_model.transmat_,
                                       index=[f'From State {s + 1}' for s in range(self.n_states)],
                                       columns=[f'To State {s + 1}' for s in range(self.n_states)])
 
-        self.avg_duration = pd.Series(data=1 / (1 - np.diag(chosen_model.transmat_)),
+        self.avg_duration = pd.Series(data=1 / (1 - np.diag(sorted_model.transmat_)),
                                       index=[f'State {s + 1}' for s in range(self.n_states)],
                                       name='Average Duration')
 
-        self.stationary_dist = pd.Series(data=chosen_model.get_stationary_distribution(),
+        self.stationary_dist = pd.Series(data=sorted_model.get_stationary_distribution(),
                                          index=[f'State {s + 1}' for s in range(self.n_states)],
                                          name='Stationary Distribution of States')
 
-        self.means = pd.DataFrame(data=chosen_model.means_,
+        self.means = pd.DataFrame(data=sorted_model.means_,
                                   index=[f'State {s + 1}' for s in range(self.n_states)],
                                   columns=self.returns.columns)
 
-        vol_data = [list(np.sqrt(np.diag(chosen_model.covars_[ss]))) for ss in range(self.n_states)]
+        vol_data = [list(np.sqrt(np.diag(sorted_model.covars_[ss]))) for ss in range(self.n_states)]
         self.vols = pd.DataFrame(data=vol_data, columns=self.returns.columns,
                                  index=[f'State {s + 1}' for s in range(self.n_states)])
 
         idx = pd.MultiIndex.from_product([[f'State {s + 1}' for s in range(self.n_states)],
                                           self.returns.columns])
         self.covars = pd.DataFrame(index=idx, columns=self.returns.columns,
-                                   data=chosen_model.covars_.reshape(-1, self.n_var))
+                                   data=sorted_model.covars_.reshape(-1, self.n_var))
 
-        corr_data = [cov2corr(chosen_model.covars_[ss])[0] for ss in range(self.n_states)]
+        corr_data = [cov2corr(sorted_model.covars_[ss])[0] for ss in range(self.n_states)]
         self.corrs = pd.DataFrame(index=idx, columns=self.returns.columns,
                                   data=np.concatenate(corr_data))
 
-        self.predicted_state = pd.Series(data=chosen_model.predict(self.returns) + 1,
+        self.predicted_state = pd.Series(data=sorted_model.predict(self.returns) + 1,
                                          index=self.returns.index,
                                          name='Predicted State')
 
@@ -133,6 +144,6 @@ class GaussianHMM(object):
                                     index=[f'State {s + 1}' for s in range(self.n_states)],
                                     name='State Frequency')
 
-        self.state_probs = pd.DataFrame(data=chosen_model.predict_proba(self.returns),
+        self.state_probs = pd.DataFrame(data=sorted_model.predict_proba(self.returns),
                                         index=self.returns.index,
                                         columns=[f'State {s + 1}' for s in range(self.n_states)])
