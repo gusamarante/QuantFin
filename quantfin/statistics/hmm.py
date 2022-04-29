@@ -71,13 +71,6 @@ class GaussianHMM(object):
             ax.xaxis.grid(color='grey', linestyle='-', linewidth=0.5, alpha=0.5)
             ax.set_xlabel('Number of States')
             ax.set_ylabel('Log-likelihood')
-            ax.axvline(most_concave, color='red')
-            ymin, ymax = ax.get_ylim()
-            height = ymin + (ymax - ymin) * 0.05
-            ax.text(most_concave + 0.2, height, '"Elbow" Rule - Most concave point',
-                    size=8, horizontalalignment='left', backgroundcolor='red',
-                    color='red',
-                    bbox=dict(alpha=.8, facecolor='w'))
             plt.tight_layout()
             plt.show()
 
