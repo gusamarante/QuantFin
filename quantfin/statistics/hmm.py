@@ -8,6 +8,25 @@ import numpy as np
 
 
 class GaussianHMM(object):
+    # TODO Documentation
+    #      - format is focused in finance
+    #      - kind of a wrapper for DFs
+    #      - our interests
+    #      - instability of the estimator
+
+    # TODO Stuff to check
+    #      - Do NAs work?
+    #      - understand the priors
+    #      - check consistency of estimates
+
+    # TODO plot methods
+    #      - DF with states in the background
+    #      - network de transição de states
+    #      - distributions by state + normal mixture of the states
+
+    # TODO before showing
+    #      - Examples with simulated data, to show consistency
+    #      - Example with real data, to see it in action, with all the examples from my file
 
     predicted_state = None
     state_selection = None
@@ -24,17 +43,10 @@ class GaussianHMM(object):
     vols = None
 
     def __init__(self, returns):
-        # TODO Documentation - format is focused in finance, Do NAs work?, kind of a wrapper for DFs and our interests and instability of the estimator, always order the states by most to least likely
-        # TODO understand the priors, check consistency of estimates, sort states in order of persistence
-        # TODO plot methods - return, std and sharpe by state, eri with states in the background, matrix transitions, distributions by state + normal mixture of the states, network de transição de states
-        # TODO Examples with simulated and real data, visualize change in correlations
-        # TODO notebook with functionalities
-
         self.returns = returns
         self.n_var = returns.shape[1]
 
     def select_order(self, max_state_number=8, select_iter=10, show_chart=False):
-        # TODO documentation
         self.state_selection = pd.Series(name='HMM Score')
 
         for ns in tqdm(range(1, max_state_number + 1), 'Computing scores for a different number of states'):
@@ -74,7 +86,6 @@ class GaussianHMM(object):
         return most_concave
 
     def fit(self, fit_iter=100, n_states=None, max_state_number=8, select_iter=10):
-        # TODO Documentation
 
         if n_states is None:
             self.n_states = self.select_order(max_state_number=max_state_number,
