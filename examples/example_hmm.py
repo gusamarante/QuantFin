@@ -39,6 +39,8 @@ print(hmm.state_freq.round(3)*100)
 print(hmm.stationary_dist.round(3)*100, '\n')
 
 # Plots
+hmm.digraph()
+
 hmm.predicted_state.plot(title='Predicted State')
 plt.tight_layout()
 plt.show()

@@ -2,8 +2,9 @@ from matplotlib.colors import LinearSegmentedColormap
 from quantfin.statistics import cov2corr
 import matplotlib.ticker as plticker
 import matplotlib.pyplot as plt
-from colour import Color
 from hmmlearn import hmm
+from colour import Color
+import networkx as nx
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
@@ -171,3 +172,7 @@ class GaussianHMM(object):
 
         plt.tight_layout()
         plt.show()
+
+    def digraph(self):
+        # hmm.trans_mat.melt(ignore_index=False).reset_index()
+        pass
