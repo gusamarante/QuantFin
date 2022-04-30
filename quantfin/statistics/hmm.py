@@ -1,6 +1,8 @@
+from matplotlib.colors import LinearSegmentedColormap
 from quantfin.statistics import cov2corr
 import matplotlib.ticker as plticker
 import matplotlib.pyplot as plt
+from colour import Color
 from hmmlearn import hmm
 from tqdm import tqdm
 import pandas as pd
@@ -14,17 +16,11 @@ class GaussianHMM(object):
     #      - our interests
     #      - instability of the estimator
 
-    # TODO Stuff to check
-    #      - understand the options for prior parameters
-
     # TODO plot methods
-    #      - DF with states in the background
     #      - networkx de transição de states
     #      - distributions by state + normal mixture of the states
-
-    # TODO before showing
-    #      - Examples with simulated data, to show consistency
-    #      - Example with real data, to see it in action, with all the examples from my file
+    #      - Forecast of states (based on current and on probabilities)
+    #      - Simulate returns
 
     predicted_state = None
     state_selection = None
@@ -149,3 +145,29 @@ class GaussianHMM(object):
         self.state_probs = pd.DataFrame(data=sorted_model.predict_proba(self.returns),
                                         index=self.returns.index,
                                         columns=[f'State {s + 1}' for s in range(self.n_states)])
+
+    def plot(self, data):
+        white = Color("white")
+        red = Color("red")
+        colors = list(white.range_to(red, self.n_states))
+
+        mindt, maxdt = min(self.predicted_state.index), max(self.predicted_state.index)
+        data = data[data.index >= mindt]
+        data = data[data.index <= maxdt]
+
+        if isinstance(data, pd.Series):
+
+            ax = data.plot(title=data.name)
+
+            for st in range(self.n_states):
+                dates = self.predicted_state[self.predicted_state == st + 1].index
+                for dt in dates:
+                    ax.axvspan(dt - pd.tseries.offsets.MonthBegin(),
+                               dt + pd.tseries.offsets.MonthEnd(),
+                               alpha=0.3, color=colors[st].hex, lw=0)
+
+        else:
+            pass
+
+        plt.tight_layout()
+        plt.show()

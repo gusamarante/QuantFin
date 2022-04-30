@@ -9,33 +9,36 @@ pd.options.display.width = 250
 
 # Parameters
 show_charts = False
-chosen_assets = ['NTNB Longa', 'NTNF Longa', 'IVVB', 'BOVA']
+chosen_assets = ['NTNB Longa', 'NTNF Longa', 'BOVA']
+
+# SGS
+sgs = SGS()
+df_sgs = sgs.fetch({12: 'CDI',
+                    1: 'BRL'})
+df_cdi = df_sgs['CDI'] / 100
 
 # Grab data
 df_tri = tracker_feeder()
 df_tri = df_tri[chosen_assets]
-df_tri = df_tri.resample('M').last()
 df_tri = df_tri.dropna(how='all')
-
-# Risk-free
-sgs = SGS()
-df_cdi = sgs.fetch({12: 'CDI'})
-df_cdi = df_cdi['CDI'] / 100
+df_tri['BRL'] = df_sgs['BRL']
 
 # Compute ERI
 df_eri = compute_eri(df_tri, df_cdi)
 
 # Get HMM
-hmm = GaussianHMM(returns=df_eri.pct_change(1).dropna())
-# hmm.select_order(show_chart=True)
-hmm.fit(n_states=2, fit_iter=100)
+hmm = GaussianHMM(returns=df_eri.resample('M').last().pct_change().dropna())
+# hmm.select_order(show_chart=True, select_iter=20)
+hmm.fit(n_states=3, fit_iter=100)
 
+# attributes
 print(hmm.score)
 print(hmm.trans_mat.round(3)*100, '\n')
 print(hmm.avg_duration.round(1), '\n')
 print(hmm.state_freq.round(3)*100)
 print(hmm.stationary_dist.round(3)*100, '\n')
 
+# Plots
 hmm.predicted_state.plot(title='Predicted State')
 plt.tight_layout()
 plt.show()
@@ -52,6 +55,14 @@ hmm.vols.plot(kind='bar', title='Vols')
 plt.tight_layout()
 plt.show()
 
-hmm.corrs.xs('NTNB Longa', level=1).drop('NTNB Longa', axis=1).plot(kind='bar', title='Correlations of NTNB')
+(hmm.means / hmm.vols).plot(kind='bar', title='Sharpe')
 plt.tight_layout()
 plt.show()
+
+for asset in df_eri.columns:
+    hmm.plot(data=df_tri[asset].resample('M').last())
+
+    hmm.corrs.xs(asset, level=1).drop(asset, axis=1).plot(kind='bar', title=f'Correlations of {asset}')
+    plt.axhline(0, color='black', linewidth=1)
+    plt.tight_layout()
+    plt.show()
