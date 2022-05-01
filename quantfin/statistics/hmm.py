@@ -2,6 +2,7 @@ from matplotlib.colors import LinearSegmentedColormap
 from quantfin.statistics import cov2corr
 import matplotlib.ticker as plticker
 import matplotlib.pyplot as plt
+from scipy.stats import norm
 from hmmlearn import hmm
 from colour import Color
 import networkx as nx
@@ -147,7 +148,7 @@ class GaussianHMM(object):
                                         index=self.returns.index,
                                         columns=[f'State {s + 1}' for s in range(self.n_states)])
 
-    def plot(self, data):
+    def plot_series(self, data):
         white = Color("white")
         red = Color("red")
         colors = list(white.range_to(red, self.n_states))
@@ -173,6 +174,33 @@ class GaussianHMM(object):
         plt.tight_layout()
         plt.show()
 
-    def digraph(self):
-        # hmm.trans_mat.melt(ignore_index=False).reset_index()
-        pass
+    def plot_densities(self):
+
+        n_subplots = self.n_var
+        n_rows = int(np.floor(np.sqrt(n_subplots)))
+        n_cols = int(np.ceil(n_subplots / n_rows))
+        n_bins = int(np.ceil(np.sqrt(self.returns.shape[0])))
+
+        fig, axes = plt.subplots(n_rows, n_cols, figsize=(10, 8))
+
+        for ax, asset in zip(axes.ravel(), list(self.returns.columns)):
+            ax.set_title(asset)
+
+            ax.hist(self.returns[asset], bins=n_bins, density=True, color='grey', alpha=0.3)
+            xmin, xmax = ax.get_xlim()
+            rangex = np.linspace(xmin, xmax, 100)
+            mix_density = np.zeros(100)
+
+            for state in range(self.n_states):
+                mean = self.means[asset].iloc[state]
+                std = self.vols[asset].iloc[state]
+                density = self.stationary_dist.iloc[state] * norm(loc=mean, scale=std).pdf(rangex)
+                mix_density = mix_density + density
+                ax.plot(rangex, density, label=f'State {state + 1}', lw=1)
+
+            ax.plot(rangex, mix_density, label='Mixture', lw=2)
+
+        axes[0, 0].legend(loc='best')
+
+        plt.tight_layout()
+        plt.show()

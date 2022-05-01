@@ -29,7 +29,7 @@ df_eri = compute_eri(df_tri, df_cdi)
 # Get HMM
 hmm = GaussianHMM(returns=df_eri.resample('M').last().pct_change().dropna())
 # hmm.select_order(show_chart=True, select_iter=20)
-hmm.fit(n_states=3, fit_iter=100)
+hmm.fit(n_states=3, fit_iter=10)
 
 # attributes
 print(hmm.score)
@@ -39,8 +39,6 @@ print(hmm.state_freq.round(3)*100)
 print(hmm.stationary_dist.round(3)*100, '\n')
 
 # Plots
-hmm.digraph()
-
 hmm.predicted_state.plot(title='Predicted State')
 plt.tight_layout()
 plt.show()
@@ -61,8 +59,10 @@ plt.show()
 plt.tight_layout()
 plt.show()
 
+hmm.plot_densities()
+
 for asset in df_eri.columns:
-    hmm.plot(data=df_tri[asset].resample('M').last())
+    hmm.plot_series(data=df_tri[asset].resample('M').last())
 
     hmm.corrs.xs(asset, level=1).drop(asset, axis=1).plot(kind='bar', title=f'Correlations of {asset}')
     plt.axhline(0, color='black', linewidth=1)
