@@ -467,6 +467,40 @@ class HRP(object):
         plt.close()
 
 
+class ERC(object):
+    """
+    Implements Equal Risk Contribution portfolio
+    """
+
+    def __init__(self, cov, vol_target=0.10):
+        """
+        Combines the assets in 'cov' so that all of them have equal contributions to the
+        overall risk of the portfolio.
+        :param cov: pandas DataFrame with the covariance matrix of returns
+        :param vol_target: float, target volatility of the porfolio
+        """
+        self.vol_target = vol_target
+        self.n_assets = cov.shape[0]
+        self.cov = cov
+
+        cons = ({'type': 'ineq',
+                 'fun': lambda w: vol_target - self._port_vol(w)},  # <= 0
+                {'type': 'eq',
+                 'fun': lambda w: 1 - w.sum()})
+        w0 = np.zeros(self.n_assets)
+        res = minimize(self._dist_to_target, w0, method='SLSQP', constraints=cons)
+        self.weights = pd.Series(index=cov.columns, data=res.x, name='ERC')
+
+    def _port_vol(self, w):
+        return np.sqrt(w.dot(self.cov).dot(w))
+
+    def _risk_contribution(self, w):
+        return w * ((w @ self.cov) / (self._port_vol(w)**2))
+
+    def _dist_to_target(self, w):
+        return np.abs(self._risk_contribution(w) - np.ones(self.n_assets)/self.n_assets).sum()
+
+
 class MinVar(object):
     """
     Implements Minimal Variance Portfolio
@@ -501,42 +535,6 @@ class MinVar(object):
 
     def _port_var(self, w):
         return w.dot(self.cov).dot(w)
-
-
-class ERC(object):
-    """
-    Implements Equal Risk Contribution portfolio
-    """
-    # TODO review this class
-
-    def __init__(self, data, vol_target=0.10):
-        """
-        Combines the assets in 'data' so that all of them have equal contributions to the overall risk of the portfolio.
-        Returns an object with the following atributes:
-            - 'cov': covariance matrix of the returns
-            - 'weights': final weights for each asset
-        :param data: pandas DataFrame where each column is a series of returns
-        """
-        self.cov = data.cov()
-        self.vol_target = vol_target
-        self.n_assets = self.cov.shape[0]
-
-        cons = ({'type': 'ineq',
-                 'fun': lambda w: vol_target - self._port_vol(w)},  # <= 0
-                {'type': 'eq',
-                 'fun': lambda w: 1 - w.sum()})
-        w0 = np.zeros(self.n_assets)
-        res = minimize(self._dist_to_target, w0, method='SLSQP', constraints=cons)
-        self.weights = pd.Series(index=self.cov.columns, data=res.x, name='ERC')
-
-    def _port_vol(self, w):
-        return np.sqrt(w.dot(self.cov).dot(w))
-
-    def _risk_contribution(self, w):
-        return w * ((w @ self.cov) / (self._port_vol(w)**2))
-
-    def _dist_to_target(self, w):
-        return np.abs(self._risk_contribution(w) - np.ones(self.n_assets)/self.n_assets).sum()
 
 
 class BlackLitterman(object):
