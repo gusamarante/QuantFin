@@ -1,4 +1,4 @@
-from quantfin.portfolio import MaxSharpe, HRP
+from quantfin.portfolio import MaxSharpe, HRP, ERC
 from tqdm import tqdm
 import pandas as pd
 
@@ -12,10 +12,10 @@ class BacktestMaxSharpe(object):
 
         # TODO assert types, cov is multiindex, expected returns is DataFrame
         self.weights = pd.DataFrame(columns=eri.columns)
-        self.expected_return = pd.Series(name='Expected Return')
-        self.expected_vol = pd.Series(name='Expected Vol')
+        self.expected_return = pd.Series(name='Expected Return', dtype=float)
+        self.expected_vol = pd.Series(name='Expected Vol', dtype=float)
 
-        for date in tqdm(rebalance_dates, 'Max Sharpe'):
+        for date in tqdm(rebalance_dates, name):
 
             # check if parameters are both available for this date, otherwise continue
             try:
@@ -66,7 +66,7 @@ class BacktestHRP(object):
         # TODO assert types, cov is multiindex, expected returns is DataFrame
         self.weights = pd.DataFrame(columns=eri.columns)
 
-        for date in tqdm(rebalance_dates, 'HRP'):
+        for date in tqdm(rebalance_dates, name):
 
             # check if parameters are both available for this date, otherwise continue
             try:
@@ -79,6 +79,38 @@ class BacktestHRP(object):
             hrp = HRP(cov=sigma, method=method, metric=metric)
 
             self.weights.loc[date] = hrp.weights
+
+        self.weights = self.weights.resample('D').last().fillna(method='ffill')
+        self.weights = self.weights.reindex(eri.index, method='pad')
+
+        return_index = (self.weights * eri.pct_change(1, fill_method=None))
+        return_index = return_index.sum(axis=1, min_count=1).dropna()
+        return_index = (1 + return_index).cumprod()
+        return_index = 100 * return_index / return_index.iloc[0]
+        self.return_index = return_index.rename(name)
+
+
+class BacktestERC(object):
+
+    # TODO Documentation
+
+    def __init__(self, eri, cov, rebalance_dates, vol_target=0.1, name='HRP'):
+
+        self.weights = pd.DataFrame(columns=eri.columns)
+
+        for date in tqdm(rebalance_dates, name):
+
+            # check if parameters are both available for this date, otherwise continue
+            try:
+                sigma = cov.xs(date)
+            except KeyError:
+                continue
+
+            sigma = sigma.dropna(how='all', axis=0).dropna(how='all', axis=1)
+
+            erc = ERC(cov=sigma, vol_target=vol_target)
+
+            self.weights.loc[date] = erc.weights
 
         self.weights = self.weights.resample('D').last().fillna(method='ffill')
         self.weights = self.weights.reindex(eri.index, method='pad')

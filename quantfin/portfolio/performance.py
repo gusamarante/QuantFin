@@ -222,14 +222,14 @@ class Performance(object):
 
             df_add['duration'] = (df_add['end'] - df_add['start']).dt.days
 
-            df_drawdowns = df_drawdowns.append(df_add)
+            df_drawdowns = pd.concat([df_drawdowns, df_add])
 
         df_drawdowns['dd'] = df_drawdowns['dd'].astype(float)
         return df_drawdowns
 
     def _get_ann_returns(self):
 
-        df_ret = pd.Series(name='Annualized Returns')
+        df_ret = pd.Series(name='Annualized Returns', dtype=float)
         for col in self.total_return.columns:
             aux = self.total_return[col].dropna()
             start, end = aux.iloc[0], aux.iloc[-1]
@@ -240,7 +240,7 @@ class Performance(object):
 
     def _get_ann_std(self):
 
-        df_std = pd.Series(name='Annualized Standard Deviation')
+        df_std = pd.Series(name='Annualized Standard Deviation', dtype=float)
         for col in self.total_return.columns:
             aux = self.returns_ts[col].dropna()
             df_std.loc[col] = aux.std() * np.sqrt(252)
@@ -249,7 +249,7 @@ class Performance(object):
 
     def _get_sortino(self):
 
-        df_sor = pd.Series(name='Sortino')
+        df_sor = pd.Series(name='Sortino', dtype=float)
         for col in self.total_return.columns:
             aux = self.returns_ts[col][self.returns_ts[col] < 0].dropna()
             df_sor.loc[col] = self.returns_ann[col] / (np.sqrt(252) * aux.std())

@@ -12,10 +12,6 @@ def timeseries(df, title=None, x_major_ticks='year', date_format='%Y', x_label=N
                fontsize=15, legend_cols=1, save_path=None, show_chart=False):
     # TODO Documentation
 
-    MyFont = {'fontname': 'Century Gothic'}
-    rcParams['font.family'] = 'sans-serif'
-    rcParams['font.sans-serif'] = ['Century Gothic']
-
     fig = plt.figure(figsize=(12, 12 * 0.61))  # TODO add option to pass the axis
     ax = fig.gca()
 
@@ -33,12 +29,12 @@ def timeseries(df, title=None, x_major_ticks='year', date_format='%Y', x_label=N
     ax.legend(ncol=legend_cols)
 
     if x_label is not None:
-        plt.xlabel(x_label, MyFont)
+        plt.xlabel(x_label)
 
     if y_label is not None:
-        plt.ylabel(y_label, MyFont)
+        plt.ylabel(y_label)
 
-    ax.set_title(title, fontdict={'fontsize': fontsize + 2, 'fontweight': 'bold'}, **MyFont)
+    ax.set_title(title, fontdict={'fontsize': fontsize + 2, 'fontweight': 'bold'})
 
     ax.yaxis.grid(color='grey', linestyle='-', linewidth=0.5, alpha=0.5)
     ax.xaxis.grid(color='grey', linestyle='-', linewidth=0.5, alpha=0.5)

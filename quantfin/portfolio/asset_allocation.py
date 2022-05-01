@@ -1,12 +1,14 @@
 from scipy.optimize import minimize, Bounds
 from quantfin.statistics import cov2corr
 import scipy.cluster.hierarchy as sch
+from warnings import simplefilter
 import matplotlib.pyplot as plt
 from numpy.linalg import inv
 from tqdm import tqdm
 import seaborn as sns
 import pandas as pd
 import numpy as np
+simplefilter("ignore", sch.ClusterWarning)
 
 
 class MaxSharpe(object):
@@ -382,7 +384,7 @@ class HRP(object):
             j = df0.values - num_items
             sort_ix[i] = link[j, 0]  # item 1
             df0 = pd.Series(link[j, 1], index=i+1)
-            sort_ix = sort_ix.append(df0)  # item 2
+            sort_ix = pd.concat([sort_ix, df0])  # item 2  # TODO change append to concat
             sort_ix = sort_ix.sort_index()  # re-sort
             sort_ix.index = range(sort_ix.shape[0])  # re-index
         return sort_ix.tolist()
