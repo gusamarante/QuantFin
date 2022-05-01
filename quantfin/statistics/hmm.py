@@ -1,4 +1,3 @@
-from matplotlib.colors import LinearSegmentedColormap
 from quantfin.statistics import cov2corr
 import matplotlib.ticker as plticker
 import matplotlib.pyplot as plt
@@ -20,7 +19,6 @@ class GaussianHMM(object):
 
     # TODO plot methods
     #      - networkx de transição de states
-    #      - distributions by state + normal mixture of the states
     #      - Forecast of states (based on current and on probabilities)
     #      - Simulate returns
 
