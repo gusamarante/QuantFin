@@ -474,24 +474,34 @@ class ERC(object):
     Implements Equal Risk Contribution portfolio
     """
 
-    def __init__(self, cov, vol_target=0.10):
+    def __init__(self, cov, bounded=True):
+        # TODO adapt to numpy array inputs
+        # TODO add a check to see if the resulting risk contributions are the same
         """
         Combines the assets in 'cov' so that all of them have equal contributions to the
         overall risk of the portfolio.
         :param cov: pandas DataFrame with the covariance matrix of returns
-        :param vol_target: float, target volatility of the porfolio
+        :param vol_target: float, minimum volatility that the optimization will target
         """
-        self.vol_target = vol_target
         self.n_assets = cov.shape[0]
         self.cov = cov
 
+        if bounded:
+            bounds = np.hstack([np.zeros((cov.shape[0], 1)), np.ones((cov.shape[0], 1))])
+        else:
+            bounds = None
+
         cons = ({'type': 'ineq',
-                 'fun': lambda w: vol_target - self._port_vol(w)},  # <= 0
+                 'fun': lambda w: self._port_vol(w)},  # <= 0
                 {'type': 'eq',
                  'fun': lambda w: 1 - w.sum()})
         w0 = np.zeros(self.n_assets)
-        res = minimize(self._dist_to_target, w0, method='SLSQP', constraints=cons)
+        res = minimize(self._dist_to_target, w0, method='SLSQP', constraints=cons, bounds=bounds)
         self.weights = pd.Series(index=cov.columns, data=res.x, name='ERC')
+        self.vol = np.sqrt(res.x @ cov @ res.x)
+        self.marginal_risk = (res.x @ cov) / self.vol
+        self.risk_contribution = self.marginal_risk * res.x
+        self.risk_contribution_ratio = self.risk_contribution / self.vol
 
     def _port_vol(self, w):
         return np.sqrt(w.dot(self.cov).dot(w))
