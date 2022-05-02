@@ -11,6 +11,8 @@ import numpy as np
 def timeseries(df, title=None, x_major_ticks='year', date_format='%Y', x_label=None, y_label=None,
                fontsize=15, legend_cols=1, save_path=None, show_chart=False):
     # TODO Documentation
+    if df.empty:
+        return
 
     fig = plt.figure(figsize=(12, 12 * 0.61))  # TODO add option to pass the axis
     ax = fig.gca()

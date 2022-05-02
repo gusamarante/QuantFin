@@ -1,9 +1,7 @@
-from quantfin.portfolio import Performance, EqualWeights, BacktestMaxSharpe, BacktestHRP, HRP, ERC, BacktestERC
+from quantfin.portfolio import Performance, EqualWeights, BacktestMaxSharpe, BacktestHRP, HRP, BacktestERC
 from quantfin.data import tracker_feeder, SGS, DROPBOX
 from quantfin.simulation import Diffusion
-from quantfin.statistics import cov2corr
 from quantfin.finmath import compute_eri
-from pandas.tseries.offsets import BDay
 from quantfin.charts import timeseries
 import matplotlib.pyplot as plt
 from tqdm import tqdm

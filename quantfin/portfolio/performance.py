@@ -49,10 +49,6 @@ class Performance(object):
     def plot_drawdowns(self, name, n=5, show_chart=False, save_path=None):
         # TODO Documentation
 
-        MyFont = {'fontname': 'Century Gothic'}
-        rcParams['font.family'] = 'sans-serif'
-        rcParams['font.sans-serif'] = ['Century Gothic']
-
         tri = self.total_return[name].interpolate(limit_area='inside')
         fig = plt.figure(figsize=(12, 12 * 0.61))
         ax = fig.gca()
@@ -80,7 +76,7 @@ class Performance(object):
         for label in ax.get_xticklabels() + ax.get_yticklabels():
             label.set_fontsize(15)
 
-        ax.set_title(f'{name} - {n} Biggest Drawdowns', fontdict={'fontsize': 15 + 2, 'fontweight': 'bold'}, **MyFont)
+        ax.set_title(f'{name} - {n} Biggest Drawdowns', fontdict={'fontsize': 15 + 2, 'fontweight': 'bold'})
 
         plt.tight_layout()
 
@@ -94,10 +90,6 @@ class Performance(object):
 
     def plot_underwater(self, name, show_chart=False, save_path=None):
         # TODO Documentation
-
-        MyFont = {'fontname': 'Century Gothic'}
-        rcParams['font.family'] = 'sans-serif'
-        rcParams['font.sans-serif'] = ['Century Gothic']
 
         tr = self.total_return[name].dropna()
         exp_max = tr.expanding().max()
@@ -128,7 +120,7 @@ class Performance(object):
                 bbox=props, verticalalignment='top', horizontalalignment='left')
 
         ax.set_title(f'{name} - Underwater Chart',
-                     fontdict={'fontsize': 15 + 2, 'fontweight': 'bold'}, **MyFont)
+                     fontdict={'fontsize': 15 + 2, 'fontweight': 'bold'})
 
         plt.tick_params(axis='y', which='both', right=False, left=False, labelleft=True)
         plt.tick_params(axis='x', which='both', top=False, bottom=False, labelbottom=True)
