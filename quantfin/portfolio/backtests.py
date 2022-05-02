@@ -94,7 +94,7 @@ class BacktestERC(object):
 
     # TODO Documentation
 
-    def __init__(self, eri, cov, rebalance_dates, vol_target=0.1, name='HRP'):
+    def __init__(self, eri, cov, rebalance_dates, name='HRP'):
 
         self.weights = pd.DataFrame(columns=eri.columns)
 
@@ -108,7 +108,7 @@ class BacktestERC(object):
 
             sigma = sigma.dropna(how='all', axis=0).dropna(how='all', axis=1)
 
-            erc = ERC(cov=sigma, vol_target=vol_target)
+            erc = ERC(cov=sigma)
 
             self.weights.loc[date] = erc.weights
 
