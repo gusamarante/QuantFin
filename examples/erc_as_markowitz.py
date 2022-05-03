@@ -32,5 +32,14 @@ risk_contribution_ratio = risk_contribution / vol_ew
 # ERC
 erc = ERC(cov)
 
-print('vol', erc.vol)
 print('weights \n', erc.weights)
+print('vol', erc.vol)
+print('Marginal risk \n', erc.marginal_risk)
+print('Risk Contribution \n', erc.risk_contribution)
+print('Risk Contribution Ratio \n', erc.risk_contribution_ratio)
+
+mu_tilde = erc.marginal_risk * erc.vol * gamma
+
+# Markowitz
+ms = MaxSharpe(mu=mu_tilde, cov=cov, rf=0)
+print('Max Sharpe \n', ms.risky_weights)
