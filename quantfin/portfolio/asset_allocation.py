@@ -574,6 +574,10 @@ class DAACosts(object):
         # Save parameters
         self.n_states = mean_nstate
         self.n_assets = mean_nasset
+        self.risk_aversion = risk_aversion
+        self.discount_factor = discount_factor
+
+
 
         # Solution
         As = 1
