@@ -513,6 +513,72 @@ class ERC(object):
         return np.abs(self._risk_contribution(w) - np.ones(self.n_assets)/self.n_assets).sum()
 
 
+class DAACosts(object):
+    # TODO Documentation
+    COST_STRUCTURES = ['quadratic', 'linear']
+
+    def __init__(self, means, covars, costs, transition_matrix, current_state,
+                 risk_aversion, discount_factor, cost_structure='quadratic'):
+
+        # If inputs are pandas, convert to numpy
+        mean_nstate, mean_nasset = means.shape
+        if isinstance(means, pd.DataFrame):
+            self.means = means.values
+        elif isinstance(means, np.ndarray):
+            self.means = means
+        else:
+            raise AssertionError("'means' must be either a pandas DataFrame or a numpy array")
+
+        if isinstance(covars, pd.DataFrame):
+            assert isinstance(covars.index, pd.MultiIndex), "input 'covars' as DataFrame requires MultiIndex"
+            self.covars = covars.values.reshape((-1, mean_nasset, mean_nasset))
+        elif isinstance(covars, np.ndarray):
+            assert covars.ndim == 3, "input 'covars' as numpy array must be 3-dimensional"
+            assert covars.shape[0] == mean_nstate, "number of states do not match across inputs"
+            self.covars = covars
+        else:
+            raise AssertionError("'covars' must be either a pandas MultiIndex DataFrame or a numpy array")
+
+        if isinstance(costs, pd.DataFrame):
+            assert isinstance(costs.index, pd.MultiIndex), "input 'costs' as DataFrame requires MultiIndex"
+            self.costs = costs.values.reshape((-1, mean_nasset, mean_nasset))
+        elif isinstance(costs, np.ndarray):
+            assert costs.ndim == 3, "input 'costs' as numpy array must be 3-dimensional"
+            assert costs.shape[0] == mean_nstate, "number of states do not match across inputs"
+            self.costs = costs
+        else:
+            raise AssertionError("'costs' must be either a pandas MultiIndex DataFrame or a numpy array")
+
+        if isinstance(transition_matrix, pd.DataFrame):
+            self.transition_matrix = transition_matrix.values
+        elif isinstance(transition_matrix, np.ndarray):
+            assert transition_matrix.shape[0] == mean_nstate, "number of states do not match across inputs"
+            self.transition_matrix = transition_matrix
+        else:
+            raise AssertionError("'transition_matrix' must be either a pandas MultiIndex DataFrame or a numpy array")
+
+        # Assertions
+        cond1 = (mean_nasset == self.covars.shape[1]) and \
+                (mean_nasset == self.covars.shape[2]) and \
+                (mean_nstate == self.covars.shape[0])
+        cond2 = (mean_nasset == self.costs.shape[1]) and \
+                (mean_nasset == self.costs.shape[2]) and \
+                (mean_nstate == self.costs.shape[0])
+        cond3 = (mean_nstate == self.transition_matrix.shape[0]) and \
+                (mean_nstate == self.transition_matrix.shape[1])
+        assert cond1 and cond2 and cond3, "Matrix sizes do not match for number of states or number of assets"
+
+        assert current_state in range(mean_nstate), "Current state is out of range"
+        assert cost_structure in self.COST_STRUCTURES, f"cost structure {cost_structure} not avilable."
+
+        # Save parameters
+        self.n_states = mean_nstate
+        self.n_assets = mean_nasset
+
+        # Solution
+        As = 1
+
+
 class MinVar(object):
     """
     Implements Minimal Variance Portfolio

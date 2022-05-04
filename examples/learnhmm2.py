@@ -35,7 +35,7 @@ covars = np.array([[[1., 0.8],  # Variables should be positively correlated in s
                     [0., 1.]]])
 
 # Build an HMM instance and set parameters
-gen_model = hmm.GaussianHMM(n_components=4, covariance_type="full", verbose=True)
+gen_model = hmm.GaussianHMM(n_components=4, covariance_type="full")
 
 # Instead of fitting it from the data, we directly set the estimated
 # parameters, the means and covariance of the components

@@ -29,7 +29,7 @@ df_eri = compute_eri(df_tri, df_cdi)
 # Get HMM
 hmm = GaussianHMM(returns=df_eri.resample('M').last().pct_change().dropna())
 # hmm.select_order(show_chart=True, select_iter=20)
-hmm.fit(n_states=3, fit_iter=10)
+hmm.fit(n_states=2, fit_iter=100)
 
 # attributes
 print(hmm.score)
