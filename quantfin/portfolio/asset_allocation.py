@@ -517,8 +517,8 @@ class DAACosts(object):
     # TODO Documentation
     COST_STRUCTURES = ['quadratic', 'linear']
 
-    def __init__(self, means, covars, costs, transition_matrix, current_state,
-                 risk_aversion, discount_factor, cost_structure='quadratic'):
+    def __init__(self, means, covars, costs, transition_matrix, current_allocation, risk_aversion,
+                 discount_factor, cost_structure='quadratic'):
 
         # If inputs are pandas, convert to numpy
         mean_nstate, mean_nasset = means.shape
@@ -557,6 +557,14 @@ class DAACosts(object):
         else:
             raise AssertionError("'transition_matrix' must be either a pandas MultiIndex DataFrame or a numpy array")
 
+        if isinstance(current_allocation, (pd.DataFrame, pd.Series)):
+            self.current_allocation = current_allocation.values
+        elif isinstance(current_allocation, np.ndarray):
+            assert transition_matrix.shape[0] == mean_nstate, "number of states do not match across inputs"
+            self.transition_matrix = transition_matrix
+        else:
+            raise AssertionError("'transition_matrix' must be either a pandas MultiIndex DataFrame or a numpy array")
+
         # Assertions
         cond1 = (mean_nasset == self.covars.shape[1]) and \
                 (mean_nasset == self.covars.shape[2]) and \
@@ -568,19 +576,18 @@ class DAACosts(object):
                 (mean_nstate == self.transition_matrix.shape[1])
         assert cond1 and cond2 and cond3, "Matrix sizes do not match for number of states or number of assets"
 
-        assert current_state in range(mean_nstate), "Current state is out of range"
         assert cost_structure in self.COST_STRUCTURES, f"cost structure {cost_structure} not avilable."
 
         # Save parameters
+
         self.n_states = mean_nstate
         self.n_assets = mean_nasset
         self.risk_aversion = risk_aversion
         self.discount_factor = discount_factor
 
-
-
         # Solution
-        As = 1
+        Zs = 1
+        alloc = 1
 
 
 class MinVar(object):
