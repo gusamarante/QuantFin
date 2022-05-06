@@ -516,19 +516,18 @@ class ERC(object):
 class DAACosts(object):
     # TODO Documentation
     # TODO DAACostBacktest which estimates the the states
-    COST_STRUCTURES = ['quadratic', 'linear']
 
     def __init__(self, means, covars, costs, transition_matrix, current_allocation, risk_aversion,
-                 discount_factor, cost_structure='quadratic', normalize=False):
+                 discount_factor, include_returns=True, normalize=False):
 
         # Assertions and conversions
         self._assert_nparray(means, covars, costs, transition_matrix, current_allocation)
-        assert cost_structure in self.COST_STRUCTURES, f"cost structure {cost_structure} not avilable."
 
         # Save parameters
         self.n_state, self.n_asset = means.shape
         self.risk_aversion = risk_aversion
         self.discount_factor = discount_factor
+        self.include_returns = include_returns
 
         # Solution
         column_labels = [f'Asset {ii + 1}' for ii in range(self.n_asset)] if isinstance(means, np.ndarray) \
@@ -586,6 +585,7 @@ class DAACosts(object):
             Qin = Qout
             qin = qout
 
+        ret_factor = 1 + mu if self.include_returns else np.ones(mu.shape)
         xt = aux_Q @ (mu + self.discount_factor * bs + costs @ np.diag((1 + mu).reshape((-1)))
                       @ self.current_allocation.reshape((-1, 1)))
         xt = xt.reshape((-1))
