@@ -532,7 +532,9 @@ class DAACosts(object):
         self.discount_factor = discount_factor
 
         # Solution
-        allocations = pd.DataFrame(columns=[f'Asset {ii + 1}' for ii in range(self.n_asset)])
+        column_labels = [f'Asset {ii + 1}' for ii in range(self.n_asset)] if isinstance(means, np.ndarray) \
+            else means.columns
+        allocations = pd.DataFrame(columns=column_labels)
         for ss in range(self.n_state):
             alloc = self._single_state_solution(mu=self.means[ss].reshape((-1, 1)),
                                                 cov=self.covars[ss],
