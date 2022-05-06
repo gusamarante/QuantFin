@@ -23,27 +23,33 @@ df_cdi = df_sgs['CDI'] / 100
 df_tri = tracker_feeder()
 df_tri = df_tri[chosen_assets]
 df_tri = df_tri.dropna(how='all')
-df_tri['BRL'] = df_sgs['BRL']
+# df_tri['BRL'] = df_sgs['BRL']
 
 # Compute ERI
 df_eri = compute_eri(df_tri, df_cdi)
 
 # Get HMM
 hmm = GaussianHMM(returns=df_eri.resample('M').last().pct_change().dropna())
-hmm.fit(n_states=2, fit_iter=10)
+hmm.fit(n_states=3, fit_iter=100)
 
 # DAA - Testing with pandas input
 Lambda0 = (10 / 10000) * np.eye(df_eri.shape[1])
-Lambda1 = (50 / 10000) * np.eye(df_eri.shape[1])
-Lambda = np.array([Lambda0, Lambda1])
+Lambda1 = (1 / 10000) * np.eye(df_eri.shape[1])
+Lambda2 = (1 / 10000) * np.eye(df_eri.shape[1])
+Lambda = np.array([Lambda0, Lambda1, Lambda2])
+
+allocations = np.array([100, 100, 100])
 
 daa = DAACosts(means=hmm.means,
                covars=hmm.covars,
                costs=Lambda,
                transition_matrix=hmm.trans_mat,
-               current_state=0,
+               current_allocation=allocations,
                risk_aversion=0.001,
                discount_factor=0.99,
-               cost_structure='quadratic')
+               cost_structure='quadratic',
+               normalize=False)
+
+print(daa.allocations)
 
 # TODO ternary plot com a evolução do portfolio

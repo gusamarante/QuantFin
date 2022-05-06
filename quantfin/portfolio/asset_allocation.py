@@ -515,12 +515,74 @@ class ERC(object):
 
 class DAACosts(object):
     # TODO Documentation
+    # TODO DAACostBacktest which estimates the the states
+    # TODO Compute aim portfolios
     COST_STRUCTURES = ['quadratic', 'linear']
 
     def __init__(self, means, covars, costs, transition_matrix, current_allocation, risk_aversion,
-                 discount_factor, cost_structure='quadratic'):
+                 discount_factor, cost_structure='quadratic', normalize=False):
 
-        # If inputs are pandas, convert to numpy
+        # Assertions and conversions
+        self._assert_nparray(means, covars, costs, transition_matrix, current_allocation)
+        assert cost_structure in self.COST_STRUCTURES, f"cost structure {cost_structure} not avilable."
+
+        # Save parameters
+        self.n_state, self.n_asset = means.shape
+        self.risk_aversion = risk_aversion
+        self.discount_factor = discount_factor
+
+        # Solution
+        allocations = pd.DataFrame(columns=[f'Asset {ii + 1}' for ii in range(self.n_asset)])
+        for ss in range(self.n_state):
+            alloc = self._single_state_solution(mu=self.means[ss].reshape((-1, 1)),
+                                                cov=self.covars[ss],
+                                                trans_dist=self.transition_matrix[ss],
+                                                costs=self.costs[ss])
+
+            allocations.loc[f'State {ss+1}'] = alloc
+
+        if normalize:
+            allocations = allocations.div(allocations.sum(axis=1), axis=0)
+
+        self.allocations = allocations
+
+    def _single_state_solution(self, mu, cov, trans_dist, costs):
+        Zs = cov + (1 + mu) @ (1 + mu).T
+
+        aux_Q, bs = None, None
+        Qin = np.zeros((self.n_state, self.n_asset, self.n_asset))
+        qin = np.zeros((self.n_state, self.n_asset, 1))
+        Qout = np.zeros((self.n_state, self.n_asset, self.n_asset))
+        qout = np.zeros((self.n_state, self.n_asset, 1))
+        criteria = 1000000
+
+        while criteria >= 1e-16:
+            As = np.zeros((self.n_asset, self.n_asset))
+            bs = np.zeros((self.n_asset, 1))
+
+            for ss in range(self.n_state):
+                As = As + trans_dist[ss] * (Zs * Qin[ss])
+                bs = bs + trans_dist[ss] * (mu * qin[ss])
+
+            aux_Q = np.linalg.inv(self.risk_aversion * cov + costs + self.discount_factor * As)
+            for ss in range(self.n_state):
+                Qout[ss] = costs - costs @ aux_Q @ costs
+                qout[ss] = costs @ aux_Q @ (mu + self.discount_factor * bs)
+
+            normQ = np.max(np.abs(Qout - Qin))
+            normq = np.max(np.abs(qout - qin))
+            criteria = np.max([normQ, normq])
+
+            Qin = Qout
+            qin = qout
+
+        xt = aux_Q @ (mu + self.discount_factor * bs + costs @ np.diag((1 + mu).reshape((-1)))
+                      @ self.current_allocation.reshape((-1, 1)))
+        xt = xt.reshape((-1))
+        return xt
+
+    def _assert_nparray(self, means, covars, costs, transition_matrix, current_allocation):
+
         mean_nstate, mean_nasset = means.shape
         if isinstance(means, pd.DataFrame):
             self.means = means.values
@@ -534,36 +596,36 @@ class DAACosts(object):
             self.covars = covars.values.reshape((-1, mean_nasset, mean_nasset))
         elif isinstance(covars, np.ndarray):
             assert covars.ndim == 3, "input 'covars' as numpy array must be 3-dimensional"
-            assert covars.shape[0] == mean_nstate, "number of states do not match across inputs"
             self.covars = covars
         else:
             raise AssertionError("'covars' must be either a pandas MultiIndex DataFrame or a numpy array")
+        assert self.covars.shape[0] == mean_nstate, "number of states do not match across inputs"
 
         if isinstance(costs, pd.DataFrame):
             assert isinstance(costs.index, pd.MultiIndex), "input 'costs' as DataFrame requires MultiIndex"
             self.costs = costs.values.reshape((-1, mean_nasset, mean_nasset))
         elif isinstance(costs, np.ndarray):
             assert costs.ndim == 3, "input 'costs' as numpy array must be 3-dimensional"
-            assert costs.shape[0] == mean_nstate, "number of states do not match across inputs"
             self.costs = costs
         else:
             raise AssertionError("'costs' must be either a pandas MultiIndex DataFrame or a numpy array")
+        assert self.costs.shape[0] == mean_nstate, "number of states do not match across inputs"
 
         if isinstance(transition_matrix, pd.DataFrame):
             self.transition_matrix = transition_matrix.values
         elif isinstance(transition_matrix, np.ndarray):
-            assert transition_matrix.shape[0] == mean_nstate, "number of states do not match across inputs"
             self.transition_matrix = transition_matrix
         else:
             raise AssertionError("'transition_matrix' must be either a pandas MultiIndex DataFrame or a numpy array")
+        assert self.transition_matrix.shape[0] == mean_nstate, "number of states do not match across inputs"
 
         if isinstance(current_allocation, (pd.DataFrame, pd.Series)):
             self.current_allocation = current_allocation.values
         elif isinstance(current_allocation, np.ndarray):
-            assert transition_matrix.shape[0] == mean_nstate, "number of states do not match across inputs"
-            self.transition_matrix = transition_matrix
+            self.current_allocation = current_allocation
         else:
             raise AssertionError("'transition_matrix' must be either a pandas MultiIndex DataFrame or a numpy array")
+        assert current_allocation.shape[0] == mean_nasset, "number of assets do not match across inputs"
 
         # Assertions
         cond1 = (mean_nasset == self.covars.shape[1]) and \
@@ -574,20 +636,7 @@ class DAACosts(object):
                 (mean_nstate == self.costs.shape[0])
         cond3 = (mean_nstate == self.transition_matrix.shape[0]) and \
                 (mean_nstate == self.transition_matrix.shape[1])
-        assert cond1 and cond2 and cond3, "Matrix sizes do not match for number of states or number of assets"
-
-        assert cost_structure in self.COST_STRUCTURES, f"cost structure {cost_structure} not avilable."
-
-        # Save parameters
-
-        self.n_states = mean_nstate
-        self.n_assets = mean_nasset
-        self.risk_aversion = risk_aversion
-        self.discount_factor = discount_factor
-
-        # Solution
-        Zs = 1
-        alloc = 1
+        assert cond1 and cond2 and cond3, "Matrix sizes do not match for number of states and/or number of assets"
 
 
 class MinVar(object):
