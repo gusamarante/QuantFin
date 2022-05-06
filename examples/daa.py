@@ -47,11 +47,13 @@ daa = DAACosts(means=hmm.means,
                costs=Lambda,
                transition_matrix=hmm.trans_mat,
                current_allocation=allocations,
-               risk_aversion=0.001,
+               risk_aversion=1,
                discount_factor=0.99,
                cost_structure='quadratic',
                normalize=True)
 
-print(daa.allocations)
+print('allocations', daa.allocations)
+print('aims', daa.aim_portfolios)
+print('markowitz', daa.markowitz_portfolios)
 
 # TODO ternary plot com a evolução do portfolio

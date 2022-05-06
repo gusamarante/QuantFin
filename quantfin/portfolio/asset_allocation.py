@@ -516,7 +516,6 @@ class ERC(object):
 class DAACosts(object):
     # TODO Documentation
     # TODO DAACostBacktest which estimates the the states
-    # TODO Compute aim portfolios
     COST_STRUCTURES = ['quadratic', 'linear']
 
     def __init__(self, means, covars, costs, transition_matrix, current_allocation, risk_aversion,
@@ -535,23 +534,32 @@ class DAACosts(object):
         column_labels = [f'Asset {ii + 1}' for ii in range(self.n_asset)] if isinstance(means, np.ndarray) \
             else means.columns
         allocations = pd.DataFrame(columns=column_labels)
+        aim_ports = pd.DataFrame(columns=column_labels)
+        mkw_ports = pd.DataFrame(columns=column_labels)
+
         for ss in range(self.n_state):
-            alloc = self._single_state_solution(mu=self.means[ss].reshape((-1, 1)),
-                                                cov=self.covars[ss],
-                                                trans_dist=self.transition_matrix[ss],
-                                                costs=self.costs[ss])
+            alloc, aim, mkw = self._single_state_solution(mu=self.means[ss].reshape((-1, 1)),
+                                                          cov=self.covars[ss],
+                                                          trans_dist=self.transition_matrix[ss],
+                                                          costs=self.costs[ss])
 
             allocations.loc[f'State {ss+1}'] = alloc
+            aim_ports.loc[f'State {ss + 1}'] = aim
+            mkw_ports.loc[f'State {ss + 1}'] = mkw
 
         if normalize:
             allocations = allocations.div(allocations.sum(axis=1), axis=0)
+            aim_ports = aim_ports.div(aim_ports.sum(axis=1), axis=0)
+            mkw_ports = mkw_ports.div(mkw_ports.sum(axis=1), axis=0)
 
         self.allocations = allocations
+        self.aim_portfolios = aim_ports
+        self.markowitz_portfolios = mkw_ports
 
     def _single_state_solution(self, mu, cov, trans_dist, costs):
         Zs = cov + (1 + mu) @ (1 + mu).T
 
-        aux_Q, bs = None, None
+        aux_Q, As, bs = None, None, None
         Qin = np.zeros((self.n_state, self.n_asset, self.n_asset))
         qin = np.zeros((self.n_state, self.n_asset, 1))
         Qout = np.zeros((self.n_state, self.n_asset, self.n_asset))
@@ -581,7 +589,14 @@ class DAACosts(object):
         xt = aux_Q @ (mu + self.discount_factor * bs + costs @ np.diag((1 + mu).reshape((-1)))
                       @ self.current_allocation.reshape((-1, 1)))
         xt = xt.reshape((-1))
-        return xt
+
+        aim = np.linalg.inv(self.risk_aversion * cov + self.discount_factor * As) \
+              @ (mu + self.discount_factor * bs)
+        aim = aim.reshape((-1))
+
+        mkw = np.linalg.inv(self.risk_aversion * cov) @ mu
+        mkw = mkw.reshape((-1))
+        return xt, aim, mkw
 
     def _assert_nparray(self, means, covars, costs, transition_matrix, current_allocation):
 
