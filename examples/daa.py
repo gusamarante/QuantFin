@@ -49,7 +49,7 @@ daa = DAACosts(means=hmm.means,
                current_allocation=allocations,
                risk_aversion=1,
                discount_factor=0.99,
-               include_returns=False,
+               include_returns=True,
                normalize=True)
 
 print('allocations', daa.allocations)
