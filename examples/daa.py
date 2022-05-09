@@ -41,7 +41,7 @@ Lambda = np.array([Lambda0, Lambda1, Lambda2, Lambda3])
 
 allocations = np.array([100, 100, 100, 100])
 
-print(hmm.trans_mat.round(3)*100)
+print(hmm.trans_mat.round(3) * 100)
 
 daa = DAACosts(means=hmm.means,
                covars=hmm.covars,

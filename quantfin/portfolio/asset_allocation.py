@@ -516,6 +516,7 @@ class ERC(object):
 class DAACosts(object):
     # TODO Documentation
     # TODO DAACostBacktest which estimates the the states
+    # TODO Add speed of trading
 
     def __init__(self, means, covars, costs, transition_matrix, current_allocation, risk_aversion,
                  discount_factor, include_returns=True, normalize=False):
