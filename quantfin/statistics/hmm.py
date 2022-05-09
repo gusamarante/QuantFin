@@ -102,6 +102,13 @@ class GaussianHMM(object):
         sorted_model.means_ = chosen_model.means_[sort_order, :]
         sorted_model.covars_ = chosen_model.covars_[sort_order, :, :]
 
+        try:
+            column_labels = self.returns.columns
+            time_index = self.returns.index
+        except AttributeError:
+            column_labels = [f'Asset {s + 1}' for s in range(self.n_var)]
+            time_index = range(self.returns.shape[0])
+
         self.score = sorted_model.score(self.returns)
 
         self.trans_mat = pd.DataFrame(data=sorted_model.transmat_,
@@ -118,23 +125,23 @@ class GaussianHMM(object):
 
         self.means = pd.DataFrame(data=sorted_model.means_,
                                   index=[f'State {s + 1}' for s in range(self.n_states)],
-                                  columns=self.returns.columns)
+                                  columns=column_labels)
 
         vol_data = [list(np.sqrt(np.diag(sorted_model.covars_[ss]))) for ss in range(self.n_states)]
-        self.vols = pd.DataFrame(data=vol_data, columns=self.returns.columns,
+        self.vols = pd.DataFrame(data=vol_data, columns=column_labels,
                                  index=[f'State {s + 1}' for s in range(self.n_states)])
 
         idx = pd.MultiIndex.from_product([[f'State {s + 1}' for s in range(self.n_states)],
-                                          self.returns.columns])
-        self.covars = pd.DataFrame(index=idx, columns=self.returns.columns,
+                                          column_labels])
+        self.covars = pd.DataFrame(index=idx, columns=column_labels,
                                    data=sorted_model.covars_.reshape(-1, self.n_var))
 
         corr_data = [cov2corr(sorted_model.covars_[ss])[0] for ss in range(self.n_states)]
-        self.corrs = pd.DataFrame(index=idx, columns=self.returns.columns,
+        self.corrs = pd.DataFrame(index=idx, columns=column_labels,
                                   data=np.concatenate(corr_data))
 
         self.predicted_state = pd.Series(data=sorted_model.predict(self.returns) + 1,
-                                         index=self.returns.index,
+                                         index=time_index,
                                          name='Predicted State')
 
         freq_data = ('State ' + self.predicted_state.astype(str)).value_counts() / self.predicted_state.count()
@@ -143,7 +150,7 @@ class GaussianHMM(object):
                                     name='State Frequency')
 
         self.state_probs = pd.DataFrame(data=sorted_model.predict_proba(self.returns),
-                                        index=self.returns.index,
+                                        index=time_index,
                                         columns=[f'State {s + 1}' for s in range(self.n_states)])
 
     def plot_series(self, data):
