@@ -1,7 +1,7 @@
 from quantfin.data import tracker_feeder, SGS
 from quantfin.statistics import GaussianHMM
 from quantfin.finmath import compute_eri
-from quantfin.portfolio import DAACosts
+from quantfin.portfolio import DAACosts, DAALinearCosts
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -55,5 +55,18 @@ daa = DAACosts(means=hmm.means,
 print('allocations', daa.allocations)
 print('aims', daa.aim_portfolios)
 print('markowitz', daa.markowitz_portfolios)
+
+ldaa = DAALinearCosts(means=hmm.means,
+                      covars=hmm.covars,
+                      costs=Lambda,
+                      transition_matrix=hmm.trans_mat,
+                      current_allocation=allocations,
+                      risk_aversion=1,
+                      discount_factor=0.99,
+                      include_returns=True,
+                      normalize=True)
+
+print('linear allocations', ldaa.allocations)
+print('linear markowitz', ldaa.markowitz_portfolios)
 
 # TODO ternary plot com a evolução do portfolio

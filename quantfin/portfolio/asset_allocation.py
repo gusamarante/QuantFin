@@ -586,7 +586,7 @@ class DAACosts(object):
             qin = qout
 
         ret_factor = 1 + mu if self.include_returns else np.ones(mu.shape)
-        xt = aux_Q @ (mu + self.discount_factor * bs + costs @ np.diag((1 + mu).reshape((-1)))
+        xt = aux_Q @ (mu + self.discount_factor * bs + costs @ np.diag(ret_factor.reshape((-1)))
                       @ self.current_allocation.reshape((-1, 1)))
         xt = xt.reshape((-1))
 
@@ -597,6 +597,116 @@ class DAACosts(object):
         mkw = np.linalg.inv(self.risk_aversion * cov) @ mu
         mkw = mkw.reshape((-1))
         return xt, aim, mkw
+
+    def _assert_nparray(self, means, covars, costs, transition_matrix, current_allocation):
+
+        mean_nstate, mean_nasset = means.shape
+        if isinstance(means, pd.DataFrame):
+            self.means = means.values
+        elif isinstance(means, np.ndarray):
+            self.means = means
+        else:
+            raise AssertionError("'means' must be either a pandas DataFrame or a numpy array")
+
+        if isinstance(covars, pd.DataFrame):
+            assert isinstance(covars.index, pd.MultiIndex), "input 'covars' as DataFrame requires MultiIndex"
+            self.covars = covars.values.reshape((-1, mean_nasset, mean_nasset))
+        elif isinstance(covars, np.ndarray):
+            assert covars.ndim == 3, "input 'covars' as numpy array must be 3-dimensional"
+            self.covars = covars
+        else:
+            raise AssertionError("'covars' must be either a pandas MultiIndex DataFrame or a numpy array")
+        assert self.covars.shape[0] == mean_nstate, "number of states do not match across inputs"
+
+        if isinstance(costs, pd.DataFrame):
+            assert isinstance(costs.index, pd.MultiIndex), "input 'costs' as DataFrame requires MultiIndex"
+            self.costs = costs.values.reshape((-1, mean_nasset, mean_nasset))
+        elif isinstance(costs, np.ndarray):
+            assert costs.ndim == 3, "input 'costs' as numpy array must be 3-dimensional"
+            self.costs = costs
+        else:
+            raise AssertionError("'costs' must be either a pandas MultiIndex DataFrame or a numpy array")
+        assert self.costs.shape[0] == mean_nstate, "number of states do not match across inputs"
+
+        if isinstance(transition_matrix, pd.DataFrame):
+            self.transition_matrix = transition_matrix.values
+        elif isinstance(transition_matrix, np.ndarray):
+            self.transition_matrix = transition_matrix
+        else:
+            raise AssertionError("'transition_matrix' must be either a pandas MultiIndex DataFrame or a numpy array")
+        assert self.transition_matrix.shape[0] == mean_nstate, "number of states do not match across inputs"
+
+        if isinstance(current_allocation, (pd.DataFrame, pd.Series)):
+            self.current_allocation = current_allocation.values
+        elif isinstance(current_allocation, np.ndarray):
+            self.current_allocation = current_allocation
+        else:
+            raise AssertionError("'transition_matrix' must be either a pandas MultiIndex DataFrame or a numpy array")
+        assert current_allocation.shape[0] == mean_nasset, "number of assets do not match across inputs"
+
+        # Assertions
+        cond1 = (mean_nasset == self.covars.shape[1]) and \
+                (mean_nasset == self.covars.shape[2]) and \
+                (mean_nstate == self.covars.shape[0])
+        cond2 = (mean_nasset == self.costs.shape[1]) and \
+                (mean_nasset == self.costs.shape[2]) and \
+                (mean_nstate == self.costs.shape[0])
+        cond3 = (mean_nstate == self.transition_matrix.shape[0]) and \
+                (mean_nstate == self.transition_matrix.shape[1])
+        assert cond1 and cond2 and cond3, "Matrix sizes do not match for number of states and/or number of assets"
+
+
+class DAALinearCosts(object):
+    # TODO Documentation
+    # TODO DAALinearCostBacktest which estimates the the states
+
+    def __init__(self, means, covars, costs, transition_matrix, current_allocation, risk_aversion,
+                 discount_factor, include_returns=True, normalize=False):
+
+        # Assertions and conversions
+        self._assert_nparray(means, covars, costs, transition_matrix, current_allocation)
+
+        # Save parameters
+        self.n_state, self.n_asset = means.shape
+        self.risk_aversion = risk_aversion
+        self.discount_factor = discount_factor
+        self.include_returns = include_returns
+
+        # Solution
+        column_labels = [f'Asset {ii + 1}' for ii in range(self.n_asset)] if isinstance(means, np.ndarray) \
+            else means.columns
+        allocations = pd.DataFrame(columns=column_labels)
+        mkw_ports = pd.DataFrame(columns=column_labels)
+
+        for ss in range(self.n_state):
+            alloc, mkw = self._single_state_solution(mu=self.means[ss].reshape((-1, 1)),
+                                                     cov=self.covars[ss],
+                                                     trans_dist=self.transition_matrix[ss],
+                                                     costs=self.costs)
+
+            allocations.loc[f'State {ss+1}'] = alloc
+            mkw_ports.loc[f'State {ss + 1}'] = mkw
+
+        if normalize:
+            allocations = allocations.div(allocations.sum(axis=1), axis=0)
+            mkw_ports = mkw_ports.div(mkw_ports.sum(axis=1), axis=0)
+
+        self.allocations = allocations
+        self.markowitz_portfolios = mkw_ports
+
+    def _single_state_solution(self, mu, cov, trans_dist, costs):
+        bs = np.zeros((self.n_asset, 1))
+
+        for ss in range(self.n_state):
+            bs = bs + trans_dist[ss] * (mu * (costs[ss] @ np.ones((self.n_asset, 1))))
+
+        aux_Q = np.linalg.inv(self.risk_aversion * cov)
+        xt = aux_Q @ (mu - costs[ss] @ np.ones((self.n_asset, 1)) + self.discount_factor * bs )
+        xt = xt.reshape((-1))
+
+        mkw = np.linalg.inv(self.risk_aversion * cov) @ mu
+        mkw = mkw.reshape((-1))
+        return xt, mkw
 
     def _assert_nparray(self, means, covars, costs, transition_matrix, current_allocation):
 
