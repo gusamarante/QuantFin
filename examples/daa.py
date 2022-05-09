@@ -33,10 +33,10 @@ hmm = GaussianHMM(returns=df_eri.resample('M').last().pct_change().dropna())
 hmm.fit(n_states=4, fit_iter=100)
 
 # DAA - Testing with pandas input
-Lambda0 = (15 / 10000) * np.eye(df_eri.shape[1])
-Lambda1 = (20 / 10000) * np.eye(df_eri.shape[1])
-Lambda2 = (50 / 10000) * np.eye(df_eri.shape[1])
-Lambda3 = (50 / 10000) * np.eye(df_eri.shape[1])
+Lambda0 = (1.688 / 10000) * np.eye(df_eri.shape[1])
+Lambda1 = (1.725 / 10000) * np.eye(df_eri.shape[1])
+Lambda2 = (3.037 / 10000) * np.eye(df_eri.shape[1])
+Lambda3 = (2.274 / 10000) * np.eye(df_eri.shape[1])
 Lambda = np.array([Lambda0, Lambda1, Lambda2, Lambda3])
 
 allocations = np.array([100, 100, 100, 100])
@@ -50,7 +50,7 @@ daa = DAACosts(means=hmm.means,
                current_allocation=allocations,
                risk_aversion=5e-8,
                discount_factor=0.99,
-               include_returns=True,
+               include_returns=False,
                normalize=True)
 
 print('allocations', daa.allocations)
