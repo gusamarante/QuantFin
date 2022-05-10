@@ -548,6 +548,7 @@ class DAACosts(object):
             mkw_ports.loc[f'State {ss + 1}'] = mkw
 
         if normalize:
+            # TODO mudar a base
             allocations = allocations.div(allocations.sum(axis=1), axis=0)
             aim_ports = aim_ports.div(aim_ports.sum(axis=1), axis=0)
             mkw_ports = mkw_ports.div(mkw_ports.sum(axis=1), axis=0)

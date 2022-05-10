@@ -46,7 +46,7 @@ for asset in chosen_assets:
     pdf_writer = merge_pdfs(DROPBOX.joinpath(f'charts/{asset} - Underwater.pdf'),
                             pdf_writer=pdf_writer)
 
-    pdf_writer = merge_pdfs(DROPBOX.joinpath(f'charts/{asset} - Rolling Correlations.pdf'),
+    pdf_writer = merge_pdfs(DROPBOX.joinpath(f'charts/{asset} - Rolling Correlations of Assets.pdf'),
                             pdf_writer=pdf_writer)
 
 

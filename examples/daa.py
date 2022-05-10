@@ -61,7 +61,7 @@ ldaa = DAALinearCosts(means=hmm.means,
                       costs=Lambda,
                       transition_matrix=hmm.trans_mat,
                       current_allocation=allocations,
-                      risk_aversion=1,
+                      risk_aversion=5e-8,
                       discount_factor=0.99,
                       include_returns=True,
                       normalize=True)
