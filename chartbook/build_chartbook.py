@@ -19,7 +19,6 @@ pdf_writer = merge_pdfs(DROPBOX.joinpath(f'charts/Backtests - Rolling Vol.pdf'),
 pdf_writer = merge_pdfs(DROPBOX.joinpath(f'charts/Backtests - Rolling Sharpe.pdf'),
                         pdf_writer=pdf_writer)
 
-
 pdf_writer = merge_pdfs(DROPBOX.joinpath(f'charts/HRP - Dendrogram.pdf'),
                         pdf_writer=pdf_writer)
 

@@ -3,6 +3,8 @@ from quantfin.portfolio import DAACosts
 from hmmlearn import hmm
 import numpy as np
 
+notional = 1000000000
+
 # ===== Simulate Data =====
 startprob = np.array([0.6, 0.4])
 
@@ -35,9 +37,9 @@ hmm = GaussianHMM(X)
 hmm.fit(n_states=2, fit_iter=20)
 
 # ===== Compute Allocations =====
-start_alloc = 430000 * np.array([0.8, 0.2])
-Lambda1 = (0.00001 / 10000) * np.eye(X.shape[1])
-Lambda2 = (0.00003 / 10000) * np.eye(X.shape[1])
+start_alloc = notional * np.array([0.8, 0.2])
+Lambda1 = (0.0000001 / 10000) * np.eye(X.shape[1])
+Lambda2 = (0.0000001 / 10000) * np.eye(X.shape[1])
 Lambda = np.array([Lambda1, Lambda2])
 
 daa = DAACosts(means=hmm.means,
@@ -45,7 +47,7 @@ daa = DAACosts(means=hmm.means,
                costs=Lambda,
                transition_matrix=hmm.trans_mat,
                current_allocation=start_alloc,
-               risk_aversion=1/430000,
+               risk_aversion=1/notional,
                discount_factor=0.99,
                include_returns=True,
                normalize=False)
@@ -58,3 +60,6 @@ print(daa.aim_portfolios, '\n')
 
 print('Mkw Portfolios')
 print(daa.markowitz_portfolios, '\n')
+
+
+daa.allocations.to_clipboard()
