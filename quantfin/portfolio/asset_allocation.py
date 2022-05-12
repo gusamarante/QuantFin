@@ -549,9 +549,9 @@ class DAACosts(object):
 
         if normalize:
             # TODO mudar a base
-            allocations = allocations.div(allocations.sum(axis=1), axis=0)
-            aim_ports = aim_ports.div(aim_ports.sum(axis=1), axis=0)
-            mkw_ports = mkw_ports.div(mkw_ports.sum(axis=1), axis=0)
+            allocations = allocations.div(current_allocation.sum(), axis=0)
+            aim_ports = aim_ports.div(current_allocation.sum(), axis=0)
+            mkw_ports = mkw_ports.div(current_allocation.sum(), axis=0)
 
         self.allocations = allocations
         self.aim_portfolios = aim_ports
