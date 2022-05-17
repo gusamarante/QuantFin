@@ -208,3 +208,10 @@ def ledoitwolf_cov(df):
     cov = pd.DataFrame(data=cov, index=df.columns, columns=df.columns)
     return cov
 
+
+# ===== Force-Symmetry Regularization =====
+def force_symmetry(mat):
+    shape0, shape1 = mat.shape
+    assert shape0 == shape1, "matrix must be square"
+    mat = 0.5 * (mat + mat.T)
+    return mat
