@@ -12,17 +12,17 @@ tic = time()
 
 # User defined parameters
 notional_start = 100
-start_date = '2006-01-01'
+start_date = '2000-01-01'
 
 # Set up
-ntnf = pd.read_csv(DROPBOX.joinpath('trackers/dados_ntnf.csv'), sep=';')
-ntnf['reference date'] = pd.to_datetime(ntnf['reference date'])
-dates2loop = pd.to_datetime(ntnf['reference date'].unique())
+ltn = pd.read_csv(DROPBOX.joinpath('trackers/dados_lft.csv'), sep=';')
+ltn['reference date'] = pd.to_datetime(ltn['reference date'])
+dates2loop = pd.to_datetime(ltn['reference date'].unique())
 dates2loop = dates2loop[dates2loop >= start_date]
 df_bt = pd.DataFrame()
 
 # First date
-aux_data = ntnf[ntnf['reference date'] == dates2loop[0]].set_index('bond code')
+aux_data = ltn[ltn['reference date'] == dates2loop[0]].set_index('bond code')
 aux_data = aux_data.sort_values('du')
 
 current_bond = aux_data.index[-1]
@@ -32,10 +32,10 @@ df_bt.loc[dates2loop[0], 'quantity'] = notional_start / (aux_data.loc[current_bo
 df_bt.loc[dates2loop[0], 'price'] = aux_data.loc[current_bond, 'price']
 df_bt.loc[dates2loop[0], 'Notional'] = df_bt.loc[dates2loop[0], 'quantity'] * df_bt.loc[dates2loop[0], 'price']
 
-for date, datem1 in tqdm(zip(dates2loop[1:], dates2loop[:-1]), 'Backtesting NTN-F Longa'):
+for date, datem1 in tqdm(zip(dates2loop[1:], dates2loop[:-1]), 'Backtesting LFT Longa'):
 
     # get available bonds today
-    aux_data = ntnf[ntnf['reference date'] == date].set_index('bond code')
+    aux_data = ltn[ltn['reference date'] == date].set_index('bond code')
     aux_data = aux_data.sort_values('du')
 
     # check if the longest bond changed or not
@@ -56,6 +56,6 @@ for date, datem1 in tqdm(zip(dates2loop[1:], dates2loop[:-1]), 'Backtesting NTN-
         df_bt.loc[date, 'Notional'] = df_bt.loc[date, 'quantity'] * df_bt.loc[date, 'price']
         current_bond = new_bond
 
-df_bt.to_csv(DROPBOX.joinpath('trackers/ntnf_longa.csv'), sep=';')
+df_bt.to_csv(DROPBOX.joinpath('trackers/lft_longa.csv'), sep=';')
 minutes = round((time() - tic) / 60, 2)
-print('NTNF Longa took', minutes, 'minutes')
+print('LFT Longa took', minutes, 'minutes')
