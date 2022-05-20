@@ -15,31 +15,35 @@ notional_start = 100
 # start_date = '2022-01-01'
 
 # Set up
-ntnb = pd.read_csv(DROPBOX.joinpath('trackers/dados_ntnb.csv'), sep=';')
-ntnb['reference date'] = pd.to_datetime(ntnb['reference date'])
-dates2loop = pd.to_datetime(ntnb['reference date'].unique())
+ntnf = pd.read_csv(DROPBOX.joinpath('trackers/dados_ntnf.csv'), sep=';')
+ntnf['reference date'] = pd.to_datetime(ntnf['reference date'])
+dates2loop = pd.to_datetime(ntnf['reference date'].unique())
 # dates2loop = dates2loop[dates2loop >= start_date]
 df_bt = pd.DataFrame()
 
 # First date
-aux_data = ntnb[ntnb['reference date'] == dates2loop[0]].set_index('bond code')
+aux_data = ntnf[ntnf['reference date'] == dates2loop[0]].set_index('bond code')
 aux_data = aux_data.sort_values('du')
+filter_du = aux_data['du'] >= 60
+aux_data = aux_data[filter_du]
 
-current_bond = aux_data.index[-1]
+current_bond = aux_data.index[0]
 df_bt.loc[dates2loop[0], 'bond'] = current_bond
 df_bt.loc[dates2loop[0], 'du'] = aux_data.loc[current_bond, 'du']
 df_bt.loc[dates2loop[0], 'quantity'] = notional_start / (aux_data.loc[current_bond, 'price'] + aux_data.loc[current_bond, 'bidask spread'] / 2)
 df_bt.loc[dates2loop[0], 'price'] = aux_data.loc[current_bond, 'price']
 df_bt.loc[dates2loop[0], 'Notional'] = df_bt.loc[dates2loop[0], 'quantity'] * df_bt.loc[dates2loop[0], 'price']
 
-for date, datem1 in tqdm(zip(dates2loop[1:], dates2loop[:-1]), 'Backtesting NTN-B Longa'):
+for date, datem1 in tqdm(zip(dates2loop[1:], dates2loop[:-1]), 'Backtesting NTN-F curta'):
 
     # get available bonds today
-    aux_data = ntnb[ntnb['reference date'] == date].set_index('bond code')
+    aux_data = ntnf[ntnf['reference date'] == date].set_index('bond code')
     aux_data = aux_data.sort_values('du')
+    filter_du = aux_data['du'] >= 60
+    aux_data_get = aux_data[filter_du]
 
     # check if the shortest bond changed or not
-    new_bond = aux_data.index[-1]
+    new_bond = aux_data_get.index[0]
     if new_bond == current_bond:  # still the same, hold the position, check for coupons
         df_bt.loc[date, 'bond'] = current_bond
         df_bt.loc[date, 'du'] = aux_data.loc[current_bond, 'du']
@@ -47,7 +51,7 @@ for date, datem1 in tqdm(zip(dates2loop[1:], dates2loop[:-1]), 'Backtesting NTN-
         df_bt.loc[date, 'price'] = aux_data.loc[current_bond, 'price']
         df_bt.loc[date, 'Notional'] = df_bt.loc[date, 'quantity'] * df_bt.loc[date, 'price']
 
-    else:  # new longer bond, roll the position
+    else:  # new shorter bond, roll the position
         df_bt.loc[date, 'bond'] = new_bond
         df_bt.loc[date, 'du'] = aux_data.loc[new_bond, 'du']
         sellvalue = df_bt.loc[datem1, 'quantity'] * (aux_data.loc[current_bond, 'price'] - aux_data.loc[current_bond, 'bidask spread'] / 2)
@@ -56,6 +60,6 @@ for date, datem1 in tqdm(zip(dates2loop[1:], dates2loop[:-1]), 'Backtesting NTN-
         df_bt.loc[date, 'Notional'] = df_bt.loc[date, 'quantity'] * df_bt.loc[date, 'price']
         current_bond = new_bond
 
-df_bt.to_csv(DROPBOX.joinpath('trackers/ntnb_longa.csv'), sep=';')
+df_bt.to_csv(DROPBOX.joinpath('trackers/ntnf_curta.csv'), sep=';')
 minutes = round((time() - tic) / 60, 2)
-print('NTNB Longa took', minutes, 'minutes')
+print('NTNF Curta took', minutes, 'minutes')
