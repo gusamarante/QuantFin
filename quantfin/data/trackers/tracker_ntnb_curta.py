@@ -1,29 +1,28 @@
-import pandas as pd
-from tqdm import tqdm
 import matplotlib.pyplot as plt
-from titulospublicos import NTNB
+from quantfin.data import DROPBOX
+from tqdm import tqdm
 from time import time
+import pandas as pd
+
+pd.set_option('display.max_rows', 100)
+pd.set_option('display.max_columns', 50)
+pd.set_option('display.width', 250)
 
 tic = time()
 
 # User defined parameters
 notional_start = 100
-start_date = '2022-01-01'
+# start_date = '2022-01-01'
 
 # Set up
-ntnb = NTNB()
-dates2loop = pd.to_datetime(ntnb.time_menu())
+ntnb = pd.read_csv(DROPBOX.joinpath('trackers/dados_ntnb.csv'), sep=';')
+ntnb['reference date'] = pd.to_datetime(ntnb['reference date'])
+dates2loop = pd.to_datetime(ntnb['reference date'].unique())
 # dates2loop = dates2loop[dates2loop >= start_date]
 df_bt = pd.DataFrame()
 
 # First date
-bond_codes = ntnb.market_menu(dates2loop[0])
-aux_data = pd.DataFrame(data={'yield': [ntnb.implied_yield(dates2loop[0], bond) for bond in bond_codes],
-                              'price': [ntnb.theor_price(dates2loop[0], bond, ntnb.implied_yield(dates2loop[0], bond)) for bond in bond_codes],
-                              'bidask spread': [ntnb.bidofferspread(dates2loop[0], bond) for bond in bond_codes],
-                              'du': [ntnb.du2maturity(dates2loop[0], bond) for bond in bond_codes],
-                              'coupon': [ntnb.cash_payment(dates2loop[0], bond) for bond in bond_codes]},
-                        index=bond_codes)
+aux_data = ntnb[ntnb['reference date'] == dates2loop[0]].set_index('bond code')
 aux_data = aux_data.sort_values('du')
 filter_du = aux_data['du'] >= 60
 aux_data = aux_data[filter_du]
@@ -37,36 +36,33 @@ df_bt.loc[dates2loop[0], 'Notional'] = df_bt.loc[dates2loop[0], 'quantity'] * df
 
 for date, datem1 in tqdm(zip(dates2loop[1:], dates2loop[:-1]), 'Backtesting NTN-B curta'):
 
+    if date == pd.to_datetime('2019-02-19'):
+        a = 1
+
     # get available bonds today
-    bond_codes = ntnb.market_menu(date)
-    aux_data = pd.DataFrame(data={'yield': [ntnb.implied_yield(date, bond) for bond in bond_codes],
-                                  'price': [ntnb.theor_price(date, bond, ntnb.implied_yield(date, bond)) for bond in bond_codes],
-                                  'bidask spread': [ntnb.bidofferspread(date, bond) for bond in bond_codes],
-                                  'du': [ntnb.du2maturity(date, bond) for bond in bond_codes],
-                                  'coupon': [ntnb.cash_payment(date, bond) for bond in bond_codes]},
-                            index=bond_codes)
+    aux_data = ntnb[ntnb['reference date'] == date].set_index('bond code')
     aux_data = aux_data.sort_values('du')
     filter_du = aux_data['du'] >= 60
-    aux_data = aux_data[filter_du]
+    aux_data_get = aux_data[filter_du]
 
-    # check if the longest bond changed or not
-    new_bond = aux_data.index[0]
+    # check if the shortest bond changed or not
+    new_bond = aux_data_get.index[0]
     if new_bond == current_bond:  # still the same, hold the position, check for coupons
         df_bt.loc[date, 'bond'] = current_bond
-        df_bt.loc[date, 'du'] = aux_data.iloc[0]['du']
-        df_bt.loc[date, 'quantity'] = df_bt.loc[datem1, 'quantity'] * (1 + aux_data.iloc[0]['coupon'] / (aux_data.iloc[0]['price'] + aux_data.iloc[0]['bidask spread'] / 2))
-        df_bt.loc[date, 'price'] = aux_data.iloc[0]['price']
+        df_bt.loc[date, 'du'] = aux_data.loc[current_bond, 'du']
+        df_bt.loc[date, 'quantity'] = df_bt.loc[datem1, 'quantity'] * (1 + aux_data.loc[current_bond, 'coupon'] / (aux_data.loc[current_bond, 'price'] + aux_data.loc[current_bond, 'bidask spread'] / 2))
+        df_bt.loc[date, 'price'] = aux_data.loc[current_bond, 'price']
         df_bt.loc[date, 'Notional'] = df_bt.loc[date, 'quantity'] * df_bt.loc[date, 'price']
 
     else:  # new longer bond, roll the position
         df_bt.loc[date, 'bond'] = new_bond
-        df_bt.loc[date, 'du'] = aux_data.iloc[0]['du']
-        sellvalue = df_bt.loc[datem1, 'quantity'] * (ntnb.theor_price(date, current_bond, ntnb.implied_yield(date, current_bond)) - ntnb.bidofferspread(date, current_bond) / 2)
-        df_bt.loc[date, 'quantity'] = (sellvalue + df_bt.loc[datem1, 'quantity'] * ntnb.cash_payment(date, current_bond)) / (aux_data.iloc[0]['price'] + aux_data.iloc[0]['bidask spread'] / 2)
-        df_bt.loc[date, 'price'] = aux_data.iloc[0]['price']
+        df_bt.loc[date, 'du'] = aux_data.loc[new_bond, 'du']
+        sellvalue = df_bt.loc[datem1, 'quantity'] * (aux_data.loc[current_bond, 'price'] - aux_data.loc[current_bond, 'bidask spread'] / 2)
+        df_bt.loc[date, 'quantity'] = (sellvalue + df_bt.loc[datem1, 'quantity'] * aux_data.loc[current_bond, 'coupon']) / (aux_data.loc[new_bond, 'price'] + aux_data.loc[new_bond, 'bidask spread'] / 2)
+        df_bt.loc[date, 'price'] = aux_data.loc[new_bond, 'price']
         df_bt.loc[date, 'Notional'] = df_bt.loc[date, 'quantity'] * df_bt.loc[date, 'price']
         current_bond = new_bond
 
-df_bt.to_csv(r'C:\Users\gamarante\Dropbox\Personal Portfolio\trackers\ntnb_curta.csv', sep=';')
+df_bt.to_csv(DROPBOX.joinpath('trackers/ntnb_curta.csv'), sep=';')
 minutes = round((time() - tic) / 60, 2)
 print('NTNB Curta took', minutes, 'minutes')
