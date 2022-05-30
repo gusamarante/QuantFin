@@ -76,6 +76,9 @@ class BacktestHRP(object):
 
             sigma = sigma.dropna(how='all', axis=0).dropna(how='all', axis=1)
 
+            if sigma.empty:
+                continue
+
             hrp = HRP(cov=sigma, method=method, metric=metric)
 
             self.weights.loc[date] = hrp.weights
@@ -107,6 +110,9 @@ class BacktestERC(object):
                 continue
 
             sigma = sigma.dropna(how='all', axis=0).dropna(how='all', axis=1)
+
+            if sigma.empty:
+                continue
 
             erc = ERC(cov=sigma)
 

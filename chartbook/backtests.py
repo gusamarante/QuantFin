@@ -15,8 +15,8 @@ pd.options.display.width = 250
 show_charts = False
 long_run_sharpe = 0.2
 y_star = 0.5
-chosen_assets = ['BDIV', 'IVVB', 'NTNB Curta', 'NTNF Curta', 'BBSD', 'FIND', 'NTNF Longa', 'LTN Longa', 'GOVE',
-                 'NTNB Longa', 'MATB']
+chosen_assets = ['NTNB Curta', 'BDIV', 'CMDB', 'IVVB',  'NTNF Longa', 'LTN Longa', 'NTNF Curta', 'NTNB Longa',
+                 'FIND', 'GOVE', 'MATB', 'SMAL', 'DIVO']
 
 # Grab data
 df_tri = tracker_feeder()
@@ -33,7 +33,7 @@ df_rf = (df_selic['Selic'] - 0.1) / 100
 df_rf = df_rf.reindex(df_tri.index)
 
 # Rabalence Dates are after each COPOM decision
-rebalance_dates = df_rf.index[df_rf.diff() != 0]
+rebalance_dates = pd.date_range(start=df_rf.index.min(), end=df_rf.index.max(), freq='M')
 
 # Compute ERI
 df_eri = compute_eri(df_tri, df_cdi)
@@ -73,7 +73,8 @@ bt_hrp = BacktestHRP(eri=df_eri, cov=df_cov, rebalance_dates=rebalance_dates,
                      method='complete', metric='braycurtis')
 df_bt = pd.concat([df_bt, bt_hrp.return_index], axis=1)
 
-hrp = HRP(cov=df_cov.xs(rebalance_dates[-1]), method='complete', metric='braycurtis')
+hrp = HRP(cov=df_cov.xs(df_cov.index.get_level_values(0).max()),
+          method='complete', metric='braycurtis')
 hrp.plot_dendrogram(show_chart=show_charts,
                     save_path=DROPBOX.joinpath(r'charts/HRP - Dendrogram.pdf'))
 hrp.plot_corr_matrix(save_path=DROPBOX.joinpath(r'charts/HRP - Correlation matrix.pdf'),

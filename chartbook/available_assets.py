@@ -37,7 +37,7 @@ df_perf = df_perf[df_perf['Sharpe'] >= 0]  # Filter positive sharpe
 df_score = (df_perf - df_perf.min(axis=0)) / (df_perf.max(axis=0) - df_perf.min(axis=0))  # normalize indicators
 df_score['Kurt'] = 1 - df_score['Kurt']  # Invert
 df_score['Start Date'] = 1 - df_score['Start Date']  # Invert
-df_score = df_score[df_score['Start Date'] >= 0.1]  # Exclude series that are too short
+# df_score = df_score[df_score['Start Date'] >= 0.1]  # Exclude series that are too short
 
 try:
     df_score['Score'] = (1 * df_score['Sharpe']
