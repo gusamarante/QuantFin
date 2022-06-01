@@ -530,6 +530,23 @@ class DAACosts(object):
         self.discount_factor = discount_factor
         self.include_returns = include_returns
 
+        eigvec = np.linalg.eig(transition_matrix.values.T)[1][:, 0]
+        stationary_dist = eigvec / eigvec.sum()
+        self.stationary_dist = pd.Series(data=stationary_dist,
+                                         index=[f'State {ii + 1}' for ii in range(self.n_state)])
+
+        # Unconditional portfolio
+        unc_mu = (np.hstack([stationary_dist.reshape((-1, 1)), stationary_dist.reshape((-1, 1))]) * means).sum().values
+        unc_cov = np.zeros((self.n_asset, self.n_asset))
+        for ss in [f'State {ii + 1}' for ii in range(self.n_state)]:
+            unc_cov = unc_cov + self.stationary_dist.loc[ss] * covars.loc[ss].values
+
+        unc_port = np.linalg.inv(self.risk_aversion * unc_cov) @ unc_mu
+        unc_port = pd.Series(index=[f'Asset {ii + 1}' for ii in range(self.n_asset)],
+                             data=unc_port)
+
+
+
         # Solution
         column_labels = [f'Asset {ii + 1}' for ii in range(self.n_asset)] if isinstance(means, np.ndarray) \
             else means.columns
@@ -548,14 +565,15 @@ class DAACosts(object):
             mkw_ports.loc[f'State {ss + 1}'] = mkw
 
         if normalize:
-            # TODO mudar a base
             allocations = allocations.div(current_allocation.sum(), axis=0)
             aim_ports = aim_ports.div(current_allocation.sum(), axis=0)
             mkw_ports = mkw_ports.div(current_allocation.sum(), axis=0)
+            unc_port = unc_port.div(current_allocation.sum())
 
         self.allocations = allocations
         self.aim_portfolios = aim_ports
         self.markowitz_portfolios = mkw_ports
+        self.unconditional_portfolio = unc_port
 
     def _single_state_solution(self, mu, cov, trans_dist, costs):
         Zs = cov + (1 + mu) @ (1 + mu).T
