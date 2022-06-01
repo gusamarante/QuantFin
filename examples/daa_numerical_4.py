@@ -66,3 +66,6 @@ print(daa.aim_portfolios, '\n')
 
 print('Mkw Portfolios')
 print(daa.markowitz_portfolios, '\n')
+
+print('Unconditional Portfolio')
+print(daa.unconditional_portfolio)
