@@ -545,8 +545,6 @@ class DAACosts(object):
         unc_port = pd.Series(index=[f'Asset {ii + 1}' for ii in range(self.n_asset)],
                              data=unc_port)
 
-
-
         # Solution
         column_labels = [f'Asset {ii + 1}' for ii in range(self.n_asset)] if isinstance(means, np.ndarray) \
             else means.columns
@@ -579,13 +577,15 @@ class DAACosts(object):
         Zs = cov + (1 + mu) @ (1 + mu).T
 
         aux_Q, As, bs = None, None, None
+
         Qin = np.zeros((self.n_state, self.n_asset, self.n_asset))
         qin = np.zeros((self.n_state, self.n_asset, 1))
         Qout = np.zeros((self.n_state, self.n_asset, self.n_asset))
         qout = np.zeros((self.n_state, self.n_asset, 1))
+
         criteria = 1000000
 
-        while criteria >= 1e-16:
+        while criteria >= 1e-32:
             As = np.zeros((self.n_asset, self.n_asset))
             bs = np.zeros((self.n_asset, 1))
 
