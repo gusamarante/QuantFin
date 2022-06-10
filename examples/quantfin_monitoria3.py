@@ -89,7 +89,7 @@ for avg_mat in np.arange(0.5, 10.5, 0.5):
                                             + aux.iloc[1]['pnl'] * df_backtest.loc[date, 'quant 2'] \
                                             - cost
 
-    df_trackers = pd.concat([df_trackers, df_backtest['notional'].rename(f'{avg_mat} years')], axis=1)
+    df_trackers = pd.concat([df_trackers, df_backtest['notional'].rename(avg_mat)], axis=1)
 
 df_trackers.to_csv(r'/Users/gustavoamarante/Dropbox/Personal Portfolio/trackers/trackers_DI1.csv',
                    sep=';')
