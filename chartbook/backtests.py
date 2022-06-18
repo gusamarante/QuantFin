@@ -53,7 +53,6 @@ df_bt = pd.concat([df_bt, bt_ew.return_index], axis=1)
 weights_equal = bt_ew.weights.iloc[-1].rename('Equal Weights')
 
 # ===== Max Sharpe =====
-
 perf = Performance(df_eri, skip_dd=True, rolling_window=252 * 3)
 df_cov = df_eri.pct_change().ewm(com=252 * 5, min_periods=63).cov() * 252
 df_vols = df_eri.pct_change().ewm(com=252 * 5, min_periods=63).std() * np.sqrt(252)
