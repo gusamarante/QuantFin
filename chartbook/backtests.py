@@ -15,8 +15,12 @@ pd.options.display.width = 250
 show_charts = False
 long_run_sharpe = 0.2
 y_star = 0.5
-chosen_assets = ['NTNB Curta', 'BDIV', 'CMDB', 'IVVB',  'NTNF Longa', 'LTN Longa', 'NTNF Curta', 'NTNB Longa',
-                 'FIND', 'GOVE', 'MATB', 'SMAL', 'DIVO']
+chosen_assets = ['NTNB Curta', 'NTNB Longa',
+                 'NTNF Curta', 'NTNF Longa',
+                 'LTN Curta', 'LTN Longa',
+                 'BOVA', 'SMAL', 'CMDB', 'FIND',
+                 'BDIV',
+                 'IVVB', 'EURP']
 
 # Grab data
 df_tri = tracker_feeder()
