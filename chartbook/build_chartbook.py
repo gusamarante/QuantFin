@@ -1,8 +1,12 @@
 from quantfin.charts import merge_pdfs
 from quantfin.data import DROPBOX
 
-chosen_assets = ['NTNB Curta', 'BDIV', 'CMDB', 'IVVB',  'NTNF Longa', 'LTN Longa', 'NTNF Curta', 'NTNB Longa',
-                 'FIND', 'GOVE', 'MATB', 'SMAL', 'DIVO']
+chosen_assets = ['NTNB Curta', 'NTNB Longa',
+                 'NTNF Curta', 'NTNF Longa',
+                 'LTN Longa',
+                 'SMAL',
+                 'BDIV',
+                 'IVVB']
 
 pdf_writer = None
 

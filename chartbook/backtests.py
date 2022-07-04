@@ -17,10 +17,10 @@ long_run_sharpe = 0.2
 y_star = 0.5
 chosen_assets = ['NTNB Curta', 'NTNB Longa',
                  'NTNF Curta', 'NTNF Longa',
-                 'LTN Curta', 'LTN Longa',
-                 'BOVA', 'SMAL', 'CMDB', 'FIND',
+                 'LTN Longa',
+                 'SMAL',
                  'BDIV',
-                 'IVVB', 'EURP']
+                 'IVVB']
 
 # Grab data
 df_tri = tracker_feeder()
@@ -139,7 +139,7 @@ exp_vol = y_star * np.sqrt(df_weights['Average'].T
 
 df_cota = pd.read_excel(DROPBOX.joinpath('Minha cota XP.xlsx'), index_col=0)
 
-diff = Diffusion(T=1, n=252, k=1, initial_price=df_cota.loc['2022-06-01', 'Portfolio'], process_type='gbm',
+diff = Diffusion(T=1, n=252, k=1, initial_price=df_cota.loc['2022-07-01', 'Portfolio'], process_type='gbm',
                  drift=exp_ret, diffusion=exp_vol)
 
 df_cone = pd.concat([diff.theoretical_mean, diff.ci_upper, diff.ci_lower], axis=1)
