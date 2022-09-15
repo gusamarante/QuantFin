@@ -17,10 +17,8 @@ long_run_sharpe = 0.2
 y_star = 0.5
 chosen_assets = ['NTNB Curta', 'NTNB Longa',
                  'NTNF Curta', 'NTNF Longa',
-                 'LTN Longa',
-                 'SMAL',
-                 'BDIV',
-                 'IVVB']
+                 'LTN Curta', 'LTN Longa',
+                 'BDIV', 'JURO', 'IVVB']
 
 # Grab data
 df_tri = tracker_feeder()

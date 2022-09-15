@@ -3,10 +3,8 @@ from quantfin.data import DROPBOX
 
 chosen_assets = ['NTNB Curta', 'NTNB Longa',
                  'NTNF Curta', 'NTNF Longa',
-                 'LTN Longa',
-                 'SMAL',
-                 'BDIV',
-                 'IVVB']
+                 'LTN Curta', 'LTN Longa',
+                 'BDIV', 'JURO', 'IVVB']
 
 pdf_writer = None
 

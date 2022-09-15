@@ -79,6 +79,13 @@ aux = aux['BDIV']
 aux.index = pd.to_datetime(aux.index)
 df = pd.concat([df, aux], axis=1)
 
+# JURO
+aux = pd.read_excel(file_path.joinpath('JURO.xlsx'),
+                    index_col=0, sheet_name='Tracker')
+aux = aux['JURO']
+aux.index = pd.to_datetime(aux.index)
+df = pd.concat([df, aux], axis=1)
+
 
 # ======================
 # ===== ETFs da B3 =====
