@@ -1,6 +1,7 @@
 """
 This routine grabs the trackers built and adds them to my database to easily handle them later.
 """
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from quantfin.data import DROPBOX
@@ -8,6 +9,20 @@ from quantfin.data import tracker_uploader
 
 df = pd.DataFrame()
 file_path = DROPBOX.joinpath('trackers')
+
+# ======================
+# ===== IDA ANBIMA =====
+# ======================
+aux = pd.read_excel(file_path.joinpath('IDA Anbima.xlsx'), index_col=0, sheet_name='Sheet1', skiprows=3)
+aux = aux.loc[aux.index.drop([np.nan, 'Dates'])]
+aux = aux.astype(float)
+aux.index = pd.to_datetime(aux.index)
+
+aux = aux.rename({'IDADGRAL Index': 'IDA Geral',
+                  'IDADDI Index': 'IDA DI',
+                  'IDADIPCA Index': 'IDA IPCA',}, axis=1)
+
+df = pd.concat([df, aux], axis=1)
 
 # ============================
 # ===== Tesouro Nacional =====

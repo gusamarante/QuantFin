@@ -8,17 +8,23 @@ pd.set_option('display.max_rows', 100)
 pd.set_option('display.max_columns', 50)
 pd.set_option('display.width', 250)
 
+last_year = 2022
 tic = time()
 
 # User defined parameters
 notional_start = 100
-# start_date = '2022-01-01'
+start_date = '2006-01-01'
 
 # Set up
-ntnb = pd.read_csv(DROPBOX.joinpath('trackers/dados_ntnb.csv'), sep=';')
+ntnb = pd.DataFrame()
+
+for year in tqdm(range(2003, last_year + 1), 'Reading files'):
+    aux = pd.read_csv(DROPBOX.joinpath(f'trackers/dados_ntnb {year}.csv'), sep=';')
+    ntnb = pd.concat([ntnb, aux])
+
 ntnb['reference date'] = pd.to_datetime(ntnb['reference date'])
 dates2loop = pd.to_datetime(ntnb['reference date'].unique())
-# dates2loop = dates2loop[dates2loop >= start_date]
+dates2loop = dates2loop[dates2loop >= start_date]
 df_bt = pd.DataFrame()
 
 # First date

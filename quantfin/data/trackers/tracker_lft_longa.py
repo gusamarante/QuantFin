@@ -8,21 +8,27 @@ pd.set_option('display.max_rows', 100)
 pd.set_option('display.max_columns', 50)
 pd.set_option('display.width', 250)
 
+last_year = 2022
 tic = time()
 
 # User defined parameters
 notional_start = 100
-start_date = '2000-01-01'
+start_date = '2006-01-01'
 
 # Set up
-ltn = pd.read_csv(DROPBOX.joinpath('trackers/dados_lft.csv'), sep=';')
-ltn['reference date'] = pd.to_datetime(ltn['reference date'])
-dates2loop = pd.to_datetime(ltn['reference date'].unique())
+lft = pd.DataFrame()
+
+for year in tqdm(range(2003, last_year + 1), 'Reading files'):
+    aux = pd.read_csv(DROPBOX.joinpath(f'trackers/dados_lft {year}.csv'), sep=';')
+    lft = pd.concat([lft, aux])
+
+lft['reference date'] = pd.to_datetime(lft['reference date'])
+dates2loop = pd.to_datetime(lft['reference date'].unique())
 dates2loop = dates2loop[dates2loop >= start_date]
 df_bt = pd.DataFrame()
 
 # First date
-aux_data = ltn[ltn['reference date'] == dates2loop[0]].set_index('bond code')
+aux_data = lft[lft['reference date'] == dates2loop[0]].set_index('bond code')
 aux_data = aux_data.sort_values('du')
 
 current_bond = aux_data.index[-1]
@@ -35,7 +41,7 @@ df_bt.loc[dates2loop[0], 'Notional'] = df_bt.loc[dates2loop[0], 'quantity'] * df
 for date, datem1 in tqdm(zip(dates2loop[1:], dates2loop[:-1]), 'Backtesting LFT Longa'):
 
     # get available bonds today
-    aux_data = ltn[ltn['reference date'] == date].set_index('bond code')
+    aux_data = lft[lft['reference date'] == date].set_index('bond code')
     aux_data = aux_data.sort_values('du')
 
     # check if the longest bond changed or not
