@@ -128,7 +128,7 @@ class BinomalTree(object):
 class BlackScholes(object):
     # TODO Documentation
 
-    implemented_types = ['european', 'binary']  # TODO american
+    implemented_types = ['european', 'binary']  # TODO american, barriers
 
     def __init__(self, stock_price, strike_price, maturity, risk_free, vol, div_yield=0, call=True,
                  option_type='european'):
