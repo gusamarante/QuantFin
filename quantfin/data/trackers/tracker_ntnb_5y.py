@@ -1,18 +1,15 @@
-import matplotlib.pyplot as plt
 from quantfin.data import DROPBOX
-from numpy.linalg import lstsq
-from datetime import timedelta
 from tqdm import tqdm
 from time import time
 import pandas as pd
-import numpy as np
 
 pd.set_option('display.max_rows', 100)
 pd.set_option('display.max_columns', 50)
 pd.set_option('display.width', 250)
 
 desired_duration = 5  # in years (its going to be a little more)
-rebalance_window = 12  # in months
+rebalance_cost = 0.0015
+rebalance_window = 3  # in months
 last_year = 2022
 tic = time()
 
@@ -71,6 +68,7 @@ for date, datem1 in tqdm(zip(dates2loop[1:], dates2loop[:-1]), 'Backtesting NTN-
         df_bt.loc[date, 'Notional'] = df_bt.loc[date, 'quantity 1'] * df_bt.loc[date, 'price 1'] + df_bt.loc[date, 'quantity 2'] * df_bt.loc[date, 'price 2']
 
     else:  # past rebalance, recompute the weights
+        # TODO add rebalance cost
         dur_idx = aux_data['duration'].searchsorted(desired_duration)
         a = aux_data['duration'].iloc[[dur_idx - 1, dur_idx]].values
         x = (desired_duration - a[1]) / (a[0] - a[1])  # Ammount of bond 1
@@ -80,24 +78,24 @@ for date, datem1 in tqdm(zip(dates2loop[1:], dates2loop[:-1]), 'Backtesting NTN-
         df_bt.loc[date, 'du 1'] = aux_data.loc[new_bond1, 'du']
         df_bt.loc[date, 'du 2'] = aux_data.loc[new_bond2, 'du']
 
-        sellvalue = df_bt.loc[datem1, 'quantity 1'] * (aux_data.loc[current_bond1, 'price'] - aux_data.loc[current_bond1, 'bidask spread'] / 2)
-        sellvalue = sellvalue + df_bt.loc[datem1, 'quantity 2'] * (aux_data.loc[current_bond2, 'price'] - aux_data.loc[current_bond2, 'bidask spread'] / 2)
+        # TODO add rebalance cost of selling
+        sellvalue = df_bt.loc[datem1, 'quantity 1'] * (aux_data.loc[current_bond1, 'price'])
+        sellvalue = sellvalue + df_bt.loc[datem1, 'quantity 2'] * (aux_data.loc[current_bond2, 'price'])
         sellvalue = sellvalue + df_bt.loc[datem1, 'quantity 1'] * aux_data.loc[current_bond1, 'coupon'] + df_bt.loc[datem1, 'quantity 2'] * aux_data.loc[current_bond2, 'coupon']
 
-        df_bt.loc[date, 'quantity 1'] = x * sellvalue / (aux_data.loc[new_bond1, 'price'] + aux_data.loc[new_bond1, 'bidask spread'] / 2)
-        df_bt.loc[date, 'quantity 2'] = (1 - x) * sellvalue / (aux_data.loc[new_bond2, 'price'] + aux_data.loc[new_bond2, 'bidask spread'] / 2)
+        # TODO add rebalance cost of buying
+        df_bt.loc[date, 'quantity 1'] = x * sellvalue / (aux_data.loc[new_bond1, 'price'])
+        df_bt.loc[date, 'quantity 2'] = (1 - x) * sellvalue / (aux_data.loc[new_bond2, 'price'] )
 
         df_bt.loc[date, 'price 1'] = aux_data.loc[new_bond1, 'price']
         df_bt.loc[date, 'price 2'] = aux_data.loc[new_bond2, 'price']
 
         df_bt.loc[date, 'Notional'] = df_bt.loc[date, 'quantity 1'] * df_bt.loc[date, 'price 1'] \
-                                      + df_bt.loc[date, 'quantity 2'] * df_bt.loc[date, 'price 2']
+                                    + df_bt.loc[date, 'quantity 2'] * df_bt.loc[date, 'price 2']
 
         current_bond1, current_bond2 = new_bond1, new_bond2
 
-df_bt.to_clipboard()
-
-# df_bt.to_csv(DROPBOX.joinpath('trackers/ntnb_5y.csv'), sep=';')
+df_bt.to_csv(DROPBOX.joinpath('trackers/ntnb_5y.csv'), sep=';')
 minutes = round(time() - tic, 2)
 print('NTNB Longa took', minutes, 'seconds')
 
