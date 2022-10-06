@@ -62,6 +62,27 @@ aux = aux['Notional'].rename('NTNB Curta')
 aux.index = pd.to_datetime(aux.index)
 df = pd.concat([df, aux], axis=1)
 
+# NTN-B 2y
+aux = pd.read_csv(file_path.joinpath('ntnb_2y.csv'),
+                  index_col=0, sep=';')
+aux = aux['Notional'].rename('NTNB 2y')
+aux.index = pd.to_datetime(aux.index)
+df = pd.concat([df, aux], axis=1)
+
+# NTN-B 5y
+aux = pd.read_csv(file_path.joinpath('ntnb_5y.csv'),
+                  index_col=0, sep=';')
+aux = aux['Notional'].rename('NTNB 5y')
+aux.index = pd.to_datetime(aux.index)
+df = pd.concat([df, aux], axis=1)
+
+# NTN-B 10y
+aux = pd.read_csv(file_path.joinpath('ntnb_10y.csv'),
+                  index_col=0, sep=';')
+aux = aux['Notional'].rename('NTNB 10y')
+aux.index = pd.to_datetime(aux.index)
+df = pd.concat([df, aux], axis=1)
+
 # NTN-B Longa
 aux = pd.read_csv(file_path.joinpath('ntnb_longa.csv'),
                   index_col=0, sep=';')

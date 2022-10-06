@@ -7,7 +7,7 @@ pd.set_option('display.max_rows', 100)
 pd.set_option('display.max_columns', 50)
 pd.set_option('display.width', 250)
 
-desired_duration = 5  # in years (its going to be a little more)
+desired_duration = 10  # in years (its going to be a little more)
 rebalance_cost = 0.0015
 rebalance_window = 3  # in months
 last_year = 2022
@@ -50,7 +50,7 @@ df_bt.loc[dates2loop[0], 'Notional'] = df_bt.loc[dates2loop[0], 'quantity 1'] * 
 
 next_rebalance_date = dates2loop[0] + pd.DateOffset(months=rebalance_window)
 
-for date, datem1 in tqdm(zip(dates2loop[1:], dates2loop[:-1]), 'Backtesting NTN-B 5y'):
+for date, datem1 in tqdm(zip(dates2loop[1:], dates2loop[:-1]), 'Backtesting NTN-B 10y'):
 
     # get available bonds today
     aux_data = ntnb[ntnb['reference date'] == date].set_index('bond code')
@@ -95,7 +95,7 @@ for date, datem1 in tqdm(zip(dates2loop[1:], dates2loop[:-1]), 'Backtesting NTN-
 
         current_bond1, current_bond2 = new_bond1, new_bond2
 
-df_bt.to_csv(DROPBOX.joinpath('trackers/ntnb_5y.csv'), sep=';')
+df_bt.to_csv(DROPBOX.joinpath('trackers/ntnb_10y.csv'), sep=';')
 minutes = round(time() - tic, 2)
-print('NTNB 5y took', minutes, 'seconds')
+print('NTNB 10y took', minutes, 'seconds')
 
