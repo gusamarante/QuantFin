@@ -79,6 +79,7 @@ class BacktestHRP(object):
             if sigma.empty:
                 continue
 
+            # TODO if there is a single asset, return weight 100%
             hrp = HRP(cov=sigma, method=method, metric=metric)
 
             self.weights.loc[date] = hrp.weights
