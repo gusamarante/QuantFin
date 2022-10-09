@@ -79,10 +79,12 @@ class BacktestHRP(object):
             if sigma.empty:
                 continue
 
-            # TODO if there is a single asset, return weight 100%
-            hrp = HRP(cov=sigma, method=method, metric=metric)
-
-            self.weights.loc[date] = hrp.weights
+            if sigma.shape[0] == 1:  # Only one available asset
+                self.weights.loc[date, sigma.index[0]] = 1
+                self.weights.loc[date].fillna(0, inplace=True)
+            else:
+                hrp = HRP(cov=sigma, method=method, metric=metric)
+                self.weights.loc[date] = hrp.weights
 
         self.weights = self.weights.resample('D').last().fillna(method='ffill')
         self.weights = self.weights.reindex(eri.index, method='pad')
@@ -98,7 +100,7 @@ class BacktestERC(object):
 
     # TODO Documentation
 
-    def __init__(self, eri, cov, rebalance_dates, name='HRP'):
+    def __init__(self, eri, cov, rebalance_dates, name='ERC'):
 
         self.weights = pd.DataFrame(columns=eri.columns)
 
