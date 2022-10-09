@@ -33,29 +33,9 @@ df_eri = compute_eri(df_tri, df_cdi)
 # Performance Data
 perf_t = Performance(df_eri)
 df_perf = perf_t.table.T
-df_perf = df_perf[df_perf['Sharpe'] >= 0]  # Filter positive sharpe
-df_score = (df_perf - df_perf.min(axis=0)) / (df_perf.max(axis=0) - df_perf.min(axis=0))  # normalize indicators
-df_score['Kurt'] = 1 - df_score['Kurt']  # Invert
-df_score['Start Date'] = 1 - df_score['Start Date']  # Invert
-# df_score = df_score[df_score['Start Date'] >= 0.1]  # Exclude series that are too short
-
-try:
-    df_score['Score'] = (1 * df_score['Sharpe']
-                         + 0.5 * df_score['Skew']
-                         + 0.2 * df_score['Kurt']
-                         + 0.5 * df_score['Max DD']) \
-                        / (1 + 0.5 + 0.2 + 0.5)
-except KeyError:
-    df_score['Score'] = (1 * df_score['Sharpe']
-                         + 0.5 * df_score['Skew']
-                         + 0.2 * df_score['Kurt']) \
-                        / (1 + 0.5 + 0.2)
-
-df_perf['Score'] = df_score['Score']
-df_perf = df_perf.dropna()
 
 writer = pd.ExcelWriter(DROPBOX.joinpath(f'Available Assets.xlsx'))
-df_perf.to_excel(writer, 'Filtered')
+df_perf.to_excel(writer, 'All Assets')
 writer.save()
 
 # Charts

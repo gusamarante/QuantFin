@@ -10,6 +10,7 @@ from matplotlib.ticker import PercentFormatter
 class Performance(object):
 
     # TODO Add cumulative/expanding measures - great for backtest
+    # TODO relax the definition of a drawdown to include only the last X years
 
     def __init__(self, total_return, rolling_window=252, skip_dd=False):
         """
