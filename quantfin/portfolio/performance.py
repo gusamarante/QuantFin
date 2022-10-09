@@ -11,6 +11,7 @@ class Performance(object):
 
     # TODO Add cumulative/expanding measures - great for backtest
     # TODO relax the definition of a drawdown to include only the last X years
+    # TODO Slow moving return and sharpe
 
     def __init__(self, total_return, rolling_window=252, skip_dd=False):
         """
