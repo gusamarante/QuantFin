@@ -119,9 +119,9 @@ aux.index = pd.to_datetime(aux.index)
 df = pd.concat([df, aux], axis=1)
 
 
-# ===========================
-# ===== Fundo Exclusivo =====
-# ===========================
+# ===================================================
+# ===== Fundos de Investimento em Participações =====
+# ===================================================
 # BDIV
 aux = pd.read_excel(file_path.joinpath('BDIV.xlsx'),
                     index_col=0, sheet_name='Tracker')
@@ -129,10 +129,31 @@ aux = aux['BDIV']
 aux.index = pd.to_datetime(aux.index)
 df = pd.concat([df, aux], axis=1)
 
+# BRZP
+aux = pd.read_excel(file_path.joinpath('BRZP.xlsx'),
+                    index_col=0, sheet_name='Tracker')
+aux = aux['BRZP']
+aux.index = pd.to_datetime(aux.index)
+df = pd.concat([df, aux], axis=1)
+
 # JURO
 aux = pd.read_excel(file_path.joinpath('JURO.xlsx'),
                     index_col=0, sheet_name='Tracker')
 aux = aux['JURO']
+aux.index = pd.to_datetime(aux.index)
+df = pd.concat([df, aux], axis=1)
+
+# PPEI
+aux = pd.read_excel(file_path.joinpath('PPEI.xlsx'),
+                    index_col=0, sheet_name='Tracker')
+aux = aux['PPEI']
+aux.index = pd.to_datetime(aux.index)
+df = pd.concat([df, aux], axis=1)
+
+# XPIE
+aux = pd.read_excel(file_path.joinpath('XPIE.xlsx'),
+                    index_col=0, sheet_name='Tracker')
+aux = aux['XPIE']
 aux.index = pd.to_datetime(aux.index)
 df = pd.concat([df, aux], axis=1)
 

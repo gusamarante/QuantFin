@@ -2,13 +2,20 @@
 This routine builds the optimal FIP (Fundo de investimento em participações) portfolio.
 The available assets for this portfolio are:
     - BDIV11: Infra / BTG
+    - BRZP11
     - JURO11: Infra / Sparta
+    - PPEI11
+    - XPIE11
 """
 from quantfin.portfolio import Performance, EqualWeights, BacktestHRP, BacktestERC
 from quantfin.data import tracker_feeder, SGS, DROPBOX
 from quantfin.finmath import compute_eri
 import matplotlib.pyplot as plt
 import pandas as pd
+
+pd.set_option('display.max_rows', 100)
+pd.set_option('display.max_columns', 50)
+pd.set_option('display.width', 250)
 
 # Benchmark
 sgs = SGS()
@@ -17,12 +24,18 @@ df_cdi = df_cdi['CDI'] / 100
 
 # Trackers
 df_tri = tracker_feeder()
-df_tri = df_tri[['BDIV', 'JURO']]
+df_tri = df_tri[['BDIV', 'JURO', 'XPIE']]
 
 # Excess Returns
 df_eri = compute_eri(df_tri, df_cdi)
 rebalance_dates = pd.date_range(df_eri.index[0], df_eri.index[-1], freq='M')
 df_cov = df_eri.pct_change().ewm(com=252 * 1, min_periods=63).cov() * 252
+
+# Individual Performance
+perf = Performance(df_eri)
+print(perf.table, '\n')
+df_eri.plot()
+plt.show()
 
 # ===== PORTFOLIO CONSTRUCTION =====
 # Equal Weighted
@@ -42,8 +55,13 @@ df_compare = pd.concat([bt_ew.return_index.rename('EW'),
                        axis=1)
 
 perf = Performance(df_compare)
+print('\n', perf.table, '\n')
+
 chosen_method = perf.table.loc['Sharpe'].astype(float).idxmax()
 print('Chosen method for FIP is', chosen_method)
+
+df_compare.plot()
+plt.show()
 
 if chosen_method == 'EW':
     weights = bt_ew.weights.iloc[-1].rename('EW Weights')
