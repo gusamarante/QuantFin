@@ -34,7 +34,11 @@ df_cov = df_eri.pct_change().ewm(com=252 * 1, min_periods=63).cov() * 252
 
 # Individual Performance
 perf = Performance(df_eri)
-perf.table.to_excel(writer, 'FIP Performance')
+perf.table.to_excel(writer, 'Performance')
+
+# correl matrix
+df_eri.pct_change().corr().to_excel(writer, 'Correlation Daily')
+df_eri.resample('M').last().pct_change().corr().to_excel(writer, 'Correlation Monthly')
 
 # Quick plot
 (100 * df_eri.dropna() / df_eri.dropna().iloc[0]).plot()
@@ -77,8 +81,8 @@ elif chosen_method == 'ERC':
     tracker = bt_hrp.return_index
 
 
-weights.to_excel(writer, 'FIP Weights')
-tracker.to_excel(writer, 'FIP Tracker')
+weights.to_excel(writer, 'Weights')
+tracker.to_excel(writer, 'Tracker')
 writer.save()
 
 tracker_uploader(tracker.to_frame('Pillar FIP'))
