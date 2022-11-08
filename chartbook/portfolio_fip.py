@@ -2,13 +2,11 @@
 This routine builds the optimal FIP (Fundo de investimento em participações) portfolio.
 The available assets for this portfolio are:
     - BDIV11: Infra / BTG
-    - BRZP11
     - JURO11: Infra / Sparta
-    - PPEI11
     - XPIE11
 """
 from quantfin.portfolio import Performance, EqualWeights, BacktestHRP, BacktestERC
-from quantfin.data import tracker_feeder, SGS, DROPBOX
+from quantfin.data import tracker_feeder, SGS, DROPBOX, tracker_uploader
 from quantfin.finmath import compute_eri
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -16,6 +14,9 @@ import pandas as pd
 pd.set_option('display.max_rows', 100)
 pd.set_option('display.max_columns', 50)
 pd.set_option('display.width', 250)
+
+# Excel file to save outputs
+writer = pd.ExcelWriter(DROPBOX.joinpath(f'Pillar FIP.xlsx'))
 
 # Benchmark
 sgs = SGS()
@@ -33,8 +34,10 @@ df_cov = df_eri.pct_change().ewm(com=252 * 1, min_periods=63).cov() * 252
 
 # Individual Performance
 perf = Performance(df_eri)
-print(perf.table, '\n')
-df_eri.plot()
+perf.table.to_excel(writer, 'FIP Performance')
+
+# Quick plot
+(100 * df_eri.dropna() / df_eri.dropna().iloc[0]).plot()
 plt.show()
 
 # ===== PORTFOLIO CONSTRUCTION =====
@@ -73,7 +76,9 @@ elif chosen_method == 'ERC':
     weights = bt_erc.weights.iloc[-1].rename('ERC Weights')
     tracker = bt_hrp.return_index
 
-writer = pd.ExcelWriter(DROPBOX.joinpath(f'Pillar FIP.xlsx'))
+
 weights.to_excel(writer, 'FIP Weights')
-tracker.to_excel(writer, 'FIP Trackrers')
+tracker.to_excel(writer, 'FIP Tracker')
 writer.save()
+
+tracker_uploader(tracker.to_frame('Pillar FIP'))
