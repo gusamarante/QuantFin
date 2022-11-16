@@ -19,11 +19,25 @@ for year in tqdm(range(2003, last_year + 1), 'Reading files'):
 raw_data = raw_data.drop(['Unnamed: 0', 'index'], axis=1)
 raw_data['reference date'] = pd.to_datetime(raw_data['reference date'])
 
-# Single date
+
+# Function to generate ntnb cashflows
+def ntnb_cashflows(reference_date, maturity_date, vna):
+    mat_year = maturity_date.year
+
+    # Se o ano é par ou impar, define o end date
+    # Start date vai ser algo muito velho
+    # filtra para datas maiores que a reference
+    # adiciona os valores dos coupons
+
+    return
+
+
+# EXAMPLE - Single date
 today = raw_data['reference date'].max()
 current_bonds = raw_data[raw_data['reference date'] == today].sort_values('du')
 
-# TODO objeto de Bonds (cashflow, yield ot price)
+
+
 
 
 a = 1
