@@ -1,9 +1,9 @@
 """
-This routine builds the optimal FIP (Fundo de investimento em participações) portfolio.
+This routine builds the optimal Credit Portfolio.
 The available assets for this portfolio are:
-    - BDIV11: Infra / BTG
-    - JURO11: Infra / Sparta
-    - XPIE11
+    - IDA DI: nominal corporate bonds
+    - IDA IPCA: real corporate bonds
+    - DEBB: ETF of nominal corporate bonds
 """
 from quantfin.portfolio import Performance, EqualWeights, BacktestHRP, BacktestERC
 from quantfin.data import tracker_feeder, SGS, DROPBOX, tracker_uploader
@@ -16,7 +16,7 @@ pd.set_option('display.max_columns', 50)
 pd.set_option('display.width', 250)
 
 # Excel file to save outputs
-writer = pd.ExcelWriter(DROPBOX.joinpath(f'Pillar FIP.xlsx'))
+writer = pd.ExcelWriter(DROPBOX.joinpath(f'Pillar Crédito.xlsx'))
 
 # Benchmark
 sgs = SGS()
@@ -25,7 +25,7 @@ df_cdi = df_cdi['CDI'] / 100
 
 # Trackers
 df_tri = tracker_feeder()
-df_tri = df_tri[['BDIV', 'JURO', 'XPIE']]
+df_tri = df_tri[['IDA DI', 'IDA IPCA', 'DEBB']]
 
 # Excess Returns
 df_eri = compute_eri(df_tri, df_cdi)
@@ -85,4 +85,4 @@ weights.to_excel(writer, 'Weights')
 tracker.to_excel(writer, 'Tracker')
 writer.save()
 
-tracker_uploader(tracker.to_frame('Pillar FIP'))
+tracker_uploader(tracker.to_frame('Pillar Credito'))
