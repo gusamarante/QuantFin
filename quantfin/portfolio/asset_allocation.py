@@ -15,7 +15,7 @@ class MaxSharpe(object):
 
     # TODO turn rf into optional
 
-    def __init__(self, mu, cov, rf, risk_aversion=None, short_sell=True):
+    def __init__(self, mu, cov, rf, risk_aversion=None, short_sell=True, gross_risk=None):
         """
         Receives informations about the set of assets available for allocation and computes the following
         measures as atributes:
@@ -42,13 +42,13 @@ class MaxSharpe(object):
         The class also has support for plotting the classical risk-return plane.
 
         :param mu: pandas series of expected returns where the index contains the names of the assets.
-        :param sigma: pandas series of risk where the index contains the names of the assets
-                      (index must be the same as 'mu')
-        :param corr: pandas DataFrame of correlations (index and columns must contain the same index)
+        :param cov: pandas series of risk where the index contains the names of the assets
+                    (index must be the same as 'mu')
         :param rf: float, risk-free rate
         :param risk_aversion: coefficient of risk aversion of the investor's utility function.
         :param short_sell: If True, short-selling is allowed. If False, weights on risky-assets are
                            constrained to be between 0 and 1
+        :param gross_risk: If a number X is passed, weights cannot go lower than -X or higher than X
         """
 
         # Asseert data indexes and organize
@@ -60,6 +60,7 @@ class MaxSharpe(object):
         self.rf = rf
         self.risk_aversion = risk_aversion
         self.short_selling = short_sell
+        self.gross_risk = gross_risk
         self.n_assets = self._n_assets()
 
         # Get the optimal risky porfolio
@@ -166,7 +167,10 @@ class MaxSharpe(object):
 
             # Create bounds for the weights if short-selling is restricted
             if self.short_selling:
-                bounds = None
+                if self.gross_risk is None:
+                    bounds = None
+                else:
+                    bounds = Bounds(-self.gross_risk*np.ones(self.n_assets), self.gross_risk*np.ones(self.n_assets))
             else:
                 bounds = Bounds(np.zeros(self.n_assets), np.ones(self.n_assets))
 
