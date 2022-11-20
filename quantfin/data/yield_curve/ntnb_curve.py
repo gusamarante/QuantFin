@@ -1,5 +1,7 @@
-from quantfin.data import DROPBOX
+from scipy.optimize import minimize, Bounds
 from quantfin.calendars import DayCounts
+from scipy.interpolate import interp1d
+from quantfin.data import DROPBOX
 from tqdm import tqdm
 from time import time
 import pandas as pd
@@ -57,15 +59,53 @@ for bond in current_bonds['maturity']:
     aux = ntnb_cashflows(reference_date=today,
                          maturity_date=bond,
                          vna=current_bonds['vna'].max())
-
+    aux = aux.rename({'cashflow': bond}, axis=1)
     df = pd.concat([df, aux], axis=1)
 
 df = df.sort_index()
 df = df.fillna(0)
 
-CF = df.values.T
-P = current_bonds['price'].values
+
+# ===== optimization =====
+def bootstrapp(cashflows, prices):
+
+    # Find the DUs that we can change
+    du_dof = df.idxmax().values
+
+    def objective_function(discount):
+        dus = np.insert(du_dof, 0, 0)  # add the first value, which will be fixed at zero
+        discount = np.insert(discount, 0, 1)  # add the first value, which will be fixed at one
+        f = interp1d(dus, np.log(discount))  # Interpolation of the log of disccounts
+        discount = pd.Series(index=df.index, data=np.exp(f(df.index)))  # Populate the discounts to a series
+        sum_dcf = cashflows.multiply(discount, axis=0).sum()  # get the sum of discounted cashflows
+        erros = prices.subtract(sum_dcf, axis=0)  # Difference between actual prices and sum of DCF
+        erro_total = (erros ** 2).sum()  # Sum of squarred errors
+
+        return erro_total.values[0]
+
+    # Run optimization
+    # Initial gues for the vector of disccounts
+    init_discount = 0.9 * np.ones(len(du_dof))
+    bounds = Bounds(np.zeros(len(du_dof)), np.inf)
+    res = minimize(fun=objective_function,
+                   x0=init_discount,
+                   bounds=bounds,
+                   method='SLSQP',
+                   options={'ftol': 1e-9,
+                            'disp': False})
+
+    dus = np.insert(du_dof, 0, 0)  # add the first value, which will be fixed at zero
+    discount = np.insert(res.x, 0, 1)  # add the first value, which will be fixed at one
+    f = interp1d(dus, np.log(discount))  # Interpolation of the log of disccounts
+    discount = pd.Series(index=df.index, data=np.exp(f(df.index)))
+
+    return discount
+
+
+prices = current_bonds[['maturity', 'price']].set_index('maturity')
+print(bootstrapp(df, prices))
 
 
 
-print(df)
+
+
