@@ -81,7 +81,12 @@ def bootstrapp(cashflows, prices):
         erros = prices.subtract(sum_dcf, axis=0)  # Difference between actual prices and sum of DCF
         erro_total = (erros ** 2).sum()  # Sum of squarred errors
 
-        return erro_total.values[0]
+        try:
+            erro_total = erro_total.values[0]
+        except AttributeError:
+            erro_total = erro_total
+
+        return erro_total
 
     # Run optimization
     # Initial gues for the vector of disccounts
@@ -97,15 +102,12 @@ def bootstrapp(cashflows, prices):
     dus = np.insert(du_dof, 0, 0)  # add the first value, which will be fixed at zero
     discount = np.insert(res.x, 0, 1)  # add the first value, which will be fixed at one
     f = interp1d(dus, np.log(discount))  # Interpolation of the log of disccounts
-    discount = pd.Series(index=df.index, data=np.exp(f(df.index)))
+    discount = pd.Series(index=cashflows.index, data=np.exp(f(cashflows.index)))
 
     return discount
 
 
 prices = current_bonds[['maturity', 'price']].set_index('maturity')
-print(bootstrapp(df, prices))
-
-
-
-
+# print(bootstrapp(df, prices))
+print(bootstrapp(df.iloc[:8, 0], prices.iloc[:2]))
 
