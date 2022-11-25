@@ -2,6 +2,7 @@ from scipy.optimize import minimize, Bounds
 from quantfin.calendars import DayCounts
 from scipy.interpolate import interp1d
 from quantfin.data import DROPBOX
+import matplotlib.pyplot as plt
 from tqdm import tqdm
 from time import time
 import pandas as pd
@@ -70,14 +71,14 @@ df = df.fillna(0)
 def bootstrapp(cashflows, prices):
 
     # Find the DUs that we can change
-    du_dof = df.idxmax().values
+    du_dof = cashflows.idxmax().values
 
-    def objective_function(discount):
+    def objective_function(disc):
         dus = np.insert(du_dof, 0, 0)  # add the first value, which will be fixed at zero
-        discount = np.insert(discount, 0, 1)  # add the first value, which will be fixed at one
-        f = interp1d(dus, np.log(discount))  # Interpolation of the log of disccounts
-        discount = pd.Series(index=df.index, data=np.exp(f(df.index)))  # Populate the discounts to a series
-        sum_dcf = cashflows.multiply(discount, axis=0).sum()  # get the sum of discounted cashflows
+        disc = np.insert(disc, 0, 1)  # add the first value, which will be fixed at one
+        f = interp1d(dus, np.log(disc))  # Interpolation of the log of disccounts
+        disc = pd.Series(index=cashflows.index, data=np.exp(f(cashflows.index)))  # Populate the discounts to a series
+        sum_dcf = cashflows.multiply(disc, axis=0).sum()  # get the sum of discounted cashflows
         erros = prices.subtract(sum_dcf, axis=0)  # Difference between actual prices and sum of DCF
         erro_total = (erros ** 2).sum()  # Sum of squarred errors
 
@@ -90,13 +91,11 @@ def bootstrapp(cashflows, prices):
 
     # Run optimization
     # Initial gues for the vector of disccounts
-    init_discount = 0.9 * np.ones(len(du_dof))
-    bounds = Bounds(np.zeros(len(du_dof)), np.inf)
+    init_discount = 0.8 * np.ones(len(du_dof))
     res = minimize(fun=objective_function,
                    x0=init_discount,
-                   bounds=bounds,
-                   method='SLSQP',
-                   options={'ftol': 1e-9,
+                   method=None,
+                   options={'ftol': 1e-16,
                             'disp': False})
 
     dus = np.insert(du_dof, 0, 0)  # add the first value, which will be fixed at zero
@@ -104,10 +103,15 @@ def bootstrapp(cashflows, prices):
     f = interp1d(dus, np.log(discount))  # Interpolation of the log of disccounts
     discount = pd.Series(index=cashflows.index, data=np.exp(f(cashflows.index)))
 
-    return discount
+    curve = (1 / discount) ** (252 / discount.index) - 1
+
+    print(res.fun)
+
+    return curve
 
 
 prices = current_bonds[['maturity', 'price']].set_index('maturity')
 # print(bootstrapp(df, prices))
-print(bootstrapp(df.iloc[:8, 0], prices.iloc[:2]))
-
+yield_curve = bootstrapp(df, prices)
+yield_curve.plot()
+plt.show()
