@@ -7,23 +7,14 @@ from tqdm import tqdm
 from time import time
 import pandas as pd
 import numpy as np
+import warnings
+
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 pd.set_option('display.max_rows', 100)
 pd.set_option('display.max_columns', 50)
 pd.set_option('display.width', 250)
 dc = DayCounts(dc='bus/252', calendar='anbima')
-
-# Read the Data
-last_year = 2022
-raw_data = pd.DataFrame()
-
-for year in tqdm(range(2003, last_year + 1), 'Reading files'):
-    aux = pd.read_csv(DROPBOX.joinpath(f'trackers/dados_ntnb {year}.csv'), sep=';')
-    raw_data = pd.concat([raw_data, aux])
-
-raw_data = raw_data.drop(['Unnamed: 0', 'index'], axis=1)
-raw_data['reference date'] = pd.to_datetime(raw_data['reference date'])
-raw_data['maturity'] = pd.to_datetime(raw_data['maturity'])
 
 
 # Function to generate ntnb cashflows
@@ -48,23 +39,6 @@ def ntnb_cashflows(reference_date, maturity_date, vna):
     cashflows = pd.DataFrame(index=dus, data={'cashflow': coupons})
 
     return cashflows
-
-
-# EXAMPLE - Single date
-today = raw_data['reference date'].max()
-current_bonds = raw_data[raw_data['reference date'] == today].sort_values('du')
-
-df = pd.DataFrame()
-for bond in current_bonds['maturity']:
-
-    aux = ntnb_cashflows(reference_date=today,
-                         maturity_date=bond,
-                         vna=current_bonds['vna'].max())
-    aux = aux.rename({'cashflow': bond}, axis=1)
-    df = pd.concat([df, aux], axis=1)
-
-df = df.sort_index()
-df = df.fillna(0)
 
 
 # ===== optimization =====
@@ -95,8 +69,8 @@ def bootstrapp(cashflows, prices):
     res = minimize(fun=objective_function,
                    x0=init_discount,
                    method=None,
-                   options={'ftol': 1e-16,
-                            'disp': False})
+                   tol=1e-16,
+                   options={'disp': False})
 
     dus = np.insert(du_dof, 0, 0)  # add the first value, which will be fixed at zero
     discount = np.insert(res.x, 0, 1)  # add the first value, which will be fixed at one
@@ -105,13 +79,53 @@ def bootstrapp(cashflows, prices):
 
     curve = (1 / discount) ** (252 / discount.index) - 1
 
-    print(res.fun)
-
     return curve
 
 
-prices = current_bonds[['maturity', 'price']].set_index('maturity')
-# print(bootstrapp(df, prices))
-yield_curve = bootstrapp(df, prices)
-yield_curve.plot()
-plt.show()
+# Read the Data
+last_year = 2022
+raw_data = pd.DataFrame()
+
+for year in tqdm(range(2003, last_year + 1), 'Reading files'):
+    aux = pd.read_csv(DROPBOX.joinpath(f'trackers/dados_ntnb {year}.csv'), sep=';')
+    raw_data = pd.concat([raw_data, aux])
+
+raw_data = raw_data.drop(['Unnamed: 0', 'index'], axis=1)
+raw_data['reference date'] = pd.to_datetime(raw_data['reference date'])
+raw_data['maturity'] = pd.to_datetime(raw_data['maturity'])
+
+# Iterate for every date
+dates2loop = raw_data['reference date'].drop_duplicates().sort_values()
+ano = 2022
+dates2loop = dates2loop[dates2loop >= f'{ano}-01-01']
+dates2loop = dates2loop[dates2loop <= f'{ano}-12-31']
+
+df_yield_curve = pd.DataFrame()
+for today in tqdm(dates2loop, 'Bootstrapping'):
+
+    current_bonds = raw_data[raw_data['reference date'] == today].sort_values('du')
+
+    df_cashflows = pd.DataFrame()
+    for bond in current_bonds['maturity']:
+        aux = ntnb_cashflows(reference_date=today,
+                             maturity_date=bond,
+                             vna=current_bonds['vna'].max())
+        aux = aux.rename({'cashflow': bond}, axis=1)
+        df_cashflows = pd.concat([df_cashflows, aux], axis=1)
+
+    df_cashflows = df_cashflows.sort_index()
+    df_cashflows = df_cashflows.fillna(0)
+    prices = current_bonds[['maturity', 'price']].set_index('maturity')
+
+    yield_curve = bootstrapp(df_cashflows, prices)
+    yield_curve = yield_curve.to_frame(today)
+    yield_curve = yield_curve.melt(ignore_index=False).reset_index()
+    yield_curve = yield_curve.rename({'index': 'du',
+                                      'variable': 'reference_date',
+                                      'value': 'yield'},
+                                     axis=1)
+
+    df_yield_curve = pd.concat([df_yield_curve, yield_curve], axis=0)
+
+df_yield_curve = df_yield_curve.dropna()
+df_yield_curve.to_csv(f'/Users/gustavoamarante/Dropbox/Personal Portfolio/curves/curva_zero_ntnb_{ano}.csv')
