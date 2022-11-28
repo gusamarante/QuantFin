@@ -95,6 +95,8 @@ for date, datem1 in tqdm(zip(dates2loop[1:], dates2loop[:-1]), 'Backtesting NTN-
 
         current_bond1, current_bond2 = new_bond1, new_bond2
 
+        next_rebalance_date = date + pd.DateOffset(months=rebalance_window)
+
 df_bt.to_csv(DROPBOX.joinpath('trackers/ntnf_5y.csv'), sep=';')
 minutes = round(time() - tic, 2)
 print('NTNF 5y took', minutes, 'seconds')

@@ -34,7 +34,7 @@ df_cov = df_eri.pct_change().ewm(com=252 * 1, min_periods=63).cov() * 252
 
 # Individual Performance
 perf = Performance(df_eri)
-perf.table.to_excel(writer, 'Performance')
+perf.table.T.to_excel(writer, 'Performance')
 
 # correl matrix
 df_eri.pct_change().corr().to_excel(writer, 'Correlation Daily')
@@ -65,7 +65,7 @@ perf = Performance(df_compare)
 print('\n', perf.table, '\n')
 
 chosen_method = perf.table.loc['Sharpe'].astype(float).idxmax()
-print('Chosen method for FIP is', chosen_method)
+print('Chosen method for Credit is', chosen_method)
 
 df_compare.plot()
 plt.show()
