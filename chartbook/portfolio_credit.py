@@ -34,11 +34,11 @@ df_cov = df_eri.pct_change().ewm(com=252 * 1, min_periods=63).cov() * 252
 
 # Individual Performance
 perf = Performance(df_eri)
-perf.table.T.to_excel(writer, 'Performance')
+perf.table.T.to_excel(writer, 'Asset Performance')
 
 # correl matrix
-df_eri.pct_change().corr().to_excel(writer, 'Correlation Daily')
-df_eri.resample('M').last().pct_change().corr().to_excel(writer, 'Correlation Monthly')
+df_eri.pct_change().corr().to_excel(writer, 'Asset Corr Daily')
+df_eri.resample('M').last().pct_change().corr().to_excel(writer, 'Asset Corr Monthly')
 
 # Quick plot
 (100 * df_eri.dropna() / df_eri.dropna().iloc[0]).plot()
@@ -62,7 +62,7 @@ df_compare = pd.concat([bt_ew.return_index.rename('EW'),
                        axis=1)
 
 perf = Performance(df_compare)
-print('\n', perf.table, '\n')
+perf.table.T.to_excel(writer, 'Strat Performance')
 
 chosen_method = perf.table.loc['Sharpe'].astype(float).idxmax()
 print('Chosen method for Credit is', chosen_method)
@@ -70,19 +70,20 @@ print('Chosen method for Credit is', chosen_method)
 df_compare.plot()
 plt.show()
 
+weights = pd.concat([bt_ew.weights.iloc[-1].rename('EW'),
+                     bt_hrp.weights.iloc[-1].rename('HRP'),
+                     bt_erc.weights.iloc[-1].rename('ERC')],
+                    axis=1)
+weights.to_excel(writer, 'Weights')
+
 if chosen_method == 'EW':
-    weights = bt_ew.weights.iloc[-1].rename('EW Weights')
     tracker = bt_ew.return_index
 elif chosen_method == 'HRP':
-    weights = bt_hrp.weights.iloc[-1].rename('HRP Weights')
     tracker = bt_hrp.return_index
 elif chosen_method == 'ERC':
-    weights = bt_erc.weights.iloc[-1].rename('ERC Weights')
     tracker = bt_hrp.return_index
 
-
-weights.to_excel(writer, 'Weights')
-tracker.to_excel(writer, 'Tracker')
+tracker.to_excel(writer, 'Trackers')
 writer.save()
 
 tracker_uploader(tracker.to_frame('Pillar Credito'))
