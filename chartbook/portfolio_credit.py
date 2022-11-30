@@ -40,9 +40,6 @@ perf.table.T.to_excel(writer, 'Asset Performance')
 df_eri.pct_change().corr().to_excel(writer, 'Asset Corr Daily')
 df_eri.resample('M').last().pct_change().corr().to_excel(writer, 'Asset Corr Monthly')
 
-# Quick plot
-(100 * df_eri.dropna() / df_eri.dropna().iloc[0]).plot()
-plt.show()
 
 # ===== PORTFOLIO CONSTRUCTION =====
 # Equal Weighted
@@ -65,25 +62,30 @@ perf = Performance(df_compare)
 perf.table.T.to_excel(writer, 'Strat Performance')
 
 chosen_method = perf.table.loc['Sharpe'].astype(float).idxmax()
-print('Chosen method for Credit is', chosen_method)
-
-df_compare.plot()
-plt.show()
 
 weights = pd.concat([bt_ew.weights.iloc[-1].rename('EW'),
                      bt_hrp.weights.iloc[-1].rename('HRP'),
                      bt_erc.weights.iloc[-1].rename('ERC')],
                     axis=1)
+
+sharpe = perf.table.loc['Sharpe']
+weights['Sharpe-weighted Average'] = (weights * sharpe).sum(axis=1) / sharpe.sum()
+
 weights.to_excel(writer, 'Weights')
 
-if chosen_method == 'EW':
-    tracker = bt_ew.return_index
-elif chosen_method == 'HRP':
-    tracker = bt_hrp.return_index
-elif chosen_method == 'ERC':
-    tracker = bt_hrp.return_index
 
-tracker.to_excel(writer, 'Trackers')
+trackers = pd.concat([bt_ew.return_index.rename('EW'),
+                      bt_hrp.return_index.rename('HRP'),
+                      bt_erc.return_index.rename('ERC')],
+                     axis=1)
+
+trackers = trackers.dropna().pct_change(1) * sharpe / sharpe.sum()
+trackers = trackers.sum(axis=1)
+trackers = (1 + trackers).cumprod()
+trackers = 100 * trackers / trackers.iloc[0]
+trackers = trackers.rename('Pillar Credito')
+
+trackers.to_excel(writer, 'Trackers')
 writer.save()
 
-tracker_uploader(tracker.to_frame('Pillar Credito'))
+tracker_uploader(trackers.to_frame('Pillar Credito'))
