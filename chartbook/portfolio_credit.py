@@ -86,6 +86,10 @@ trackers = 100 * trackers / trackers.iloc[0]
 trackers = trackers.rename('Pillar Credito')
 
 trackers.to_excel(writer, 'Trackers')
+
+tracker_perf = Performance(trackers.to_frame('Credit Pillar'))
+tracker_perf.table.T.to_excel(writer, 'Pillar Performance')
+
 writer.save()
 
 tracker_uploader(trackers.to_frame('Pillar Credito'))
