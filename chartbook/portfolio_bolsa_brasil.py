@@ -1,9 +1,11 @@
 """
-This routine builds the optimal FIP (Fundo de investimento em participações) portfolio.
+This routine builds the brasil equity pillar.
 The available assets for this portfolio are:
-    - BDIV11: Infra / BTG
-    - JURO11: Infra / Sparta
-    - XPIE11
+    - BOVA
+    - BRAX
+    - GURU
+    - PIBB
+    - SMAL
 """
 from quantfin.portfolio import Performance, EqualWeights, BacktestHRP, BacktestERC
 from quantfin.data import tracker_feeder, SGS, DROPBOX, tracker_uploader
@@ -16,7 +18,7 @@ pd.set_option('display.max_columns', 50)
 pd.set_option('display.width', 250)
 
 # Excel file to save outputs
-writer = pd.ExcelWriter(DROPBOX.joinpath(f'Pillar FIP.xlsx'))
+writer = pd.ExcelWriter(DROPBOX.joinpath(f'Pillar Equity Brazil.xlsx'))
 
 # Benchmark
 sgs = SGS()
@@ -25,7 +27,7 @@ df_cdi = df_cdi['CDI'] / 100
 
 # Trackers
 df_tri = tracker_feeder()
-df_tri = df_tri[['BDIV', 'JURO', 'XPIE']]
+df_tri = df_tri[['BOVA', 'BRAX', 'GURU', 'PIBB', 'SMAL']]
 
 # Excess Returns
 df_eri = compute_eri(df_tri, df_cdi)
@@ -83,13 +85,13 @@ trackers = trackers.dropna().pct_change(1) * sharpe / sharpe.sum()
 trackers = trackers.sum(axis=1)
 trackers = (1 + trackers).cumprod()
 trackers = 100 * trackers / trackers.iloc[0]
-trackers = trackers.rename('Pillar FIP')
+trackers = trackers.rename('Pillar Equity Brazil')
 
 trackers.to_excel(writer, 'Trackers')
 
-tracker_perf = Performance(trackers.to_frame('FIP Pillar'))
+tracker_perf = Performance(trackers.to_frame('Equity Brazil Pillar'))
 tracker_perf.table.T.to_excel(writer, 'Pillar Performance')
 
 writer.save()
 
-tracker_uploader(trackers.to_frame('Pillar FIP'))
+tracker_uploader(trackers.to_frame('Pillar Equity Brazil'))
