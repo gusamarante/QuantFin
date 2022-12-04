@@ -55,47 +55,22 @@ aux = aux['Notional'].rename('LTN Longa')
 aux.index = pd.to_datetime(aux.index)
 df = pd.concat([df, aux], axis=1)
 
-# NTN-B Curta
-aux = pd.read_csv(file_path.joinpath('ntnb_curta.csv'),
-                  index_col=0, sep=';')
-aux = aux['Notional'].rename('NTNB Curta')
-aux.index = pd.to_datetime(aux.index)
-df = pd.concat([df, aux], axis=1)
+# NTN-Bs
+available_ntnb = ['05', '1', '15', '2', '3', '4', '5', '6', '7', '8', '9', '10']
 
-# NTN-B 1y
-aux = pd.read_csv(file_path.joinpath('ntnb_1y.csv'),
-                  index_col=0, sep=';')
-aux = aux['Notional'].rename('NTNB 1y')
-aux.index = pd.to_datetime(aux.index)
-df = pd.concat([df, aux], axis=1)
+for mat in available_ntnb:
 
-# NTN-B 2y
-aux = pd.read_csv(file_path.joinpath('ntnb_2y.csv'),
-                  index_col=0, sep=';')
-aux = aux['Notional'].rename('NTNB 2y')
-aux.index = pd.to_datetime(aux.index)
-df = pd.concat([df, aux], axis=1)
+    aux = pd.read_csv(file_path.joinpath(f'ntnb_{mat}y.csv'),
+                      index_col=0, sep=';')
 
-# NTN-B 5y
-aux = pd.read_csv(file_path.joinpath('ntnb_5y.csv'),
-                  index_col=0, sep=';')
-aux = aux['Notional'].rename('NTNB 5y')
-aux.index = pd.to_datetime(aux.index)
-df = pd.concat([df, aux], axis=1)
+    if mat in ['05', '15']:
+        tracker_name = f'NTNB {mat[0]}.{mat[1]}y'
+    else:
+        tracker_name = f'NTNB {mat}y'
 
-# NTN-B 10y
-aux = pd.read_csv(file_path.joinpath('ntnb_10y.csv'),
-                  index_col=0, sep=';')
-aux = aux['Notional'].rename('NTNB 10y')
-aux.index = pd.to_datetime(aux.index)
-df = pd.concat([df, aux], axis=1)
-
-# NTN-B Longa
-aux = pd.read_csv(file_path.joinpath('ntnb_longa.csv'),
-                  index_col=0, sep=';')
-aux = aux['Notional'].rename('NTNB Longa')
-aux.index = pd.to_datetime(aux.index)
-df = pd.concat([df, aux], axis=1)
+    aux = aux['Notional'].rename(tracker_name)
+    aux.index = pd.to_datetime(aux.index)
+    df = pd.concat([df, aux], axis=1)
 
 # NTN-F Curta
 aux = pd.read_csv(file_path.joinpath('ntnf_curta.csv'),
@@ -118,7 +93,7 @@ aux = aux['Notional'].rename('NTNF 5y')
 aux.index = pd.to_datetime(aux.index)
 df = pd.concat([df, aux], axis=1)
 
-# NTN-B Longa
+# NTN-F Longa
 aux = pd.read_csv(file_path.joinpath('ntnf_longa.csv'),
                   index_col=0, sep=';')
 aux = aux['Notional'].rename('NTNF Longa')
