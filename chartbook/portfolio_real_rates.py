@@ -1,16 +1,22 @@
 from quantfin.data import tracker_feeder, DROPBOX, SGS
+from quantfin.portfolio import Performance
+import matplotlib.pyplot as plt
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
 
 last_year = 2022
 
+pd.set_option('display.max_rows', 100)
+pd.set_option('display.max_columns', 50)
+pd.set_option('display.width', 250)
+
 # =====================
 # ===== Read Data =====
 # =====================
 # Total Return Indexes
 df_tri = tracker_feeder()
-df_tri = df_tri[['NTNB 0.5y', 'NTNB 1.5y', 'NTNB 1y', 'NTNB 2y', 'NTNB 3y', 'NTNB 4y',
+df_tri = df_tri[['NTNB 0.5y', 'NTNB 1y', 'NTNB 1.5y', 'NTNB 2y', 'NTNB 3y', 'NTNB 4y',
                  'NTNB 5y', 'NTNB 6y', 'NTNB 7y', 'NTNB 8y', 'NTNB 9y', 'NTNB 10y']]
 
 # Real Zero Curve
