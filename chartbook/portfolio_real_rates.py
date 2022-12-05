@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 
 last_year = 2022
+start_date = '2007-01-01'
 
 pd.set_option('display.max_rows', 100)
 pd.set_option('display.max_columns', 50)
@@ -38,3 +39,27 @@ df_curve = df_curve.drop([0], axis=1)
 df_curve = df_curve[df_curve.index >= '2006-04-01']  # Filter the dates
 df_curve = df_curve[df_curve.columns[df_curve.columns <= 33*252]]  # Filter columns
 df_curve.index = pd.to_datetime(df_curve.index)
+
+# ===========================
+# ===== Long-run Sharpe =====
+# ===========================
+df_returns = df_tri / df_tri.iloc[0]
+exponent = (252/np.arange(df_tri.shape[0]))
+df_returns = df_returns.pow(exponent, axis=0) - 1
+
+df_vols = df_tri.pct_change(1).expanding().std()*np.sqrt(252)
+df_sharpe = df_returns / df_vols
+
+# =======================
+# ===== Backtesting =====
+# =======================
+dates2loop = df_tri.dropna(how='all').index
+dates2loop = dates2loop[dates2loop >= start_date]
+
+df_weights = pd.DataFrame()
+for date in dates2loop:
+    vol = df_vols.loc[date]
+    mu = 0.5 * df_sharpe.loc[date] * vol
+
+    # TODO Parei aqui
+    corr = df_tri.resample('Q').last().pct_change().corr()
