@@ -129,6 +129,7 @@ perf_asset.table.T.to_excel(writer, 'Asset Performance')
 
 perf_strat = Performance(df_bt)
 perf_strat.table.T.to_excel(writer, 'Strat Performance')
+df_bt.to_excel(writer, 'Tracker')
 
 # Get the relevant bonds
 relevant_maturities = df_weights.iloc[-1][df_weights.iloc[-1] >= 0.001].index
