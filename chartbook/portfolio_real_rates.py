@@ -148,4 +148,4 @@ for bond in relevant_maturities:
 
 writer.save()
 
-tracker_uploader(df_bt['Pillar Real Rate'])
+tracker_uploader(df_bt)
