@@ -113,7 +113,7 @@ df_weights = df_weights.resample('D').last().fillna(method='ffill')
 df_weights = df_weights.reindex(df_tri.index)
 df_weights = df_weights.fillna(method='ffill')
 
-df_weights.to_excel(writer, 'Weights')
+df_weights.dropna(how='all').to_excel(writer, 'Weights')
 
 # Excess Return Index
 df_bt = df_tri.pct_change() * df_weights.dropna()
