@@ -1,5 +1,5 @@
 from scipy.optimize import minimize, Bounds, NonlinearConstraint, LinearConstraint
-from quantfin.data import tracker_feeder, DROPBOX, SGS
+from quantfin.data import tracker_feeder, DROPBOX, SGS, tracker_uploader
 from quantfin.portfolio import Performance
 from quantfin.statistics import corr2cov
 from quantfin.finmath import compute_eri
@@ -130,4 +130,22 @@ perf_asset.table.T.to_excel(writer, 'Asset Performance')
 perf_strat = Performance(df_bt)
 perf_strat.table.T.to_excel(writer, 'Strat Performance')
 
+# Get the relevant bonds
+relevant_maturities = df_weights.iloc[-1][df_weights.iloc[-1] >= 0.001].index
+
+for bond in relevant_maturities:
+    filename = bond.lower().replace(' ', '_').replace('.', '') + '.csv'
+    aux = pd.read_csv(DROPBOX.joinpath(f'trackers/{filename}'), sep=';')
+    aux = aux.iloc[-1]
+    w = aux.loc['quantity 1'] * aux.loc['price 1'] / aux.loc['Notional']
+
+    bond2excel = pd.Series({'bond 1': aux.loc['bond 1'],
+                            'bond 2': aux.loc['bond 2'],
+                            'weight 1': w,
+                            'weight 2': 1 - w})
+
+    bond2excel.to_excel(writer, bond)
+
 writer.save()
+
+tracker_uploader(df_bt['Pillar Real Rate'])
