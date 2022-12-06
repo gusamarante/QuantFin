@@ -71,7 +71,7 @@ dates2loop = dates2loop[dates2loop >= start_date]
 next_rebalance_date = dates2loop[0]
 
 df_weights = pd.DataFrame(columns=df_tri.columns)
-df_target_vol = pd.Series(name='Target Vol')
+df_target_vol = pd.Series(name='Target Vol', dtype=float)
 for date in tqdm(dates2loop, 'Optimizations'):
 
     if date >= next_rebalance_date:
@@ -105,6 +105,28 @@ for date in tqdm(dates2loop, 'Optimizations'):
         pass
 
 
-# TODO transformar os pesos em backtest
+# carry the weights trough the trimester
+df_weights = df_weights.resample('D').last().fillna(method='ffill')
+df_weights = df_weights.reindex(df_tri.index)
+df_weights = df_weights.fillna(method='ffill')
+
+# Excess Return Index
+df_bt = df_tri.pct_change() * df_weights.dropna()
+df_bt = df_bt.dropna()
+df_bt = df_bt.sum(axis=1)
+df_bt = (1 + df_bt).cumprod()
+df_bt = 100 * df_bt / df_bt.iloc[0]
+df_bt = df_bt.to_frame('Pillar Real Rate')
+
+# performance
+perf = Performance(df_bt)
+
+# TODO salvar as características que vão para o pillar de real rates
+# TODO testar diferentes valores da vol mínima
 
 
+
+
+
+
+a = 1
