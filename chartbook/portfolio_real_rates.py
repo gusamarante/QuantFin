@@ -13,6 +13,9 @@ start_date = '2007-01-01'
 min_vol = 0.06
 rebalance_window = 3  # in months
 
+# Excel file to save outputs
+writer = pd.ExcelWriter(DROPBOX.joinpath(f'Pillar Real Rates.xlsx'))
+
 pd.set_option('display.max_rows', 100)
 pd.set_option('display.max_columns', 50)
 pd.set_option('display.width', 250)
@@ -34,24 +37,24 @@ df_cdi = df_cdi['CDI'] / 100
 df_tri = compute_eri(df_tri, df_cdi)
 
 # Real Zero Curve
-df_raw_curve = pd.DataFrame()
-for year in tqdm(range(2003, last_year + 1), 'Reading Curves'):
-    aux = pd.read_csv(DROPBOX.joinpath(f'curves/curva_zero_ntnb_{year}.csv'))
-    aux = aux.drop(['Unnamed: 0'], axis=1)
-    df_raw_curve = pd.concat([df_raw_curve, aux])
-
-df_raw_curve = df_raw_curve.pivot('reference_date', 'du', 'yield')
-
-df_curve = 1 / ((df_raw_curve + 1) ** (df_raw_curve.columns / 252))  # Discount factors
-df_curve = np.log(df_curve)  # ln of the dicount factors
-df_curve = df_curve.interpolate(limit_area='inside', axis=1, method='index')  # linear interpolations along the lines
-df_curve = np.exp(df_curve)  # back to discounts
-df_curve = (1 / df_curve) ** (252 / df_curve.columns) - 1
-df_curve = df_curve.drop([0], axis=1)
-
-df_curve = df_curve[df_curve.index >= '2006-04-01']  # Filter the dates
-df_curve = df_curve[df_curve.columns[df_curve.columns <= 33*252]]  # Filter columns
-df_curve.index = pd.to_datetime(df_curve.index)
+# df_raw_curve = pd.DataFrame()
+# for year in tqdm(range(2003, last_year + 1), 'Reading Curves'):
+#     aux = pd.read_csv(DROPBOX.joinpath(f'curves/curva_zero_ntnb_{year}.csv'))
+#     aux = aux.drop(['Unnamed: 0'], axis=1)
+#     df_raw_curve = pd.concat([df_raw_curve, aux])
+#
+# df_raw_curve = df_raw_curve.pivot('reference_date', 'du', 'yield')
+#
+# df_curve = 1 / ((df_raw_curve + 1) ** (df_raw_curve.columns / 252))  # Discount factors
+# df_curve = np.log(df_curve)  # ln of the dicount factors
+# df_curve = df_curve.interpolate(limit_area='inside', axis=1, method='index')  # linear interpolations along the lines
+# df_curve = np.exp(df_curve)  # back to discounts
+# df_curve = (1 / df_curve) ** (252 / df_curve.columns) - 1
+# df_curve = df_curve.drop([0], axis=1)
+#
+# df_curve = df_curve[df_curve.index >= '2006-04-01']  # Filter the dates
+# df_curve = df_curve[df_curve.columns[df_curve.columns <= 33*252]]  # Filter columns
+# df_curve.index = pd.to_datetime(df_curve.index)
 
 # ===========================
 # ===== Long-run Sharpe =====
@@ -110,6 +113,8 @@ df_weights = df_weights.resample('D').last().fillna(method='ffill')
 df_weights = df_weights.reindex(df_tri.index)
 df_weights = df_weights.fillna(method='ffill')
 
+df_weights.to_excel(writer, 'Weights')
+
 # Excess Return Index
 df_bt = df_tri.pct_change() * df_weights.dropna()
 df_bt = df_bt.dropna()
@@ -119,14 +124,10 @@ df_bt = 100 * df_bt / df_bt.iloc[0]
 df_bt = df_bt.to_frame('Pillar Real Rate')
 
 # performance
-perf = Performance(df_bt)
+perf_asset = Performance(df_tri)
+perf_asset.table.T.to_excel(writer, 'Asset Performance')
 
-# TODO salvar as características que vão para o pillar de real rates
-# TODO testar diferentes valores da vol mínima
+perf_strat = Performance(df_bt)
+perf_strat.table.T.to_excel(writer, 'Strat Performance')
 
-
-
-
-
-
-a = 1
+writer.save()
