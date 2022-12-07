@@ -3,10 +3,9 @@ This routine builds the global equity pillar.
 The available assets for this portfolio are:
     - ASIA
     - IVVB
-    - XINA
 """
 from quantfin.portfolio import Performance, EqualWeights, BacktestHRP, BacktestERC
-from quantfin.data import tracker_feeder, SGS, DROPBOX, tracker_uploader
+from quantfin.data import tracker_feeder, SGS, DROPBOX, tracker_uploader, FRED
 from quantfin.finmath import compute_eri
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -25,7 +24,14 @@ df_cdi = df_cdi['CDI'] / 100
 
 # Trackers
 df_tri = tracker_feeder()
-df_tri = df_tri[['ASIA', 'IVVB', 'XINA']]
+df_tri = df_tri[['ASIA', 'IVVB']]
+
+# Data to backfill the IVVB
+sub_ivvb = pd.read_excel(DROPBOX.joinpath('trackers/Legacy IVVB.xlsx'), index_col=0, sheet_name='Legacy')
+aux = df_tri['IVVB'].pct_change().fillna(sub_ivvb['IVVB sub'].pct_change())
+aux = (1 + aux).cumprod()
+aux = 100 * aux / aux.iloc[0]
+df_tri['IVVB'] = aux
 
 # Excess Returns
 df_eri = compute_eri(df_tri, df_cdi)

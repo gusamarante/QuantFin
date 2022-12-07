@@ -48,7 +48,7 @@ class FRED(object):
     def _fetch_single_code(series_id):
 
         url = r'https://fred.stlouisfed.org/data/' + series_id + '.txt'
-        df = pd.read_csv(url, sep='\n')
+        df = pd.read_csv(url, sep='\t')
         series_start = df[df[df.columns[0]].str.contains('DATE\s+VALUE')].index[0] + 1
         df = df.loc[series_start:]
         df = df[df.columns[0]].str.split('\s+', expand=True)
