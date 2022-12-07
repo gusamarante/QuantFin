@@ -72,33 +72,22 @@ for mat in available_ntnb:
     aux.index = pd.to_datetime(aux.index)
     df = pd.concat([df, aux], axis=1)
 
-# NTN-F Curta
-aux = pd.read_csv(file_path.joinpath('ntnf_curta.csv'),
-                  index_col=0, sep=';')
-aux = aux['Notional'].rename('NTNF Curta')
-aux.index = pd.to_datetime(aux.index)
-df = pd.concat([df, aux], axis=1)
+# NTN-Fs
+available_ntnf = ['05', '1', '15', '2', '3', '4', '5']
 
-# NTN-F 2y
-aux = pd.read_csv(file_path.joinpath('ntnf_2y.csv'),
-                  index_col=0, sep=';')
-aux = aux['Notional'].rename('NTNF 2y')
-aux.index = pd.to_datetime(aux.index)
-df = pd.concat([df, aux], axis=1)
+for mat in available_ntnf:
 
-# NTN-F 5y
-aux = pd.read_csv(file_path.joinpath('ntnf_5y.csv'),
-                  index_col=0, sep=';')
-aux = aux['Notional'].rename('NTNF 5y')
-aux.index = pd.to_datetime(aux.index)
-df = pd.concat([df, aux], axis=1)
+    aux = pd.read_csv(file_path.joinpath(f'ntnf_{mat}y.csv'),
+                      index_col=0, sep=';')
 
-# NTN-F Longa
-aux = pd.read_csv(file_path.joinpath('ntnf_longa.csv'),
-                  index_col=0, sep=';')
-aux = aux['Notional'].rename('NTNF Longa')
-aux.index = pd.to_datetime(aux.index)
-df = pd.concat([df, aux], axis=1)
+    if mat in ['05', '15']:
+        tracker_name = f'NTNF {mat[0]}.{mat[1]}y'
+    else:
+        tracker_name = f'NTNF {mat}y'
+
+    aux = aux['Notional'].rename(tracker_name)
+    aux.index = pd.to_datetime(aux.index)
+    df = pd.concat([df, aux], axis=1)
 
 
 # ===================================================
