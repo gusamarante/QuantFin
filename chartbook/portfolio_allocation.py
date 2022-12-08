@@ -1,4 +1,4 @@
-from scipy.optimize import minimize, Bounds, NonlinearConstraint, LinearConstraint
+from scipy.optimize import minimize, Bounds, LinearConstraint
 from quantfin.data import tracker_feeder, DROPBOX, SGS
 from quantfin.statistics import GaussianHMM
 import pandas as pd
@@ -57,7 +57,6 @@ for state in hmm.means.index:
         r = x @ mu
         s = r / v
         return -s
-
 
     w0 = np.ones(n_assets) * (1 / n_assets)
     bounds = Bounds(np.zeros(n_assets), np.ones(n_assets))
