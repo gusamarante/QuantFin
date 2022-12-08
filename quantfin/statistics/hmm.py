@@ -174,6 +174,7 @@ class GaussianHMM(object):
                                alpha=0.3, color=colors[st].hex, lw=0)
 
         else:
+            # TODO support for DataFrames
             pass
 
         plt.tight_layout()
