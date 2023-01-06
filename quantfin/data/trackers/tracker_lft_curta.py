@@ -8,7 +8,7 @@ pd.set_option('display.max_rows', 100)
 pd.set_option('display.max_columns', 50)
 pd.set_option('display.width', 250)
 
-last_year = 2022
+last_year = 2023
 tic = time()
 
 # User defined parameters

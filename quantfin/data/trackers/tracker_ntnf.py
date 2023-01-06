@@ -4,8 +4,6 @@ from tqdm import tqdm
 from time import time
 import pandas as pd
 
-# TODO trackers that handle the smallest possible and the longest possible bond
-
 tic = time()  # Time the run
 
 pd.set_option('display.max_rows', 100)
@@ -15,7 +13,7 @@ pd.set_option('display.width', 250)
 # User defined parameters
 desired_duration = [0.5, 1, 1.5, 2, 3, 4, 5]  # in years (its going to be a little more)
 rebalance_window = 3  # in months
-last_year = 2022
+last_year = 2023
 notional_start = 100
 start_date = '2006-01-01'
 

@@ -1,9 +1,9 @@
 """
 This routine builds the optimal FIP (Fundo de investimento em participações) portfolio.
 The available assets for this portfolio are:
-    - BDIV11: Infra / BTG
-    - JURO11: Infra / Sparta
-    - XPIE11
+    - BDIV11: Infra - Energia / BTG
+    - JURO11: Infra - Geral / Sparta
+    - XPIE11: Infra - ??? / XP
 """
 from quantfin.portfolio import Performance, EqualWeights, BacktestHRP, BacktestERC
 from quantfin.data import tracker_feeder, SGS, DROPBOX, tracker_uploader
