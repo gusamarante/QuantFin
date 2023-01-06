@@ -1,9 +1,8 @@
 """
 This routine builds the optimal Credit Portfolio.
 The available assets for this portfolio are:
-    - IDA DI: nominal corporate bonds
     - IDA IPCA: real corporate bonds
-    - DEBB: ETF of nominal corporate bonds
+    - DEBB: ETF of nominal corporate bonds (Backtest is done with the IDA DI Index)
 """
 from quantfin.portfolio import Performance, EqualWeights, BacktestHRP, BacktestERC
 from quantfin.data import tracker_feeder, SGS, DROPBOX, tracker_uploader
@@ -25,7 +24,7 @@ df_cdi = df_cdi['CDI'] / 100
 
 # Trackers
 df_tri = tracker_feeder()
-df_tri = df_tri[['IDA DI', 'IDA IPCA', 'DEBB']]
+df_tri = df_tri[['IDA DI', 'IDA IPCA']]
 
 # Excess Returns
 df_eri = compute_eri(df_tri, df_cdi)

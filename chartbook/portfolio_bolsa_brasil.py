@@ -1,11 +1,11 @@
 """
 This routine builds the brasil equity pillar.
 The available assets for this portfolio are:
-    - BOVA
-    - BRAX
-    - GURU
-    - PIBB
-    - SMAL
+    - BOVA Ibovespa
+    - BRAX IBRX100
+    - GURU Gurus do mercado
+    - PIBB IBRX50
+    - SMAL Small Caps
 """
 from quantfin.portfolio import Performance, EqualWeights, BacktestHRP, BacktestERC
 from quantfin.data import tracker_feeder, SGS, DROPBOX, tracker_uploader
@@ -27,7 +27,11 @@ df_cdi = df_cdi['CDI'] / 100
 
 # Trackers
 df_tri = tracker_feeder()
-df_tri = df_tri[['BOVA', 'BRAX', 'GURU', 'PIBB', 'SMAL']]
+df_tri = df_tri[['BOVA',
+                 'BRAX',
+                 # 'GURU',
+                 'PIBB',
+                 'SMAL']]
 
 # Excess Returns
 df_eri = compute_eri(df_tri, df_cdi)
