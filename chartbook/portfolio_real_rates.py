@@ -8,7 +8,7 @@ from tqdm import tqdm
 import pandas as pd
 import numpy as np
 
-last_year = 2022
+last_year = 2023
 start_date = '2007-01-01'
 min_vol = 0.06
 rebalance_window = 3  # in months
@@ -23,6 +23,15 @@ pd.set_option('display.width', 250)
 # =====================
 # ===== Read Data =====
 # =====================
+# Bond data
+ntnb = pd.DataFrame()
+for year in tqdm(range(2003, last_year + 1), 'Reading files'):
+    aux = pd.read_csv(DROPBOX.joinpath(f'trackers/dados_ntnb {year}.csv'), sep=';')
+    ntnb = pd.concat([ntnb, aux])
+
+ntnb['reference date'] = pd.to_datetime(ntnb['reference date'])
+ntnb['maturity'] = pd.to_datetime(ntnb['maturity'])
+
 # Total Return Indexes
 df_tri = tracker_feeder()
 df_tri = df_tri[['NTNB 0.5y', 'NTNB 1y', 'NTNB 1.5y', 'NTNB 2y', 'NTNB 3y', 'NTNB 4y',
@@ -60,7 +69,7 @@ df_tri = compute_eri(df_tri, df_cdi)
 # ===== Long-run Sharpe =====
 # ===========================
 df_returns = df_tri / df_tri.iloc[0]
-exponent = (252/np.arange(df_tri.shape[0]))
+exponent = (252 / np.arange(df_tri.shape[0]))
 df_returns = df_returns.pow(exponent, axis=0) - 1
 
 df_vols = df_tri.pct_change(1).expanding().std()*np.sqrt(252)
@@ -131,22 +140,12 @@ perf_strat = Performance(df_bt)
 perf_strat.table.T.to_excel(writer, 'Strat Performance')
 df_bt.to_excel(writer, 'Tracker')
 
-# Get the relevant bonds
-relevant_maturities = df_weights.iloc[-1][df_weights.iloc[-1] >= 0.001].index
+# Get the latest bonds
+available_bonds = ntnb[ntnb['reference date'] == ntnb['reference date'].max()]
+available_bonds = available_bonds.drop(['Unnamed: 0', 'index', 'bond code', 'reference date'], axis=1)
+available_bonds.to_excel(writer, 'Available Bonds')
 
-for bond in relevant_maturities:
-    filename = bond.lower().replace(' ', '_').replace('.', '') + '.csv'
-    aux = pd.read_csv(DROPBOX.joinpath(f'trackers/{filename}'), sep=';')
-    aux = aux.iloc[-1]
-    w = aux.loc['quantity 1'] * aux.loc['price 1'] / aux.loc['Notional']
-
-    bond2excel = pd.Series({'bond 1': aux.loc['bond 1'],
-                            'bond 2': aux.loc['bond 2'],
-                            'weight 1': w,
-                            'weight 2': 1 - w})
-
-    bond2excel.to_excel(writer, bond)
-
+# Save data
 writer.save()
 
 tracker_uploader(df_bt)
