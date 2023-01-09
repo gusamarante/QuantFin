@@ -8,7 +8,7 @@ from tqdm import tqdm
 import pandas as pd
 import numpy as np
 
-last_year = 2022
+last_year = 2023
 start_date = '2007-01-01'
 min_vol = 0.06
 rebalance_window = 3  # in months
@@ -23,6 +23,16 @@ pd.set_option('display.width', 250)
 # =====================
 # ===== Read Data =====
 # =====================
+# Bond Data
+ntnf = pd.DataFrame()
+for year in tqdm(range(2003, last_year + 1), 'Reading files'):
+    aux = pd.read_csv(DROPBOX.joinpath(f'trackers/dados_ntnf {year}.csv'), sep=';')
+    ntnf = pd.concat([ntnf, aux])
+
+ntnf['reference date'] = pd.to_datetime(ntnf['reference date'])
+ntnf['maturity'] = pd.to_datetime(ntnf['maturity'])
+ntnf = ntnf.drop(['Unnamed: 0', 'index'], axis=1)
+
 # Total Return Indexes
 df_tri = tracker_feeder()
 df_tri = df_tri[['NTNF 0.5y', 'NTNF 1y', 'NTNF 1.5y', 'NTNF 2y', 'NTNF 3y', 'NTNF 4y', 'NTNF 5y']]
@@ -110,21 +120,10 @@ perf_strat = Performance(df_bt)
 perf_strat.table.T.to_excel(writer, 'Strat Performance')
 df_bt.to_excel(writer, 'Tracker')
 
-# Get the relevant bonds
-relevant_maturities = df_weights.iloc[-1][df_weights.iloc[-1] >= 0.001].index
-
-for bond in relevant_maturities:
-    filename = bond.lower().replace(' ', '_').replace('.', '') + '.csv'
-    aux = pd.read_csv(DROPBOX.joinpath(f'trackers/{filename}'), sep=';')
-    aux = aux.iloc[-1]
-    w = aux.loc['quantity 1'] * aux.loc['price 1'] / aux.loc['Notional']
-
-    bond2excel = pd.Series({'bond 1': aux.loc['bond 1'],
-                            'bond 2': aux.loc['bond 2'],
-                            'weight 1': w,
-                            'weight 2': 1 - w})
-
-    bond2excel.to_excel(writer, bond)
+# Get the latest bonds
+available_bonds = ntnf[ntnf['reference date'] == ntnf['reference date'].max()]
+available_bonds = available_bonds.drop(['bond code', 'reference date'], axis=1)
+available_bonds.to_excel(writer, 'Available Bonds')
 
 writer.save()
 
