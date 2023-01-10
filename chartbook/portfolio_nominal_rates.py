@@ -23,7 +23,15 @@ pd.set_option('display.width', 250)
 # =====================
 # ===== Read Data =====
 # =====================
-# Bond Data
+# Set up
+ltn = pd.DataFrame()
+for year in tqdm(range(2003, last_year + 1), 'Reading files'):
+    aux = pd.read_csv(DROPBOX.joinpath(f'trackers/dados_ltn {year}.csv'), sep=';')
+    ltn = pd.concat([ltn, aux])
+
+ltn['reference date'] = pd.to_datetime(ltn['reference date'])
+
+# NTNF Data
 ntnf = pd.DataFrame()
 for year in tqdm(range(2003, last_year + 1), 'Reading files'):
     aux = pd.read_csv(DROPBOX.joinpath(f'trackers/dados_ntnf {year}.csv'), sep=';')
@@ -121,9 +129,13 @@ perf_strat.table.T.to_excel(writer, 'Strat Performance')
 df_bt.to_excel(writer, 'Tracker')
 
 # Get the latest bonds
-available_bonds = ntnf[ntnf['reference date'] == ntnf['reference date'].max()]
-available_bonds = available_bonds.drop(['bond code', 'reference date'], axis=1)
-available_bonds.to_excel(writer, 'Available Bonds')
+available_ntnf = ntnf[ntnf['reference date'] == ntnf['reference date'].max()]
+available_ntnf = available_ntnf.drop(['bond code', 'reference date'], axis=1)
+available_ntnf.to_excel(writer, 'Available NTNF')
+
+available_ltn = ltn[ltn['reference date'] == ntnf['reference date'].max()]
+available_ltn = available_ltn.drop(['Unnamed: 0', 'index', 'bond code', 'reference date'], axis=1)
+available_ltn.to_excel(writer, 'Available LTN')
 
 writer.save()
 
