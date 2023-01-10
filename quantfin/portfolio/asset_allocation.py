@@ -485,7 +485,7 @@ class ERC(object):
         Combines the assets in 'cov' so that all of them have equal contributions to the
         overall risk of the portfolio.
         :param cov: pandas DataFrame with the covariance matrix of returns
-        :param vol_target: float, minimum volatility that the optimization will target
+        :param bounded: bool, if true, limits the weights to be between 0 and 1
         """
         self.n_assets = cov.shape[0]
         self.cov = cov

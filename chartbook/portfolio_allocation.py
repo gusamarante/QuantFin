@@ -1,6 +1,7 @@
 from scipy.optimize import minimize, Bounds, LinearConstraint
 from quantfin.data import tracker_feeder, DROPBOX, SGS
 from quantfin.statistics import GaussianHMM
+from quantfin.portfolio import ERC, HRP
 import pandas as pd
 import numpy as np
 
@@ -75,5 +76,21 @@ df_weights.to_excel(writer, 'Weights by state')
 # ===================================
 # ===== Equal Risk Contribution =====
 # ===================================
-# TODO parei aqui, calcular o ERC e o HRP dos pilares
+cov_m = df_tri.resample('M').last().pct_change(1).dropna().cov()
+cov_q = df_tri.resample('Q').last().pct_change(1).dropna().cov()
+erc_m = ERC(cov=cov_m, bounded=True)
+erc_q = ERC(cov=cov_q, bounded=True)
+
+erc_weights = pd.concat([erc_q.weights.rename('Quarterly'), erc_m.weights.rename('Monthly')], axis=1)
+erc_weights.to_excel(writer, 'ERC Weights')
+
+# ====================================
+# ===== Hierarchical Risk Parity =====
+# ====================================
+hrp_m = HRP(cov_m)
+hrp_q = HRP(cov_q)
+hrp_weights = pd.concat([hrp_q.weights.rename('Quarterly'), hrp_m.weights.rename('Monthly')], axis=1)
+hrp_weights.to_excel(writer, 'HRP Weights')
+
+
 writer.save()
