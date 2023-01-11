@@ -115,7 +115,7 @@ for dd in desired_duration:
             next_rebalance_date = date + pd.DateOffset(months=rebalance_window)
 
     # Save the tracker composition
-    filename = f'trackers/ntnb_{str(dd).replace(".", "")}y.csv'
+    filename = f'trackers/ntnb_{str(dd).replace(".", "p")}y.csv'
     df_bt.to_csv(DROPBOX.joinpath(filename), sep=';')
 
     # Standardize the tracker

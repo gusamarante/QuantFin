@@ -56,18 +56,14 @@ aux.index = pd.to_datetime(aux.index)
 df = pd.concat([df, aux], axis=1)
 
 # NTN-Bs
-available_ntnb = ['05', '1', '15', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+available_ntnb = ['0p5', '1', '1p5', '2', '3', '4', '5', '6', '7', '8', '9', '10', '15', '20', '25']  # TODO how to deal with the duplicate 15
 
 for mat in available_ntnb:
 
     aux = pd.read_csv(file_path.joinpath(f'ntnb_{mat}y.csv'),
                       index_col=0, sep=';')
 
-    if mat in ['05', '15']:
-        tracker_name = f'NTNB {mat[0]}.{mat[1]}y'
-    else:
-        tracker_name = f'NTNB {mat}y'
-
+    tracker_name = f'NTNB {mat.replace("p", ".")}y'
     aux = aux['Notional'].rename(tracker_name)
     aux.index = pd.to_datetime(aux.index)
     df = pd.concat([df, aux], axis=1)
