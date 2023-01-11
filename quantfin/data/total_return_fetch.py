@@ -56,7 +56,7 @@ aux.index = pd.to_datetime(aux.index)
 df = pd.concat([df, aux], axis=1)
 
 # NTN-Bs
-available_ntnb = ['0p5', '1', '1p5', '2', '3', '4', '5', '6', '7', '8', '9', '10', '15', '20', '25']  # TODO how to deal with the duplicate 15
+available_ntnb = ['0p5', '1', '1p5', '2', '3', '4', '5', '6', '7', '8', '9', '10', '15', '20', '25']
 
 for mat in available_ntnb:
 
