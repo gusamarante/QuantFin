@@ -4,8 +4,6 @@ from tqdm import tqdm
 from time import time
 import pandas as pd
 
-# TODO trackers that handle the smallest possible and the longest possible bond
-
 tic = time()  # Time the run
 
 pd.set_option('display.max_rows', 100)
@@ -13,7 +11,7 @@ pd.set_option('display.max_columns', 50)
 pd.set_option('display.width', 250)
 
 # User defined parameters
-desired_duration = [0.5, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10]  # in years (its going to be a little more)
+desired_duration = [0.5, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25]  # in years (its going to be a little more)
 rebalance_window = 3  # in months
 last_year = 2023
 notional_start = 100
@@ -84,6 +82,11 @@ for dd in desired_duration:
             if dur_idx == 0:
                 x = 1
                 new_bond1, new_bond2 = aux_data_select['duration'].iloc[[0, 1]].index
+
+            elif dur_idx == len(aux_data_select['duration']):
+                x = 0
+                new_bond1, new_bond2 = aux_data_select['duration'].iloc[[-2, -1]].index
+
             else:
                 a = aux_data_select['duration'].iloc[[dur_idx - 1, dur_idx]].values
                 x = (dd - a[1]) / (a[0] - a[1])  # Ammount of bond 1
