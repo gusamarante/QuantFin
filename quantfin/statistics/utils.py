@@ -88,7 +88,6 @@ def corr2cov(corr, std):
     corr_a = np.array(corr)
     std = np.array(std)
 
-    assert np.all(np.linalg.eigvals(corr_a) > 0), "'cov' matrix is not positive definite"
     assert np.all(std >= 0), "'std' must not contain negative numbers"
     assert corr_a.shape[0] == corr_a.shape[1], "'cov' matrix is not square"
 

@@ -35,7 +35,8 @@ ntnb['maturity'] = pd.to_datetime(ntnb['maturity'])
 # Total Return Indexes
 df_tri = tracker_feeder()
 df_tri = df_tri[['NTNB 0.5y', 'NTNB 1y', 'NTNB 1.5y', 'NTNB 2y', 'NTNB 3y', 'NTNB 4y',
-                 'NTNB 5y', 'NTNB 6y', 'NTNB 7y', 'NTNB 8y', 'NTNB 9y', 'NTNB 10y']]
+                 'NTNB 5y', 'NTNB 6y', 'NTNB 7y', 'NTNB 8y', 'NTNB 9y', 'NTNB 10y',
+                 'NTNB 15y', 'NTNB 20y', 'NTNB 25y']]
 
 # Benchmark
 sgs = SGS()
