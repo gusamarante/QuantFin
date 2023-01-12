@@ -11,7 +11,7 @@ pd.set_option('display.max_columns', 50)
 pd.set_option('display.width', 250)
 
 # User defined parameters
-desired_duration = [0.5, 1, 1.5, 2, 3, 4, 5]  # in years (its going to be a little more)
+desired_duration = [0.5, 1, 1.5, 2, 3, 4, 5, 6, 7, 8]  # in years
 rebalance_window = 3  # in months
 last_year = 2023
 notional_start = 100
@@ -123,7 +123,7 @@ for dd in desired_duration:
             next_rebalance_date = date + pd.DateOffset(months=rebalance_window)
 
     # Save the tracker composition
-    filename = f'trackers/ntnf_{str(dd).replace(".", "")}y.csv'
+    filename = f'trackers/ntnf_{str(dd).replace(".", "p")}y.csv'
     df_bt.to_csv(DROPBOX.joinpath(filename), sep=';')
 
     # Standardize the tracker

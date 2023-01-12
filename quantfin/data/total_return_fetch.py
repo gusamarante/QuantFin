@@ -69,18 +69,14 @@ for mat in available_ntnb:
     df = pd.concat([df, aux], axis=1)
 
 # NTN-Fs
-available_ntnf = ['05', '1', '15', '2', '3', '4', '5']
+available_ntnf = ['0p5', '1', '1p5', '2', '3', '4', '5', '6', '7', '8']
 
 for mat in available_ntnf:
 
     aux = pd.read_csv(file_path.joinpath(f'ntnf_{mat}y.csv'),
                       index_col=0, sep=';')
 
-    if mat in ['05', '15']:
-        tracker_name = f'NTNF {mat[0]}.{mat[1]}y'
-    else:
-        tracker_name = f'NTNF {mat}y'
-
+    tracker_name = f'NTNF {mat.replace("p", ".")}y'
     aux = aux['Notional'].rename(tracker_name)
     aux.index = pd.to_datetime(aux.index)
     df = pd.concat([df, aux], axis=1)
