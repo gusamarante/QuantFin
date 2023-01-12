@@ -31,7 +31,8 @@ df_tri = df_tri[['BOVA',
                  'BRAX',
                  # 'GURU',
                  'PIBB',
-                 'SMAL']]
+                 # 'SMAL',
+                 ]]
 
 # Excess Returns
 df_eri = compute_eri(df_tri, df_cdi)

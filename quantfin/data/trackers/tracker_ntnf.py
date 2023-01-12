@@ -17,7 +17,17 @@ last_year = 2023
 notional_start = 100
 start_date = '2006-01-01'
 
-# Read the Data
+# Read the Data - LTN
+ltn = pd.DataFrame()
+for year in tqdm(range(2003, last_year + 1), 'Reading LTN files'):
+    aux = pd.read_csv(DROPBOX.joinpath(f'trackers/dados_ltn {year}.csv'), sep=';')
+    ltn = pd.concat([ltn, aux])
+
+ltn['reference date'] = pd.to_datetime(ltn['reference date'])
+ltn['maturity'] = pd.to_datetime(ltn['maturity'])
+ltn = ltn.drop(['Unnamed: 0', 'index'], axis=1)
+
+# Read the Data - NTNF
 ntnf = pd.DataFrame()
 
 for year in tqdm(range(2003, last_year + 1), 'Reading files'):
@@ -27,6 +37,9 @@ for year in tqdm(range(2003, last_year + 1), 'Reading files'):
 ntnf['reference date'] = pd.to_datetime(ntnf['reference date'])
 ntnf['maturity'] = pd.to_datetime(ntnf['maturity'])
 ntnf = ntnf.drop(['Unnamed: 0', 'index'], axis=1)
+
+# Put bond data togehter
+ntnf = pd.concat([ntnf, ltn])
 
 # Set up
 dates2loop = pd.to_datetime(ntnf['reference date'].unique())
@@ -39,7 +52,8 @@ for dd in desired_duration:
 
     # First date
     aux_data = ntnf[ntnf['reference date'] == dates2loop[0]].set_index('bond code')
-    aux_data = aux_data.sort_values('du')
+    aux_data = aux_data[aux_data['du'] > rebalance_window * 21 + 2]
+    aux_data = aux_data.sort_values('duration')
 
     dur_idx = aux_data['duration'].searchsorted(dd)
 
@@ -86,7 +100,7 @@ for dd in desired_duration:
             df_bt.loc[date, 'Notional'] = df_bt.loc[date, 'quantity 1'] * df_bt.loc[date, 'price 1'] + df_bt.loc[date, 'quantity 2'] * df_bt.loc[date, 'price 2']
 
         else:  # past rebalance, recompute the weights
-            aux_data_select = aux_data[aux_data['du'] >= 21*rebalance_window]
+            aux_data_select = aux_data[aux_data['du'] > 21*rebalance_window + 2]
             dur_idx = aux_data_select['duration'].searchsorted(dd)
 
             if dur_idx == 0:

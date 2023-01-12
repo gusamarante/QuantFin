@@ -25,7 +25,7 @@ pd.set_option('display.width', 250)
 # =====================
 # Set up
 ltn = pd.DataFrame()
-for year in tqdm(range(2003, last_year + 1), 'Reading files'):
+for year in tqdm(range(2003, last_year + 1), 'Reading LTN files'):
     aux = pd.read_csv(DROPBOX.joinpath(f'trackers/dados_ltn {year}.csv'), sep=';')
     ltn = pd.concat([ltn, aux])
 
@@ -33,7 +33,7 @@ ltn['reference date'] = pd.to_datetime(ltn['reference date'])
 
 # NTNF Data
 ntnf = pd.DataFrame()
-for year in tqdm(range(2003, last_year + 1), 'Reading files'):
+for year in tqdm(range(2003, last_year + 1), 'Reading NTNF files'):
     aux = pd.read_csv(DROPBOX.joinpath(f'trackers/dados_ntnf {year}.csv'), sep=';')
     ntnf = pd.concat([ntnf, aux])
 
@@ -43,7 +43,8 @@ ntnf = ntnf.drop(['Unnamed: 0', 'index'], axis=1)
 
 # Total Return Indexes
 df_tri = tracker_feeder()
-df_tri = df_tri[['NTNF 0.5y', 'NTNF 1y', 'NTNF 1.5y', 'NTNF 2y', 'NTNF 3y', 'NTNF 4y', 'NTNF 5y']]
+df_tri = df_tri[['NTNF 0.5y', 'NTNF 1y', 'NTNF 1.5y', 'NTNF 2y', 'NTNF 3y',
+                 'NTNF 4y', 'NTNF 5y', 'NTNF 6y', 'NTNF 7y', 'NTNF 8y']]
 
 # Benchmark
 sgs = SGS()

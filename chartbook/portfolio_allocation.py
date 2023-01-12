@@ -14,8 +14,8 @@ writer = pd.ExcelWriter(DROPBOX.joinpath(f'Allocation Regimes.xlsx'))
 
 # Read Trackers
 df_tri = tracker_feeder()
-df_tri = df_tri[['Pillar Credito', 'Pillar Equity Brazil', 'Pillar Equity Global',
-                 'Pillar FIP', 'Pillar Nominal Rate', 'Pillar Real Rate']]
+df_tri = df_tri[['Pillar Equity Brazil', 'Pillar Equity Global',
+                 'Pillar Nominal Rate', 'Pillar Real Rate']]
 
 # Macro Data
 sgs = SGS()
@@ -32,10 +32,10 @@ pib = pib.resample('Q').mean().pct_change()
 # ===============================
 # ===== Hidden Markov Model =====
 # ===============================
-input_data = df_tri.resample('M').last().drop([], axis=1).pct_change().dropna()
+input_data = df_tri.resample('Q').last().drop([], axis=1).pct_change().dropna()
 # input_data = pd.concat([input_data, pib, ipca], axis=1).dropna()
 hmm = GaussianHMM(returns=input_data)
-hmm.fit(n_states=2, fit_iter=200)
+hmm.fit(n_states=3, fit_iter=200)
 
 hmm.trans_mat.to_excel(writer, 'Transition')
 hmm.means.to_excel(writer, 'Mean')
