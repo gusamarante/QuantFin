@@ -43,6 +43,7 @@ def ntnb_cashflows(reference_date, maturity_date, vna):
 
 # ===== optimization =====
 def bootstrapp(cashflows, prices):
+    # TODO Documentation
 
     # Find the DUs that we can change
     du_dof = cashflows.idxmax().values
@@ -83,7 +84,7 @@ def bootstrapp(cashflows, prices):
 
 
 # Read the Data
-last_year = 2022
+last_year = 2023
 raw_data = pd.DataFrame()
 
 for year in tqdm(range(2003, last_year + 1), 'Reading files'):
@@ -128,4 +129,4 @@ for today in tqdm(dates2loop, 'Bootstrapping'):
     df_yield_curve = pd.concat([df_yield_curve, yield_curve], axis=0)
 
 df_yield_curve = df_yield_curve.dropna()
-df_yield_curve.to_csv(f'/Users/gustavoamarante/Dropbox/Personal Portfolio/curves/curva_zero_ntnb_{ano}.csv')
+df_yield_curve.to_csv(f'/Users/gusamarante/Library/CloudStorage/Dropbox/Personal Portfolio/curves/curva_zero_ntnb_{ano}.csv')
