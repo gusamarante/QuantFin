@@ -1,12 +1,11 @@
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+from time import time
 import matplotlib.pyplot as plt
+from quantfin.data import DROPBOX
 from sklearn.decomposition import PCA
 from scipy.stats import percentileofscore
-from pandas.tseries.offsets import BDay, Day
-from quantfin.data import DROPBOX
-from time import time
 
 pd.set_option('display.max_columns', 25)
 pd.set_option('display.width', 250)
