@@ -13,9 +13,9 @@ tic = time()
 
 # User defined parameters
 min_sample = 21
-start_date = '2007-01-01'
-exposition_pcadv01 = [0, 0, 100]
+start_date = '2022-01-01'
 exposition_pca_number = 3
+exposition_pcadv01 = [0, 0, 100]
 entry_bound = 5  # Must be below 50 # TODO Hyper
 writer = pd.ExcelWriter(DROPBOX.joinpath('DI1 PCA Backtest'))
 
