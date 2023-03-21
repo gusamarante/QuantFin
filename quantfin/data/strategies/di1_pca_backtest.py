@@ -17,7 +17,7 @@ start_date = '2022-01-01'
 exposition_pca_number = 3
 exposition_pcadv01 = [0, 0, 100]
 entry_bound = 5  # Must be below 50 # TODO Hyper
-writer = pd.ExcelWriter(DROPBOX.joinpath('DI1 PCA Backtest'))
+writer = pd.ExcelWriter(DROPBOX.joinpath('DI1 PCA Backtest.xlsx'))
 
 # get data
 df_raw = pd.DataFrame()
