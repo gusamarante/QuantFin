@@ -4,6 +4,7 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from pandas.tseries.offsets import BDay
+from quantfin.data import DROPBOX
 
 # User defined parameters
 window_size = 252 * 2
@@ -14,8 +15,14 @@ exposition_pca_number = 3
 holding_period = 30
 
 # get data
-df_raw = pd.read_csv(r'/Users/gustavoamarante/Dropbox/Aulas/Insper - Renda Fixa/2022/Dados DI1.csv', index_col=0)
+df_raw = pd.DataFrame()
+for year in tqdm(range(2006, 2023+1), 'Reading Files'):
+    aux = pd.read_csv(DROPBOX.joinpath(f'trackers/dados_di1 {year}.csv'), sep=';')
+    df_raw = pd.concat([df_raw, aux], axis=0)
+
+df_raw = df_raw.drop(['Unnamed: 0'], axis=1)
 df_raw['reference_date'] = pd.to_datetime(df_raw['reference_date'])
+df_raw['maturity_date'] = pd.to_datetime(df_raw['maturity_date'])
 
 # build the curve
 df_curve = df_raw.pivot('reference_date', 'du', 'rate')
@@ -52,8 +59,8 @@ df_var_roll = pd.DataFrame(columns=['PC 1', 'PC 2', 'PC 3'])
 df_pca_roll = pd.DataFrame(columns=['PC 1', 'PC 2', 'PC 3'])
 
 for date in tqdm(dates2loop, 'Computing Rolling PCs'):
-    aux_curve = df_curve.loc[date - BDay(window_size):date]  # Rolling Window
-    # aux_curve = df_curve.loc[:date]  # Expanding Window
+    # aux_curve = df_curve.loc[date - BDay(window_size):date]  # Rolling Window
+    aux_curve = df_curve.loc[:date]  # Expanding Window
 
     if aux_curve.shape[0] < min_sample:
         continue
@@ -80,3 +87,10 @@ plt.show()
 df_pca_full['PC 3'].plot()
 df_pca_roll['PC 3'].plot()
 plt.show()
+
+
+# ====================
+# ===== Backtest =====
+# ====================
+# TODO montar o backtest dos 3 PCAs baseado no df_pca_roll
+# TODO rolling historical percentile, entradas e saídas e neutralidades
