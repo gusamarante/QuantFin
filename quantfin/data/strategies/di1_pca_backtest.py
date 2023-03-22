@@ -13,9 +13,10 @@ tic = time()
 
 # User defined parameters
 min_sample = 21
-start_date = '2022-01-01'
-exposition_pca_number = 3
-exposition_pcadv01 = [0, 0, 100]
+start_date = '2007-01-01'
+# TODO add full PCA override
+exposition_pca_number = 2
+exposition_pcadv01 = [0, 100, 0]
 entry_bound = 5  # Must be below 50 # TODO Hyper
 writer = pd.ExcelWriter(DROPBOX.joinpath('DI1 PCA Backtest.xlsx'))
 
@@ -157,7 +158,7 @@ for date, datem1 in tqdm(dates2loop, 'Backtesting'):
             # Signal changed side from 50. Exit the position
             df_backtest.loc[date, 'position'] = 0
 
-    else:
+    else:  # TODO add exit bound
         # If yesterday I did not have a position, check If I should build one
         if df_backtest.loc[date, 'signal percentile'] >= (100 - entry_bound):
             # Build a short position, invert the quantities
