@@ -14,6 +14,9 @@ from pathlib import Path
 import getpass
 
 # User defined parameters
+start_date = '2007-01-01'
+exposition_pcadv01 = [100, 0, 0]
+exposition_pca_number = 1
 username = getpass.getuser()
 save_path = Path(f'/Users/{username}/Dropbox/Aulas/Insper - Renda Fixa/2023/figures')
 
@@ -33,6 +36,11 @@ df_curve = df_raw.pivot(index='reference_date', columns='du', values='rate')
 df_curve = df_curve.interpolate(axis=1, method='cubic', limit_area='inside')
 df_curve = df_curve.dropna(how='any', axis=1)
 df_curve.index = pd.to_datetime(df_curve.index)
+
+# Organize DV01
+df_dv01 = df_raw.pivot(index='reference_date', columns='du', values='dv01')
+df_dv01.index = pd.to_datetime(df_dv01.index)
+# df_dv01 = - df_dv01
 
 
 # ===========================
@@ -154,4 +162,85 @@ plt.show()
 plt.close()
 
 
+# ====================
+# ===== Backtest =====
+# ====================
+def get_portfolio(current_date, pcadv01):
+    """
+    Function that Selects the portfolio for a given set of signals
+    """
+    current_dt = pd.to_datetime(current_date)
 
+    pca = PCA(n_components=3)
+    data = df_curve.loc[:current_dt].values
+    pca.fit(data)
+
+    current_loadings = pd.DataFrame(data=pca.components_,
+                                    index=range(1, 4),
+                                    columns=df_curve.columns).T
+    current_pca = pd.DataFrame(data=pca.transform(df_curve.values),
+                               columns=range(1, 4),
+                               index=df_curve.index)
+
+    signal = np.sign(current_loadings.iloc[-1])
+    current_loadings = current_loadings * signal
+    current_pca = current_pca * signal
+
+    available_maturities = df_dv01.loc[current_date].dropna().index
+    available_maturities = available_maturities[df_curve.columns.min() <= available_maturities]
+    available_maturities = available_maturities[df_curve.columns.max() >= available_maturities]
+
+    aux_pcadv01 = current_loadings.loc[available_maturities]
+    aux_pcadv01 = aux_pcadv01.multiply(df_dv01.loc[current_date, available_maturities], axis=0)
+    vertices_du = [aux_pcadv01.index[5], aux_pcadv01.idxmin()[3], aux_pcadv01.idxmax()[3]]
+
+    if len(set(vertices_du)) != 3:
+        vertices_du = [aux_pcadv01.index[3], aux_pcadv01.idxmin()[3], aux_pcadv01.index[-1]]
+
+    selected_portfolio = pd.DataFrame(index=vertices_du)
+    cond_date = df_raw['reference_date'] == current_date
+    cond_du = df_raw['du'].isin(vertices_du)
+    current_data = df_raw[cond_date & cond_du].sort_values('du')
+
+    selected_portfolio['contracts'] = current_data['contract'].values
+    selected_portfolio['pu'] = current_data['theoretical_price'].values
+    selected_portfolio[['Loadings 1', 'Loadings 2', 'Loadings 3']] = current_loadings.loc[vertices_du]
+    selected_portfolio[['PCADV01 1', 'PCADV01 2', 'PCADV01 3']] = aux_pcadv01.loc[vertices_du]
+
+    selected_signal = pd.Series(index=['PCA 1', 'PCA 2', 'PCA 3'], data=current_pca.loc[current_date].values)
+
+    coeff = selected_portfolio[['PCADV01 1', 'PCADV01 2', 'PCADV01 3']].T.values
+    constants = np.array(pcadv01)
+    selected_portfolio['quantities'] = np.linalg.inv(coeff) @ constants
+
+    return selected_portfolio, selected_signal
+
+
+# Start
+df_backtest = pd.DataFrame()
+dates2loop = df_curve.index[df_curve.index >= start_date]
+
+current_portfolios, current_signal = get_portfolio(current_date=dates2loop[0],
+                                                   pcadv01=exposition_pcadv01)
+
+df_backtest.loc[dates2loop[0], 'notional'] = (current_portfolios['quantities'].abs() * current_portfolios['pu']).sum()
+
+dates2loop = list(zip(dates2loop[1:], dates2loop[:-1]))
+for date, datem1 in tqdm(dates2loop, 'Backtesting'):
+
+    # Signal and portfolio will be computed everyday
+    current_portfolios, current_signal = get_portfolio(datem1, exposition_pcadv01)
+    df_backtest.loc[date, 'signal'] = current_signal[f'PCA {exposition_pca_number}']
+
+    # Build Position
+    filter_contracts = df_raw['contract'].isin(current_portfolios['contracts'].values)
+    filter_date = df_raw['reference_date'] == date
+    pnl_contracts = df_raw[filter_date & filter_contracts].sort_values('du')['pnl'].values
+    pnl_today = current_portfolios['quantities'].values.dot(pnl_contracts)
+
+    df_backtest.loc[date, ['du 1', 'du 2', 'du 3']] = current_portfolios.index.sort_values()
+    df_backtest.loc[date, ['q 1', 'q 2', 'q 3']] = current_portfolios['quantities'].values
+    df_backtest.loc[date, 'pnl'] = pnl_today
+    df_backtest.loc[date, 'notional'] = df_backtest.loc[datem1, 'notional'] + pnl_today
+
+df_backtest.to_clipboard()
