@@ -1,3 +1,8 @@
+"""
+generates the charts for the PCA analysis for yield curves based on the DI
+futures curve. The generated slides are used in the slide deck
+"""
+
 import numpy as np
 import pandas as pd
 from tqdm import tqdm

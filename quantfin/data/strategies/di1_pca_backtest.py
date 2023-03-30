@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from time import time
-import matplotlib.pyplot as plt
 from quantfin.data import DROPBOX
 from sklearn.decomposition import PCA
 from scipy.stats import percentileofscore
@@ -30,13 +29,13 @@ df_raw = df_raw.drop(['Unnamed: 0'], axis=1)
 df_raw['reference_date'] = pd.to_datetime(df_raw['reference_date'])
 df_raw['maturity_date'] = pd.to_datetime(df_raw['maturity_date'])
 
-# # build the curve
+# build the curve
 df_curve = df_raw.pivot('reference_date', 'du', 'rate')
 df_curve = df_curve.interpolate(axis=1, method='cubic')
 df_curve = df_curve.dropna(how='any', axis=1)
 df_curve.index = pd.to_datetime(df_curve.index)
-#
-# # Organize DV01
+
+# Organize DV01
 df_dv01 = df_raw.pivot(index='reference_date', columns='du', values='dv01')
 df_dv01.index = pd.to_datetime(df_dv01.index)
 df_dv01 = - df_dv01
