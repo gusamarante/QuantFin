@@ -16,7 +16,7 @@ import pandas as pd
 # User defined parameters
 pd.set_option('display.max_columns', 25)
 pd.set_option('display.width', 250)
-start_date = '2023-03-01'  # TODO Correct the date
+start_date = '2007-01-01'  # TODO Correct the date
 
 
 # Path to save outputs
@@ -131,7 +131,7 @@ ax2.axhline(0, color='black', linewidth=0.5)
 
 plt.tight_layout()
 plt.savefig(save_path.joinpath('figures/DI PC1 Expanding VS Full.pdf'))
-plt.show()
+# plt.show()
 plt.close()
 
 # ----- 2nd PC -----
@@ -168,7 +168,7 @@ ax2.axhline(0, color='black', linewidth=0.5)
 
 plt.tight_layout()
 plt.savefig(save_path.joinpath('figures/DI PC2 Expanding VS Full.pdf'))
-plt.show()
+# plt.show()
 plt.close()
 
 
@@ -206,7 +206,7 @@ ax2.axhline(0, color='black', linewidth=0.5)
 
 plt.tight_layout()
 plt.savefig(save_path.joinpath('figures/DI PC3 Expanding VS Full.pdf'))
-plt.show()
+# plt.show()
 plt.close()
 
 # ----- 4th PC -----
@@ -243,6 +243,6 @@ ax2.axhline(0, color='black', linewidth=0.5)
 
 plt.tight_layout()
 plt.savefig(save_path.joinpath('figures/DI PC4 Expanding VS Full.pdf'))
-plt.show()
+# plt.show()
 plt.close()
 
