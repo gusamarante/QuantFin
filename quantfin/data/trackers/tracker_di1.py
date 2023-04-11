@@ -123,5 +123,5 @@ for dd in desired_duration:
     df_tracker = pd.concat([df_tracker, df_bt['Notional'].rename(dd)], axis=1)
 
 
-df_tracker.to_csv(DROPBOX.joinpath(f'trackers/trackers di1.csv'))
+df_tracker.to_csv(DROPBOX.joinpath(f'trackers/trackers di1.csv'), sep=';')
 print(round((time() - tic)/60, 1), 'minutes for DI1 trackers')
