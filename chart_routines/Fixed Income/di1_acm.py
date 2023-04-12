@@ -1,5 +1,9 @@
 """
 Generate the estimate of term premium of the DI1 based on the ACM Model
+
+Next Steps:
+- Make this run in daily frequency
+- Implied central bank trajectory on both the observed and the risk neutral yield
 """
 
 import getpass
