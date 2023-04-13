@@ -95,6 +95,7 @@ acm = NominalACM(curve=df_curve, excess_returns=df_ret, compute_miy=True, verbos
 for mat in [12, 24, 36, 60]:
     df_plot = pd.concat([acm.curve[mat].rename('Yield'),
                          acm.miy[mat].rename('Model Implied'),
+                         acm.rny[mat].rename('Risk-Neutral Yield'),
                          acm.term_premium[mat].rename('Term Premium')],
                         axis=1)
 
