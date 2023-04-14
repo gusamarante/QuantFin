@@ -10,13 +10,12 @@ import getpass
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+from time import time
 from pathlib import Path
 import matplotlib.pyplot as plt
-from quantfin.data import DROPBOX, SGS
-from scipy.stats import percentileofscore
-from time import time
-from quantfin.models import NominalACM
 import matplotlib.dates as mdates
+from quantfin.models import NominalACM
+from quantfin.data import DROPBOX, SGS
 
 tic = time()
 
