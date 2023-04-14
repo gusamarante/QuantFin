@@ -16,6 +16,7 @@ from quantfin.data import DROPBOX, SGS
 from scipy.stats import percentileofscore
 from time import time
 from quantfin.models import NominalACM
+import matplotlib.dates as mdates
 
 tic = time()
 
@@ -23,9 +24,10 @@ tic = time()
 pd.set_option('display.max_columns', 25)
 pd.set_option('display.width', 250)
 
+size = 7
 start_date = '2007-01-01'
 username = getpass.getuser()
-save_path = Path(f'/Users/{username}/Dropbox/Aulas/Insper - Renda Fixa/2023')
+save_path = Path(f'/Users/{username}/Dropbox/Aulas/Insper - Renda Fixa/2023/figures')
 
 # Read the DIs
 df_di = pd.DataFrame()
@@ -93,14 +95,41 @@ df_ret = df_ret[df_ret.index >= start_date]
 acm = NominalACM(curve=df_curve, excess_returns=df_ret, compute_miy=True, verbose=True, freq='monthly')
 
 for mat in [12, 24, 36, 60]:
-    df_plot = pd.concat([acm.curve[mat].rename('Yield'),
-                         acm.miy[mat].rename('Model Implied'),
-                         acm.rny[mat].rename('Risk-Neutral Yield'),
-                         acm.term_premium[mat].rename('Term Premium')],
-                        axis=1)
+    fig = plt.figure(figsize=(size * (16 / 9), size))
 
-    df_plot.plot(title=f'{mat/12}-year')
+
+    df_plot = pd.concat([acm.curve[mat].rename('Observed'),
+                         acm.miy[mat].rename('Model Implied'),
+                         acm.rny[mat].rename('Risk-Neutral')],
+                        axis=1)
+    df_plot = 100 * df_plot
+
+    ax_yields = plt.subplot2grid((1, 2), (0, 0))
+    ax_yields.plot(df_plot)
+    ax_yields.set_title(f'{int(mat/12)}-year Yields')
+    ax_yields.set_ylim((2, 18))
+    ax_yields.grid(axis='y', alpha=0.3)
+    ax_yields.grid(axis='x', alpha=0.3)
+    ax_yields.legend(df_plot.columns, frameon=True, loc='best')
+    locators = mdates.YearLocator()
+    ax_yields.xaxis.set_major_locator(locators)
+    ax_yields.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+    ax_yields.tick_params(labelrotation=90, axis='x')
+
+    ax_tp = plt.subplot2grid((1, 2), (0, 1))
+    ax_tp.plot(acm.term_premium[mat].rename('Term Premium')*100)
+    ax_tp.axhline(0, color='black', linewidth=0.5)
+    ax_tp.set_title(f'{int(mat/12)}-year Term Premium')
+    ax_tp.set_ylim((-2, 7))
+    ax_tp.grid(axis='y', alpha=0.3)
+    ax_tp.grid(axis='x', alpha=0.3)
+    locators = mdates.YearLocator()
+    ax_tp.xaxis.set_major_locator(locators)
+    ax_tp.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+    ax_tp.tick_params(labelrotation=90, axis='x')
+
     plt.tight_layout()
+    plt.savefig(save_path.joinpath(f'DI1 ACM Term Premium {int(mat/12)}y.pdf'))
     plt.show()
 
 print(round((time() - tic)/60, 1), 'minutes')
